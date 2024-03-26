@@ -54,8 +54,9 @@
 
 
   function getSHACLschema() {
-      const shape_file = "/src/assets/ddist-shacl.ttl";
-      fetch(shape_file, {headers: {
+
+      const shape_file_url = new URL("./assets/ddist-shacl.ttl", import.meta.url).href
+      fetch(shape_file_url, {headers: {
           'Accept': 'text/turtle',
           'Content-Type': 'text/turtle',
       }})
