@@ -1,1 +1,1 @@
-# shacl-dash-vue
+# shacl-vue
