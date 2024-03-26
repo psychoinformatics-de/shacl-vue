@@ -1,0 +1,26 @@
+{
+  "name": "shacl-vue",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mdi/font": "7.0.96",
+    "@rdfjs/dataset": "^2.0.2",
+    "@rdfjs/parser-n3": "^2.0.2",
+    "rdf-ext": "^2.5.1",
+    "roboto-fontface": "*",
+    "vue": "^3.4.0",
+    "vuetify": "^3.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.4",
+    "sass": "^1.71.1",
+    "unplugin-fonts": "^1.1.1",
+    "unplugin-vue-components": "^0.26.0",
+    "vite": "^5.1.5",
+    "vite-plugin-vuetify": "^2.0.3"
+  }
+}

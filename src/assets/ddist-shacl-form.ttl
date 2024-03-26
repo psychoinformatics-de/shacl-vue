@@ -1,0 +1,23 @@
+@prefix RDF: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix dlco: <https://concepts.datalad.org/ontology/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix spdx: <http://spdx.org/rdf/terms#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+
+dlco:DistributionPropertyGroup
+	a sh:PropertyGroup ;
+	rdfs:label "Data distribution" ;
+	sh:order "0"^^xsd:decimal .
+
+dlco:BasicPropertyGroup
+	a sh:PropertyGroup ;
+	rdfs:label "Basic" ;
+	sh:order "0"^^xsd:decimal .
+
+
+
+dlco:ContactPropertyGroup
+	a sh:PropertyGroup ;
+	rdfs:label "Contact" ;
+	sh:order "1"^^xsd:decimal .

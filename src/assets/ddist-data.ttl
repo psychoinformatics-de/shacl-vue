@@ -1,0 +1,9 @@
+@prefix dlco: <https://concepts.datalad.org/ontology/> .
+@prefix licenses: <http://spdx.org/licenses/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[] a dlco:DataDistribution ;
+    dlco:byte_size "123456789"^^xsd:nonNegativeInteger ;
+    dlco:license licenses:CC0-1.0 ;
+    dlco:modified "2024-03-21"^^<https://www.w3.org/TR/NOTE-datetime> ;
+    dlco:name "file1.txt" .
