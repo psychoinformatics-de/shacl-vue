@@ -28,7 +28,7 @@
 
         <h3>Properties:</h3>
         <br>
-        <span v-for="property in shape_obj.properties" :key="key">
+        <span v-for="property in shape_obj.properties">
             <v-card variant="outlined" style="margin-bottom: 0.5em;">
                 <v-card-text>
                     <v-card-title><small>{{ toCURIE(property["http://www.w3.org/ns/shacl#path"])}}</small></v-card-title>

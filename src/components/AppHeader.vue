@@ -4,7 +4,7 @@
       <v-app-bar-nav-icon></v-app-bar-nav-icon>
     </template>
 
-    <v-app-bar-title>shacl-dash-vue</v-app-bar-title>
+    <v-app-bar-title>shacl-vue</v-app-bar-title>
 
     <template v-slot:append>
       <v-btn icon="mdi-heart"></v-btn>
