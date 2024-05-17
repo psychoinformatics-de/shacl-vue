@@ -1,8 +1,10 @@
 <template>
-    <v-text-field v-bind="kaas" density="compact" variant="outlined" label="(text field editor)"></v-text-field>
+    <v-switch label="No/Yes" v-bind="kaas" inset></v-switch>
+    <span>{{ kaas }}</span>
 </template>
 
 <script setup>
     import { ref, onMounted, computed } from 'vue'
     var kaas = ref('')
+
 </script>

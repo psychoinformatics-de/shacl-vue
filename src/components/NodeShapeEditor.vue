@@ -94,6 +94,8 @@
         // add default property group
         used_prop_groups[defaultPropertyGroup.key] = defaultPropertyGroup.value
 
+        console.debug(used_prop_groups)
+
         // initialise 'own_properties' array
         for (var group_iri of Object.keys(used_prop_groups)) {
             used_prop_groups[group_iri]["own_properties"] = []

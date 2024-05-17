@@ -1,8 +1,9 @@
 <template>
-    <v-text-field v-bind="kaas" density="compact" variant="outlined" label="(text field editor)"></v-text-field>
+    <v-textarea v-bind="kaas" variant="outlined" label="(text area editor)"></v-textarea>
 </template>
 
 <script setup>
     import { ref, onMounted, computed } from 'vue'
     var kaas = ref('')
+
 </script>
