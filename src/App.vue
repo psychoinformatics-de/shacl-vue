@@ -86,7 +86,7 @@
   // --------- //
 
   function getSHACLschema() {
-      const shape_file_url = new URL("./assets/sddist-shacl-mod.ttl", import.meta.url).href
+      const shape_file_url = new URL("./assets/sddui-shacl.ttl", import.meta.url).href
       fetch(shape_file_url, {headers: {
           'Accept': 'text/turtle',
           'Content-Type': 'text/turtle',
