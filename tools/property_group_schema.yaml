@@ -1,0 +1,90 @@
+id: https://concepts.datalad.org/s/pgui/unreleased
+name: property_group_ui
+version: UNRELEASED
+status: bibo:status/draft
+title: Property Group schema for UI
+description: |
+  
+comments:
+  - ALL CONTENT HERE IS UNRELEASED AND MAY CHANGE ANY TIME
+
+license: MIT
+
+prefixes:
+  dlsddui: https://concepts.datalad.org/s/sddui/unreleased/
+  pgui: https://concepts.datalad.org/s/pgui/unreleased/
+  rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  sh: http://www.w3.org/ns/shacl#
+  xsd: http://www.w3.org/2001/XMLSchema#
+  linkml: https://w3id.org/linkml/
+
+emit_prefixes:
+  - pgui
+  - rdf
+  - rdfs
+  - sh
+  - xsd
+  - dlsddui
+
+imports:
+  - linkml:types
+
+slots:
+  id:
+    identifier: true
+    description: >-
+      The name of the property group that should be unique within the
+      context of a given graph.
+    range: string
+  label:
+    slot_uri: rdfs:label
+    description: >-
+      The label of the property group that will be displayed as the
+      heading of a section for this property group in the user interface
+    range: string
+  order:
+    slot_uri: sh:order
+    description: >-
+      The order that a 
+    range: decimal
+  description:
+    slot_uri: rdfs:comment
+    description: >-
+      A description of the 
+    range: string
+
+classes:
+  PropertyGroup:
+    class_uri: sh:PropertyGroup
+    description: >-
+      A property group will be used by nodes in a graph (i.e. fields) via
+      `sh:group` in order to group these nodes together under a relevant category.
+      All nodes that belong to a specific property group will be rendered together
+      in the resulting UI.
+    slots:
+      - id
+      - label
+      - order
+      - description
+    slot_usage:
+      id:
+        required: true
+      label:
+        required: true
+      order:
+        required: true
+      description:
+        required: true
+    see_also:
+      - https://www.w3.org/TR/shacl/#group
+      - https://datashapes.org/forms.html#property-groups
+  Container:
+    class_uri: pgui:Container
+    tree_root: true
+    attributes:
+      property_groups:
+        slot_uri: pgui:property_groups
+        multivalued: true
+        inlined_as_list: true
+        range: PropertyGroup
