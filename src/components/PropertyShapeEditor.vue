@@ -3,11 +3,11 @@
             <v-col cols="3">
                 <span>{{ nameOrCURIE }}:
                     <v-tooltip activator="parent" location="right" max-width="400px" max-height="400px">
-                        {{ props.property_shape[SHACL.name.value] }}: {{ props.property_shape[SHACL.description.value] }}
+                        {{ props.property_shape[SHACL.description.value] }}
                     </v-tooltip>
                 </span>
             </v-col>
-            <v-col cols="6"><component :is="matchedComponent.comp"></component></v-col>
+            <v-col cols="6"><component :is="matchedComponent.comp" :property_shape="property_shape"></component></v-col>
             <v-col></v-col>
         </v-row>
 </template>

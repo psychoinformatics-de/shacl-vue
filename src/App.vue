@@ -2,12 +2,9 @@
   <v-app>
       <AppHeader />
       <v-main v-show="page_ready">
-
-        
-
-        <v-container class=" mb-6">
+        <v-container class="ml-1 mr-1">
           <v-row align="start" no-gutters>
-            <v-col cols="1"><v-sheet class="pa-2 ma-2"></v-sheet></v-col>
+            <!-- <v-col cols="1"><v-sheet class="pa-2 ma-2"></v-sheet></v-col> -->
             <v-col>
               <v-select :items="nodeShapeNamesArray" item-title="name" label="Select a Node" density="compact">
                 <template v-slot:item="{ props, item }">
@@ -15,19 +12,23 @@
                 </template>
               </v-select>
             </v-col>
-            <v-col cols="2"><v-sheet class="pa-2 ma-2"></v-sheet></v-col>
+            <v-col cols="3"><v-sheet class="pa-2 ma-2"></v-sheet></v-col>
           </v-row>
           <v-row align="start" style="height: 150px;" no-gutters>
-              <v-col cols="1"><v-sheet class="pa-2 ma-2"></v-sheet></v-col>
-              <v-col>
+              <!-- <v-col cols="1"><v-sheet class="pa-2 ma-2"></v-sheet></v-col> -->
+              <v-col cols="8">
                   <v-sheet class="pa-4" border rounded elevation="2">
                       <span v-if="selectedIRI && prefixes_ready">
                           <NodeShapeEditor :prefixes="prefixes" :shape_iri="selectedIRI" :shape_obj="selectedShape" :prop_groups="propertyGroups"/>
                       </span>
-                      
                   </v-sheet>
               </v-col>
-              <v-col cols="2"><v-sheet class="pa-2 ma-2"></v-sheet></v-col>
+              <v-col class="ml-4">
+                <v-sheet class="pa-4" border rounded elevation="2">
+                  <h3>Data</h3>
+
+                </v-sheet>
+              </v-col>
           </v-row>
         </v-container>
           
@@ -42,13 +43,16 @@
   import rdf from 'rdf-ext';
   import ParserN3  from '@rdfjs/parser-n3';
   import { Readable } from 'readable-stream';
-  import {SHACL, RDF} from './plugins/namespaces'
+  import {SHACL, RDF} from './plugins/namespaces';
+  // import {SHACL, RDF} from './plugins/namespaces';  
   
+
   // ---- //
   // Data //
   // ---- //
 
-  const parserN3 = new ParserN3();
+  
+  const ttl_files = ["./assets/sddui-shacl.ttl", "./assets/sddui-shacl.ttl"]
   var shapesDataset = ref(null);
   var page_ready = ref(false);
   var prefixes_ready = ref(false);
@@ -61,6 +65,8 @@
   var prefixArray = ref(null);
   var selectedIRI = ref(null)
   var selectedShape = ref(null)
+  var graphDataset = ref(rdf.dataset());
+
 
   const defaultPropertyGroup = {}
   defaultPropertyGroup.key = "https://concepts.datalad.org/DefaultPropertyGroup"
@@ -84,9 +90,8 @@
   // --------- //
   // Functions //
   // --------- //
-
   function getSHACLschema() {
-      const shape_file_url = new URL("./assets/sddui-shacl.ttl", import.meta.url).href
+      const shape_file_url = new URL("./assets/graph.ttl", import.meta.url).href
       fetch(shape_file_url, {headers: {
           'Accept': 'text/turtle',
           'Content-Type': 'text/turtle',
@@ -94,6 +99,7 @@
       .then(response => response.text())
       .then(turtleContent => {
           const input = Readable.from(turtleContent)
+          const parserN3 = new ParserN3();
           const output = parserN3.import(input)
           nodeShapes = {}
           propertyGroups = {}

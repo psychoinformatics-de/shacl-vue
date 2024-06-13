@@ -22,6 +22,9 @@
 
 <script setup>
     import { ref, onMounted, computed } from 'vue'
+    const props = defineProps({
+        property_shape: Object,
+    })
     var today = new Date()
     var today_date = today.toISOString().split('T')[0]
     var selectedDate = ref(null)
