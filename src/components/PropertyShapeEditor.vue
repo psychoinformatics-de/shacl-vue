@@ -7,15 +7,23 @@
                     </v-tooltip>
                 </span>
             </v-col>
-            <v-col cols="6"><component :is="matchedComponent.comp" :property_shape="property_shape"></component></v-col>
+            <v-col cols="6">
+                <component
+                    :is="matchedComponent.comp"
+                    :property_shape="property_shape"
+                    :comp_uid="my_uid"
+                    >
+                </component>
+            </v-col>
             <v-col></v-col>
         </v-row>
 </template>
 
 <script setup>
-    import { ref, onMounted, computed } from 'vue'
+    import { ref, onMounted, onBeforeMount, computed, inject} from 'vue'
     import {SHACL, RDF, DASH, XSD} from '../plugins/namespaces'
     import { matchers } from '../plugins/globals'
+    import { v4 as uuidv4 } from 'uuid';
     
     
     // ----- //
@@ -25,6 +33,22 @@
     const props = defineProps({
         property_shape: Object,
         prefixes: Object,
+    })
+
+    // ---- //
+    // Data //
+    // ---- //
+    const my_uid = ref('');
+    const graph = inject('graph');
+    const add_triple = inject('add_triple');
+
+    // ----------------- //
+    // Lifecycle methods //
+    // ----------------- //
+
+    onBeforeMount(() => {
+        my_uid.value = uuidv4();
+        add_triple(my_uid.value)
     })
 
     // ------------------- //

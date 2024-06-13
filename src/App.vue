@@ -27,6 +27,22 @@
                 <v-sheet class="pa-4" border rounded elevation="2">
                   <h3>Data</h3>
 
+                  Number of triples:
+                  <br>
+                  {{ Object.keys(graph).length }}
+                  <br><br>
+                  Graph:
+                  <br>
+                  <span v-for="key in Object.keys(graph)">
+                    <strong>{{ key }}:</strong><br>
+                    subject: {{ graph[key].subject }} <br>
+                    predicate: {{ graph[key].predicate }} <br>
+                    object: {{ graph[key].object }} <br>
+                  </span>                  
+                  <v-btn @click="printGraphstuff()">
+                    Button
+                  </v-btn>
+
                 </v-sheet>
               </v-col>
           </v-row>
@@ -39,18 +55,18 @@
 
 
 <script setup>
-  import { ref, onMounted, onBeforeMount, provide} from 'vue'
+  import { ref, onMounted, onBeforeMount, provide, getCurrentInstance} from 'vue'
   import rdf from 'rdf-ext';
   import ParserN3  from '@rdfjs/parser-n3';
   import { Readable } from 'readable-stream';
   import {SHACL, RDF} from './plugins/namespaces';
-  // import {SHACL, RDF} from './plugins/namespaces';  
+  import { useGraph} from './composables/graphdata';
+
   
 
   // ---- //
   // Data //
   // ---- //
-
   
   const ttl_files = ["./assets/sddui-shacl.ttl", "./assets/sddui-shacl.ttl"]
   var shapesDataset = ref(null);
@@ -66,6 +82,8 @@
   var selectedIRI = ref(null)
   var selectedShape = ref(null)
   var graphDataset = ref(rdf.dataset());
+  var current_instance = ref(null)
+  const { graph, add_triple, remove_triple, edit_triple } = useGraph()
 
 
   const defaultPropertyGroup = {}
@@ -77,6 +95,11 @@
   }
   
   provide('defaultPropertyGroup', defaultPropertyGroup)
+  provide('graph', graph)
+  provide('add_triple', add_triple)
+  provide('remove_triple', remove_triple)
+  provide('edit_triple', edit_triple)
+  
 
   // ----------------- //
   // Lifecycle methods //
@@ -87,9 +110,51 @@
     getSHACLschema()
   })
 
+  onMounted(() => {
+    console.log("CURRENT INSTANCE")
+    current_instance = getCurrentInstance()
+    console.log(current_instance)
+  })
+
   // --------- //
   // Functions //
   // --------- //
+
+  function printGraphstuff() {
+    console.log(Object.keys(graph).length)
+  }
+
+  function getAllChildComponents(root) {
+    const components = [];
+  
+    function traverse(component) {
+
+      components.push(component)
+      // // Check if component has a type and name
+      // if (component.type && component.type.name) {
+      //   components.push(component.type.name);
+      // }
+  
+      // Recursively traverse child components
+      if (component.subTree) {
+        const children = component.subTree.children;
+        
+        if (Array.isArray(children)) {
+          children.forEach(child => {
+            if (child.component) {
+              traverse(child.component);
+            }
+          });
+        } else if (children && typeof children === 'object' && children.component) {
+          traverse(children.component);
+        }
+      }
+    }
+  
+    traverse(root);
+    return components;
+  }
+
   function getSHACLschema() {
       const shape_file_url = new URL("./assets/graph.ttl", import.meta.url).href
       fetch(shape_file_url, {headers: {
