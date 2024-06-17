@@ -8,23 +8,26 @@
                 </span>
             </v-col>
             <v-col cols="6">
-                <component
-                    :is="matchedComponent.comp"
-                    :property_shape="property_shape"
-                    :comp_uid="my_uid"
-                    >
-                </component>
+                <span v-if="isTripleAdded">
+                    <keep-alive>
+                        <component
+                            :is="matchedComponent.comp"
+                            :property_shape="property_shape"
+                            :node_uid="props.node_uid"
+                            :triple_uid="my_uid"
+                            >
+                        </component>
+                    </keep-alive>
+                </span>
             </v-col>
             <v-col></v-col>
         </v-row>
 </template>
 
 <script setup>
-    import { ref, onMounted, onBeforeMount, computed, inject} from 'vue'
+    import { ref, onMounted, onBeforeMount, computed, inject, onBeforeUpdate} from 'vue'
     import {SHACL, RDF, DASH, XSD} from '../plugins/namespaces'
-    import { matchers } from '../plugins/globals'
-    import { v4 as uuidv4 } from 'uuid';
-    
+    import { matchers } from '../plugins/globals'    
     
     // ----- //
     // Props //
@@ -33,22 +36,32 @@
     const props = defineProps({
         property_shape: Object,
         prefixes: Object,
+        node_uid: String,
     })
 
     // ---- //
     // Data //
     // ---- //
     const my_uid = ref('');
-    const graph = inject('graph');
     const add_triple = inject('add_triple');
+    const isTripleAdded = ref(false);
 
     // ----------------- //
     // Lifecycle methods //
     // ----------------- //
 
+    onMounted(() => {
+    })
+
     onBeforeMount(() => {
-        my_uid.value = uuidv4();
-        add_triple(my_uid.value)
+        console.log("PropertyShapeEditor is about to mounted")
+        my_uid.value = props.node_uid + '--' + props.property_shape[SHACL.path.value]
+        add_triple(props.node_uid, my_uid.value)
+        isTripleAdded.value = true;
+    })
+
+    onBeforeUpdate(() => {
+        console.log(`PropertyShapeEditor is about to be updated: ${my_uid.value}`)
     })
 
     // ------------------- //
