@@ -2,12 +2,9 @@
   <v-app>
       <AppHeader />
       <v-main v-show="page_ready">
-
-        
-
-        <v-container class=" mb-6">
+        <v-container fluid>
           <v-row align="start" no-gutters>
-            <v-col cols="1"><v-sheet class="pa-2 ma-2"></v-sheet></v-col>
+            <!-- <v-col cols="1"><v-sheet class="pa-2 ma-2"></v-sheet></v-col> -->
             <v-col>
               <v-select :items="nodeShapeNamesArray" item-title="name" label="Select a Node" density="compact">
                 <template v-slot:item="{ props, item }">
@@ -15,19 +12,47 @@
                 </template>
               </v-select>
             </v-col>
-            <v-col cols="2"><v-sheet class="pa-2 ma-2"></v-sheet></v-col>
+            <v-col cols="3"><v-sheet class="pa-2 ma-2"></v-sheet></v-col>
           </v-row>
-          <v-row align="start" style="height: 150px;" no-gutters>
-              <v-col cols="1"><v-sheet class="pa-2 ma-2"></v-sheet></v-col>
-              <v-col>
+          <v-row align="start" style="height: 150px; flex-wrap: nowrap" no-gutters>
+              <!-- <v-col cols="1"><v-sheet class="pa-2 ma-2"></v-sheet></v-col> -->
+              <v-col cols="6">
+                <h3>Selected Node</h3>
                   <v-sheet class="pa-4" border rounded elevation="2">
                       <span v-if="selectedIRI && prefixes_ready">
-                          <NodeShapeEditor :prefixes="prefixes" :shape_iri="selectedIRI" :shape_obj="selectedShape" :prop_groups="propertyGroups"/>
+                          <NodeShapeEditor :key="selectedIRI" :prefixes="prefixes" :shape_iri="selectedIRI" :shape_obj="selectedShape" :prop_groups="propertyGroups"/>
                       </span>
-                      
                   </v-sheet>
               </v-col>
-              <v-col cols="2"><v-sheet class="pa-2 ma-2"></v-sheet></v-col>
+              <v-col class="ml-6">
+                <span v-if="selectedIRI && prefixes_ready">
+                  <h3>Data</h3>
+                  <v-sheet class="pa-4" border rounded elevation="2">
+                    <code>
+                      <span v-for="(value, key, index) in prefixes">
+                        @prefix {{ key }}: &lt;{{ value }}&gt; .<br>
+                      </span>
+                      <br>
+                      <span v-for="(value, key, index) in graph">
+                        _b{{ index }} <br>
+                        &nbsp;&nbsp;&nbsp; a {{ toCURIE(key) }}
+                        <span v-for="(prop_val, prop_key , prop_idx) in value.properties">
+                          <span v-if="prop_val.object">
+                             ; <br>
+                            &nbsp;&nbsp;&nbsp; {{ toCURIE(prop_key) }} &quot;{{  prop_val.object }}&quot;
+                          </span>
+                        </span> .
+
+
+
+                        <br><br>
+                      </span>
+                    </code>
+
+
+                  </v-sheet>
+                </span>
+              </v-col>
           </v-row>
         </v-container>
           
@@ -38,17 +63,20 @@
 
 
 <script setup>
-  import { ref, onMounted, onBeforeMount, provide} from 'vue'
+  import { ref, onMounted, onBeforeMount, provide, getCurrentInstance, computed} from 'vue'
   import rdf from 'rdf-ext';
   import ParserN3  from '@rdfjs/parser-n3';
   import { Readable } from 'readable-stream';
-  import {SHACL, RDF} from './plugins/namespaces'
+  import {SHACL, RDF} from './plugins/namespaces';
+  import { useGraph} from './composables/graphdata';
+
   
+
   // ---- //
   // Data //
   // ---- //
-
-  const parserN3 = new ParserN3();
+  
+  const ttl_files = ["./assets/sddui-shacl.ttl", "./assets/sddui-shacl.ttl"]
   var shapesDataset = ref(null);
   var page_ready = ref(false);
   var prefixes_ready = ref(false);
@@ -61,6 +89,10 @@
   var prefixArray = ref(null);
   var selectedIRI = ref(null)
   var selectedShape = ref(null)
+  var graphDataset = ref(rdf.dataset());
+  var current_instance = ref(null)
+  const { graph, add_triple, add_node, remove_triple, edit_triple } = useGraph()
+
 
   const defaultPropertyGroup = {}
   defaultPropertyGroup.key = "https://concepts.datalad.org/DefaultPropertyGroup"
@@ -71,6 +103,12 @@
   }
   
   provide('defaultPropertyGroup', defaultPropertyGroup)
+  provide('graph', graph)
+  provide('add_triple', add_triple)
+  provide('add_node', add_node)
+  provide('remove_triple', remove_triple)
+  provide('edit_triple', edit_triple)
+  
 
   // ----------------- //
   // Lifecycle methods //
@@ -81,12 +119,78 @@
     getSHACLschema()
   })
 
+  onMounted(() => {
+    console.log("CURRENT INSTANCE")
+    current_instance = getCurrentInstance()
+    console.log(current_instance)
+  })
+
+  // ------------------- //
+  // Computed properties //
+  // ------------------- //
+
+  const all_triples = computed(() => {
+
+    var triples = {}
+    for (const [idx, key] of Object.keys(graph).entries()) {
+      triples[key] = {
+        subject: graph[key].subject,
+        predicate: graph[key].predicate,
+        object: graph[key].object
+      }
+
+      for (const [jdx, tkey] of Object.keys(graph[key].properties).entries()) {
+        triples[tkey] = {
+          subject: graph[key].properties[tkey].subject,
+          predicate: graph[key].properties[tkey].predicate,
+          object: graph[key].properties[tkey].object
+        }
+      }
+    }
+    return triples
+  })
+
   // --------- //
   // Functions //
   // --------- //
 
+  function printGraphstuff() {
+    console.log(Object.keys(graph).length)
+  }
+
+  function getAllChildComponents(root) {
+    const components = [];
+  
+    function traverse(component) {
+
+      components.push(component)
+      // // Check if component has a type and name
+      // if (component.type && component.type.name) {
+      //   components.push(component.type.name);
+      // }
+  
+      // Recursively traverse child components
+      if (component.subTree) {
+        const children = component.subTree.children;
+        
+        if (Array.isArray(children)) {
+          children.forEach(child => {
+            if (child.component) {
+              traverse(child.component);
+            }
+          });
+        } else if (children && typeof children === 'object' && children.component) {
+          traverse(children.component);
+        }
+      }
+    }
+  
+    traverse(root);
+    return components;
+  }
+
   function getSHACLschema() {
-      const shape_file_url = new URL("./assets/sddui-shacl.ttl", import.meta.url).href
+      const shape_file_url = new URL("./assets/graph.ttl", import.meta.url).href
       fetch(shape_file_url, {headers: {
           'Accept': 'text/turtle',
           'Content-Type': 'text/turtle',
@@ -94,6 +198,7 @@
       .then(response => response.text())
       .then(turtleContent => {
           const input = Readable.from(turtleContent)
+          const parserN3 = new ParserN3();
           const output = parserN3.import(input)
           nodeShapes = {}
           propertyGroups = {}
@@ -188,6 +293,7 @@
   function selectIRI(IRI) { 
       selectedIRI.value = IRI
       selectedShape.value = nodeShapes[IRI]
+      add_node(IRI)
   }
 
 </script>

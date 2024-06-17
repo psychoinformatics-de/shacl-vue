@@ -12,6 +12,7 @@
     "@rdfjs/parser-n3": "^2.0.2",
     "rdf-ext": "^2.5.1",
     "roboto-fontface": "*",
+    "uuid": "^10.0.0",
     "vue": "^3.4.0",
     "vuetify": "^3.5.0"
   },
