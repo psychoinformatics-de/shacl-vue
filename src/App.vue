@@ -2,7 +2,7 @@
   <v-app>
       <AppHeader />
       <v-main v-show="page_ready">
-        <v-container class="ml-1 mr-1">
+        <v-container fluid>
           <v-row align="start" no-gutters>
             <!-- <v-col cols="1"><v-sheet class="pa-2 ma-2"></v-sheet></v-col> -->
             <v-col>
@@ -14,36 +14,44 @@
             </v-col>
             <v-col cols="3"><v-sheet class="pa-2 ma-2"></v-sheet></v-col>
           </v-row>
-          <v-row align="start" style="height: 150px;" no-gutters>
+          <v-row align="start" style="height: 150px; flex-wrap: nowrap" no-gutters>
               <!-- <v-col cols="1"><v-sheet class="pa-2 ma-2"></v-sheet></v-col> -->
-              <v-col cols="8">
+              <v-col cols="6">
+                <h3>Selected Node</h3>
                   <v-sheet class="pa-4" border rounded elevation="2">
                       <span v-if="selectedIRI && prefixes_ready">
-                          <NodeShapeEditor :prefixes="prefixes" :shape_iri="selectedIRI" :shape_obj="selectedShape" :prop_groups="propertyGroups"/>
+                          <NodeShapeEditor :key="selectedIRI" :prefixes="prefixes" :shape_iri="selectedIRI" :shape_obj="selectedShape" :prop_groups="propertyGroups"/>
                       </span>
                   </v-sheet>
               </v-col>
-              <v-col class="ml-4">
-                <v-sheet class="pa-4" border rounded elevation="2">
+              <v-col class="ml-6">
+                <span v-if="selectedIRI && prefixes_ready">
                   <h3>Data</h3>
+                  <v-sheet class="pa-4" border rounded elevation="2">
+                    <code>
+                      <span v-for="(value, key, index) in prefixes">
+                        @prefix {{ key }}: &lt;{{ value }}&gt; .<br>
+                      </span>
+                      <br>
+                      <span v-for="(value, key, index) in graph">
+                        _b{{ index }} <br>
+                        &nbsp;&nbsp;&nbsp; a {{ toCURIE(key) }}
+                        <span v-for="(prop_val, prop_key , prop_idx) in value.properties">
+                          <span v-if="prop_val.object">
+                             ; <br>
+                            &nbsp;&nbsp;&nbsp; {{ toCURIE(prop_key) }} &quot;{{  prop_val.object }}&quot;
+                          </span>
+                        </span> .
 
-                  Number of triples:
-                  <br>
-                  {{ Object.keys(graph).length }}
-                  <br><br>
-                  Graph:
-                  <br>
-                  <span v-for="key in Object.keys(graph)">
-                    <strong>{{ key }}:</strong><br>
-                    subject: {{ graph[key].subject }} <br>
-                    predicate: {{ graph[key].predicate }} <br>
-                    object: {{ graph[key].object }} <br>
-                  </span>                  
-                  <v-btn @click="printGraphstuff()">
-                    Button
-                  </v-btn>
 
-                </v-sheet>
+
+                        <br><br>
+                      </span>
+                    </code>
+
+
+                  </v-sheet>
+                </span>
               </v-col>
           </v-row>
         </v-container>
@@ -55,7 +63,7 @@
 
 
 <script setup>
-  import { ref, onMounted, onBeforeMount, provide, getCurrentInstance} from 'vue'
+  import { ref, onMounted, onBeforeMount, provide, getCurrentInstance, computed} from 'vue'
   import rdf from 'rdf-ext';
   import ParserN3  from '@rdfjs/parser-n3';
   import { Readable } from 'readable-stream';
@@ -83,7 +91,7 @@
   var selectedShape = ref(null)
   var graphDataset = ref(rdf.dataset());
   var current_instance = ref(null)
-  const { graph, add_triple, remove_triple, edit_triple } = useGraph()
+  const { graph, add_triple, add_node, remove_triple, edit_triple } = useGraph()
 
 
   const defaultPropertyGroup = {}
@@ -97,6 +105,7 @@
   provide('defaultPropertyGroup', defaultPropertyGroup)
   provide('graph', graph)
   provide('add_triple', add_triple)
+  provide('add_node', add_node)
   provide('remove_triple', remove_triple)
   provide('edit_triple', edit_triple)
   
@@ -114,6 +123,31 @@
     console.log("CURRENT INSTANCE")
     current_instance = getCurrentInstance()
     console.log(current_instance)
+  })
+
+  // ------------------- //
+  // Computed properties //
+  // ------------------- //
+
+  const all_triples = computed(() => {
+
+    var triples = {}
+    for (const [idx, key] of Object.keys(graph).entries()) {
+      triples[key] = {
+        subject: graph[key].subject,
+        predicate: graph[key].predicate,
+        object: graph[key].object
+      }
+
+      for (const [jdx, tkey] of Object.keys(graph[key].properties).entries()) {
+        triples[tkey] = {
+          subject: graph[key].properties[tkey].subject,
+          predicate: graph[key].properties[tkey].predicate,
+          object: graph[key].properties[tkey].object
+        }
+      }
+    }
+    return triples
   })
 
   // --------- //
@@ -259,6 +293,7 @@
   function selectIRI(IRI) { 
       selectedIRI.value = IRI
       selectedShape.value = nodeShapes[IRI]
+      add_node(IRI)
   }
 
 </script>
