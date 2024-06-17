@@ -18,7 +18,9 @@
                             <p>{{ group[RDFS.comment.value] }}</p>
                             <br>
                             <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)">
-                                <PropertyShapeEditor :property_shape="property" :prefixes="prefixes"/>
+                                <keep-alive>
+                                    <PropertyShapeEditor :key="props.shape_iri + '--' + property[SHACL.path.value]" :property_shape="property" :prefixes="prefixes" :node_uid="props.shape_iri"/>
+                                </keep-alive>
                             </span>
                             <br>
                         </v-tabs-window-item>
@@ -33,7 +35,9 @@
                 <p><em>{{ group[RDFS.comment.value] }}</em></p>
                 <br>
                 <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)">
-                    <PropertyShapeEditor :property_shape="property" :prefixes="prefixes"/>
+                    <keep-alive>
+                        <PropertyShapeEditor :key="props.shape_iri + '--' + property[SHACL.path.value]" :property_shape="property" :prefixes="prefixes" :node_uid="props.shape_iri"/>
+                    </keep-alive>
                 </span>
                 <br>
             </span>
@@ -62,9 +66,9 @@
     const ready = ref(false)
     const sh_description = ref(SHACL.description.value)
     const defaultPropertyGroup = inject('defaultPropertyGroup');
-    const node_groups = ref([])
     var tab = ref(null)
-    const group_layout = ref('tabs') // or 'tabs'
+    // const group_layout = ref('tabs') // ref('default') or ref('tabs')
+    const group_layout = ref('default') // ref('default') or ref('tabs')
     
     // ----------------- //
     // Lifecycle methods //
