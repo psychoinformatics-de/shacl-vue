@@ -3,13 +3,13 @@
         <template v-slot:activator="{ props: activatorProps }">
             <v-btn
                 v-bind="activatorProps"
-                :text="selectedDate ? selectedDate.toISOString().split('T')[0] : 'Select a date'"
+                :text="graph[props.node_uid].properties[props.triple_uid].object ? graph[props.node_uid].properties[props.triple_uid].object.toISOString().split('T')[0] : 'Select a date'"
             ></v-btn>
         </template>
 
         <template v-slot:default="{ isActive }">
             <v-card title="Date">
-                <v-date-picker show-adjacent-months v-model="selectedDate"></v-date-picker>
+                <v-date-picker show-adjacent-months v-model="graph[props.node_uid].properties[props.triple_uid].object"></v-date-picker>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn text="OK" @click="isActive.value = false"></v-btn>
@@ -21,12 +21,11 @@
 </template>
 
 <script setup>
-    import { ref, onMounted, computed } from 'vue'
+    import {inject} from 'vue'
     const props = defineProps({
         property_shape: Object,
+        node_uid: String,
+        triple_uid: String
     })
-    var today = new Date()
-    var today_date = today.toISOString().split('T')[0]
-    var selectedDate = ref(null)
-
+    const graph = inject('graph');
 </script>
