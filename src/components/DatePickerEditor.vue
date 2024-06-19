@@ -3,7 +3,7 @@
         <template v-slot:activator="{ props: activatorProps }">
             <v-btn
                 v-bind="activatorProps"
-                :text="graph[props.node_uid].properties[props.triple_uid].object ? graph[props.node_uid].properties[props.triple_uid].object.toISOString().split('T')[0] : 'Select a date'"
+                :text="formData[props.node_uid][props.triple_uid] ? graph[props.node_uid][props.triple_uid].toISOString().split('T')[0] : 'Select a date'"
             ></v-btn>
         </template>
 
@@ -11,7 +11,7 @@
             <v-card title="Date">
                 <v-date-picker 
                     show-adjacent-months
-                    v-model="graph[props.node_uid].properties[props.triple_uid].object"
+                    v-model="graph[props.node_uid][props.triple_uid]"
                     validate-on="lazy input"
                     :rules="rules"
                 ></v-date-picker>
@@ -34,7 +34,7 @@
         node_uid: String,
         triple_uid: String,
     })
-    const graph = inject('formData');
+    const formData = inject('formData');
     const { rules } = useRules(props.property_shape)
 </script>
 

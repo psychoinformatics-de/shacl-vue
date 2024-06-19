@@ -1,5 +1,5 @@
 <template>
-    <v-textarea v-model="graph[props.node_uid].properties[props.triple_uid].object" variant="outlined" label="(text area editor)"></v-textarea>
+    <v-textarea v-model="formData[props.node_uid][props.triple_uid]" variant="outlined" label="(text area editor)"></v-textarea>
 </template>
 
 <script setup>
@@ -9,7 +9,7 @@
         node_uid: String,
         triple_uid: String
     })
-    const graph = inject('formData');
+    const formData = inject('formData');
 </script>
 
 <script>

@@ -38,10 +38,10 @@
                       <span v-for="(value, key, index) in formData">
                         _b{{ index }} <br>
                         &nbsp;&nbsp;&nbsp; a {{ toCURIE(key, prefixes) }}
-                        <span v-for="(prop_val, prop_key , prop_idx) in value.properties">
-                          <span v-if="prop_val.object">
+                        <span v-for="(prop_val, prop_key , prop_idx) in value">
+                          <span v-if="prop_val">
                              ; <br>
-                            &nbsp;&nbsp;&nbsp; {{ toCURIE(prop_key, prefixes) }} &quot;{{  prop_val.object }}&quot;
+                            &nbsp;&nbsp;&nbsp; {{ toCURIE(prop_key, prefixes) }} &quot;{{  prop_val }}&quot;
                           </span>
                         </span> .
                         <br><br>

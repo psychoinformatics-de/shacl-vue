@@ -1,6 +1,6 @@
 <template>
     <v-text-field
-        v-model="graph[props.node_uid].properties[props.triple_uid].object"
+        v-model="formData[props.node_uid][props.triple_uid]"
         density="compact"
         variant="outlined"
         type="url"
@@ -20,7 +20,7 @@
         node_uid: String,
         triple_uid: String,
     })
-    const graph = inject('formData');
+    const formData = inject('formData');
     const { rules } = useRules(props.property_shape)
 </script>
 

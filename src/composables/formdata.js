@@ -11,12 +11,8 @@ export function useFormData() {
   function add_triple(node_uid, triple_uid) {
     // if the node uid exists and the triple does not exist, add it
     if (Object.keys(formData).indexOf(node_uid) >= 0) {
-      if (Object.keys(formData[node_uid].properties).indexOf(triple_uid) < 0) {
-        formData[node_uid].properties[triple_uid] = {
-          subject: ref(null),
-          predicate: ref(null),
-          object: ref(null)
-        }
+      if (Object.keys(formData[node_uid]).indexOf(triple_uid) < 0) {
+        formData[node_uid][triple_uid] = ref(null)
         console.log(`Added triple to formData: ${triple_uid} -> ${node_uid}`)
       } else {
         console.log(`Triple UID already in formData: ${triple_uid}`)
@@ -28,12 +24,7 @@ export function useFormData() {
 
   function add_node(node_uid) {
     if (Object.keys(formData).indexOf(node_uid) < 0) {
-      formData[node_uid] = {
-        subject: ref(null),
-        predicate: ref(null),
-        object: ref(null),
-        properties: ref({}),
-      }
+      formData[node_uid] = ref({})
       console.log(`Added node to formData: ${node_uid}`)
     } else {
       console.log(`Node UID already in formData: ${node_uid}`)
