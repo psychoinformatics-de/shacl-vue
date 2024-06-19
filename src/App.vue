@@ -6,9 +6,9 @@
           <v-row align="start" no-gutters>
             <!-- <v-col cols="1"><v-sheet class="pa-2 ma-2"></v-sheet></v-col> -->
             <v-col>
-              <v-select :items="nodeShapeNamesArray" item-title="name" label="Select a Node" density="compact">
+              <v-select v-if="prefixes_ready" :items="nodeShapeNamesArray" item-title="name" label="Select a Node" density="compact">
                 <template v-slot:item="{ props, item }">
-                  <v-list-item v-bind="props" :title="toCURIE(nodeShapeNames[item.raw])" @click="selectIRI(nodeShapeNames[item.raw])"></v-list-item>
+                  <v-list-item v-bind="props" :title="toCURIE(nodeShapeNames[item.raw], prefixes)" @click="selectIRI(nodeShapeNames[item.raw])"></v-list-item>
                 </template>
               </v-select>
             </v-col>
@@ -20,7 +20,9 @@
                 <h3>Selected Node</h3>
                   <v-sheet class="pa-4" border rounded elevation="2">
                       <span v-if="selectedIRI && prefixes_ready">
-                          <NodeShapeEditor :key="selectedIRI" :prefixes="prefixes" :shape_iri="selectedIRI" :shape_obj="selectedShape" :prop_groups="propertyGroups"/>
+                        <v-form @submit.prevent>
+                          <NodeShapeEditor :key="selectedIRI" :shape_iri="selectedIRI" :shape_obj="selectedShape" :prop_groups="propertyGroups"/>
+                        </v-form>
                       </span>
                   </v-sheet>
               </v-col>
@@ -35,42 +37,34 @@
                       <br>
                       <span v-for="(value, key, index) in graph">
                         _b{{ index }} <br>
-                        &nbsp;&nbsp;&nbsp; a {{ toCURIE(key) }}
+                        &nbsp;&nbsp;&nbsp; a {{ toCURIE(key, prefixes) }}
                         <span v-for="(prop_val, prop_key , prop_idx) in value.properties">
                           <span v-if="prop_val.object">
                              ; <br>
-                            &nbsp;&nbsp;&nbsp; {{ toCURIE(prop_key) }} &quot;{{  prop_val.object }}&quot;
+                            &nbsp;&nbsp;&nbsp; {{ toCURIE(prop_key, prefixes) }} &quot;{{  prop_val.object }}&quot;
                           </span>
                         </span> .
-
-
-
                         <br><br>
                       </span>
                     </code>
-
-
                   </v-sheet>
                 </span>
               </v-col>
           </v-row>
         </v-container>
-          
       </v-main>
-
   </v-app>
 </template>
 
 
 <script setup>
-  import { ref, onMounted, onBeforeMount, provide, getCurrentInstance, computed} from 'vue'
+  import { ref, reactive, onMounted, onBeforeMount, provide, getCurrentInstance, computed} from 'vue'
   import rdf from 'rdf-ext';
   import ParserN3  from '@rdfjs/parser-n3';
   import { Readable } from 'readable-stream';
-  import {SHACL, RDF} from './plugins/namespaces';
-  import { useGraph} from './composables/graphdata';
-
-  
+  import {SHACL, RDF} from './modules/namespaces';
+  import { useGraph } from './composables/graphdata';
+  import { toCURIE } from './modules/utils';
 
   // ---- //
   // Data //
@@ -85,8 +79,8 @@
   var nodeShapeIRIs = ref(null);
   var nodeShapeNames = ref(null);
   var nodeShapeNamesArray = ref([]);
-  var prefixes = ref(null);
-  var prefixArray = ref(null);
+  var prefixes = reactive({});
+  var prefixArray = ref([]);
   var selectedIRI = ref(null)
   var selectedShape = ref(null)
   var graphDataset = ref(rdf.dataset());
@@ -108,6 +102,8 @@
   provide('add_node', add_node)
   provide('remove_triple', remove_triple)
   provide('edit_triple', edit_triple)
+  provide('prefixes', prefixes)
+
   
 
   // ----------------- //
@@ -154,41 +150,6 @@
   // Functions //
   // --------- //
 
-  function printGraphstuff() {
-    console.log(Object.keys(graph).length)
-  }
-
-  function getAllChildComponents(root) {
-    const components = [];
-  
-    function traverse(component) {
-
-      components.push(component)
-      // // Check if component has a type and name
-      // if (component.type && component.type.name) {
-      //   components.push(component.type.name);
-      // }
-  
-      // Recursively traverse child components
-      if (component.subTree) {
-        const children = component.subTree.children;
-        
-        if (Array.isArray(children)) {
-          children.forEach(child => {
-            if (child.component) {
-              traverse(child.component);
-            }
-          });
-        } else if (children && typeof children === 'object' && children.component) {
-          traverse(children.component);
-        }
-      }
-    }
-  
-    traverse(root);
-    return components;
-  }
-
   function getSHACLschema() {
       const shape_file_url = new URL("./assets/graph.ttl", import.meta.url).href
       fetch(shape_file_url, {headers: {
@@ -202,13 +163,11 @@
           const output = parserN3.import(input)
           nodeShapes = {}
           propertyGroups = {}
-          prefixes = {}
-          prefixArray = []
           nodeShapeNamesArray = []
           shapesDataset = rdf.dataset()
           output.on('prefix', (prefix, ns) => {
               prefixes[prefix] = ns.value;
-              prefixArray.push(ns.value)
+              prefixArray.value.push(ns.value)
               console.log(`prefix: ${prefix} ${ns.value}`)
           }).on('end', () => {
               prefixes_ready.value = true
@@ -281,15 +240,6 @@
       });
   }
 
-  function toCURIE(IRI) {
-      for (const [curie, iri] of Object.entries(prefixes)) {
-          if (IRI.indexOf(iri) >= 0) {
-            var parts = IRI.split('/')
-            return curie + ':' + parts[parts.length - 1]
-          }
-      }
-  }
-
   function selectIRI(IRI) { 
       selectedIRI.value = IRI
       selectedShape.value = nodeShapes[IRI]
@@ -297,8 +247,3 @@
   }
 
 </script>
-
-
-
-
-

@@ -1,59 +1,61 @@
 <template>
-        <h2>{{ toCURIE(shape_iri) }}</h2>
-        <br>
-        <p>{{ shape_obj[sh_description] }}</p>
-        <br>
-        <span v-if="group_layout == 'tabs'">
-            <v-card>
-                <v-tabs v-model="tab" bg-color="#C5CAE9" >
-                    <span v-for="group in orderArrayOfObjects(Object.values(usedPropertyGroups), SHACL.order.value) ">
-                        <v-tab :value="group[RDFS.label.value]">{{ group[RDFS.label.value] }}</v-tab>
-                    </span>
-                </v-tabs>
-                <v-card-text>
-                <v-tabs-window v-model="tab">
-                    <span v-for="group in orderArrayOfObjects(Object.values(usedPropertyGroups), SHACL.order.value) ">
-                        <v-tabs-window-item :value="group[RDFS.label.value]">
-                            <h3>{{ group[RDFS.label.value] }}</h3>
-                            <p>{{ group[RDFS.comment.value] }}</p>
-                            <br>
-                            <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)">
-                                <keep-alive>
-                                    <PropertyShapeEditor :key="props.shape_iri + '--' + property[SHACL.path.value]" :property_shape="property" :prefixes="prefixes" :node_uid="props.shape_iri"/>
-                                </keep-alive>
-                            </span>
-                            <br>
-                        </v-tabs-window-item>
-                    </span>
-                </v-tabs-window>
-                </v-card-text>
-            </v-card>
-        </span>
-        <span v-else>
-            <span v-for="group in orderArrayOfObjects(Object.values(usedPropertyGroups), SHACL.order.value) ">
-                <h3>{{ group[RDFS.label.value] }}</h3>
-                <p><em>{{ group[RDFS.comment.value] }}</em></p>
-                <br>
-                <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)">
-                    <keep-alive>
-                        <PropertyShapeEditor :key="props.shape_iri + '--' + property[SHACL.path.value]" :property_shape="property" :prefixes="prefixes" :node_uid="props.shape_iri"/>
-                    </keep-alive>
+    <h2>{{ toCURIE(shape_iri, prefixes) }}</h2>
+    <br>
+    <p>{{ shape_obj[sh_description] }}</p>
+    <br>
+
+    <span v-if="group_layout == 'tabs'">
+        <v-card>
+            <v-tabs v-model="tab" bg-color="#C5CAE9" >
+                <span v-for="group in orderArrayOfObjects(Object.values(usedPropertyGroups), SHACL.order.value) ">
+                    <v-tab :value="group[RDFS.label.value]">{{ group[RDFS.label.value] }}</v-tab>
                 </span>
-                <br>
+            </v-tabs>
+            <v-card-text>
+            <v-tabs-window v-model="tab">
+                <span v-for="group in orderArrayOfObjects(Object.values(usedPropertyGroups), SHACL.order.value) ">
+                    <v-tabs-window-item :value="group[RDFS.label.value]">
+                        <h3>{{ group[RDFS.label.value] }}</h3>
+                        <p>{{ group[RDFS.comment.value] }}</p>
+                        <br>
+                        <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)">
+                            <keep-alive>
+                                <PropertyShapeEditor :key="props.shape_iri + '--' + property[SHACL.path.value]" :property_shape="property" :node_uid="props.shape_iri"/>
+                            </keep-alive>
+                        </span>
+                        <br>
+                    </v-tabs-window-item>
+                </span>
+            </v-tabs-window>
+            </v-card-text>
+        </v-card>
+    </span>
+    <span v-else>
+        <span v-for="group in orderArrayOfObjects(Object.values(usedPropertyGroups), SHACL.order.value) ">
+            <h3>{{ group[RDFS.label.value] }}</h3>
+            <p><em>{{ group[RDFS.comment.value] }}</em></p>
+            <br>
+            <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)">
+                <keep-alive>
+                    <PropertyShapeEditor :key="props.shape_iri + '--' + property[SHACL.path.value]" :property_shape="property" :node_uid="props.shape_iri"/>
+                </keep-alive>
             </span>
+            <br>
         </span>
+    </span>
 </template>
+
 
 <script setup>
     import { ref, onBeforeUpdate, onBeforeMount, onMounted, computed, inject} from 'vue'
-    import {SHACL, RDFS} from '../plugins/namespaces'
+    import {SHACL, RDFS} from '../modules/namespaces'
+    import { toCURIE, orderArrayOfObjects } from '../modules/utils';
 
     // ----- //
     // Props //
     // ----- //
 
     const props = defineProps({
-        prefixes: Object,
         shape_iri: String,
         shape_obj: Object,
         prop_groups: Object,
@@ -64,6 +66,7 @@
     // ---- //
 
     const ready = ref(false)
+    const prefixes = inject('prefixes');
     const sh_description = ref(SHACL.description.value)
     const defaultPropertyGroup = inject('defaultPropertyGroup');
     var tab = ref(null)
@@ -156,19 +159,6 @@
     // Functions //
     // --------- //
 
-    function toCURIE(IRI) {
-        for (const [curie, iri] of Object.entries(props.prefixes)) {
-            if (IRI.indexOf(iri) >= 0) {
-                return curie + ':' + IRI.split(iri)[1]
-            }
-        }
-    }
-
-    function orderArrayOfObjects(array, key) {
-        // Returns an array of objects ordered by the value of a specific key 
-        return array.sort((a,b) => a[key] - b[key])
-    }
-
     function orderGroups() {
         // first get a list of all the sh:PropertyGroup instances 
         // that are provided for any property via sh:group
@@ -181,4 +171,4 @@
         console.log(group_instances)
     }
 
-</script>
+</script>../modules/namespaces

@@ -57,7 +57,6 @@
     import { ref, onMounted, computed } from 'vue'
     // Define component properties
     const props = defineProps({
-        prefixes: Object,
         shape_iri: String,
         shape_obj: Object,
     })
@@ -79,14 +78,6 @@
         }
         return new_obj
     })
-
-    function toCURIE(IRI) {
-        for (const [curie, iri] of Object.entries(props.prefixes)) {
-            if (IRI.indexOf(iri) >= 0) {
-                return curie + ':' + IRI.split(iri)[1]
-            }
-        }
-    }
 
     onMounted(() => {
         ready.value = true;
