@@ -11,3 +11,24 @@
     })
     const graph = inject('graph');
 </script>
+
+<script>
+    import { SHACL, DASH, XSD } from '../modules/namespaces'
+    export const matchingLogic = (shape) => {
+        // sh:nodeKind exists
+        if ( shape.hasOwnProperty(SHACL.nodeKind.value) ) {
+            // sh:nodeKind == sh:Literal
+            if ( shape[SHACL.nodeKind.value] == SHACL.Literal.value ) {
+                // sh:datatype exists
+                if ( shape.hasOwnProperty(SHACL.datatype.value) ) {
+                    // sh:datatype == xsd:string
+                    if ( shape[SHACL.datatype.value] == XSD.string.value) {
+                        // text area
+                        return shape.hasOwnProperty(SHACL.datatype.value) && shape[DASH.singleLine.value] == "false"
+                    }
+                }
+            }
+        }
+        return false
+    };
+</script>

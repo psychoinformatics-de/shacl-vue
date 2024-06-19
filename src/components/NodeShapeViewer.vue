@@ -82,7 +82,4 @@
     onMounted(() => {
         ready.value = true;
     })
-
-
-  
 </script>
