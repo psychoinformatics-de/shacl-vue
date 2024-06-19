@@ -35,7 +35,7 @@
                         @prefix {{ key }}: &lt;{{ value }}&gt; .<br>
                       </span>
                       <br>
-                      <span v-for="(value, key, index) in graph">
+                      <span v-for="(value, key, index) in formData">
                         _b{{ index }} <br>
                         &nbsp;&nbsp;&nbsp; a {{ toCURIE(key, prefixes) }}
                         <span v-for="(prop_val, prop_key , prop_idx) in value.properties">
@@ -63,7 +63,7 @@
   import ParserN3  from '@rdfjs/parser-n3';
   import { Readable } from 'readable-stream';
   import {SHACL, RDF} from './modules/namespaces';
-  import { useGraph } from './composables/graphdata';
+  import { useFormData } from './composables/formdata';
   import { toCURIE } from './modules/utils';
   import editorMatchers from './modules/editors';
   import defaultEditor from './components/UnknownEditor.vue';
@@ -87,7 +87,7 @@
   var selectedShape = ref(null)
   var graphDataset = ref(rdf.dataset());
   var current_instance = ref(null)
-  const { graph, add_triple, add_node, remove_triple, edit_triple } = useGraph()
+  const { formData, add_triple, add_node, remove_triple, edit_triple } = useFormData()
 
 
   const defaultPropertyGroup = {}
@@ -99,7 +99,7 @@
   }
   
   provide('defaultPropertyGroup', defaultPropertyGroup)
-  provide('graph', graph)
+  provide('formData', formData)
   provide('add_triple', add_triple)
   provide('add_node', add_node)
   provide('remove_triple', remove_triple)
@@ -134,18 +134,18 @@
   const all_triples = computed(() => {
 
     var triples = {}
-    for (const [idx, key] of Object.keys(graph).entries()) {
+    for (const [idx, key] of Object.keys(formData).entries()) {
       triples[key] = {
-        subject: graph[key].subject,
-        predicate: graph[key].predicate,
-        object: graph[key].object
+        subject: formData[key].subject,
+        predicate: formData[key].predicate,
+        object: formData[key].object
       }
 
-      for (const [jdx, tkey] of Object.keys(graph[key].properties).entries()) {
+      for (const [jdx, tkey] of Object.keys(formData[key].properties).entries()) {
         triples[tkey] = {
-          subject: graph[key].properties[tkey].subject,
-          predicate: graph[key].properties[tkey].predicate,
-          object: graph[key].properties[tkey].object
+          subject: formData[key].properties[tkey].subject,
+          predicate: formData[key].properties[tkey].predicate,
+          object: formData[key].properties[tkey].object
         }
       }
     }
@@ -252,4 +252,4 @@
       add_node(IRI)
   }
 
-</script>
+</script>./composables/formdata

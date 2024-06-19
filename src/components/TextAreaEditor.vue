@@ -9,7 +9,7 @@
         node_uid: String,
         triple_uid: String
     })
-    const graph = inject('graph');
+    const graph = inject('formData');
 </script>
 
 <script>
