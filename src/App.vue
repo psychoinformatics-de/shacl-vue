@@ -65,6 +65,8 @@
   import {SHACL, RDF} from './modules/namespaces';
   import { useGraph } from './composables/graphdata';
   import { toCURIE } from './modules/utils';
+  import editorMatchers from './modules/editors';
+  import defaultEditor from './components/UnknownEditor.vue';
 
   // ---- //
   // Data //
@@ -103,8 +105,9 @@
   provide('remove_triple', remove_triple)
   provide('edit_triple', edit_triple)
   provide('prefixes', prefixes)
+  provide('editorMatchers', editorMatchers)
+  provide('defaultEditor', defaultEditor)
 
-  
 
   // ----------------- //
   // Lifecycle methods //
@@ -119,6 +122,9 @@
     console.log("CURRENT INSTANCE")
     current_instance = getCurrentInstance()
     console.log(current_instance)
+    console.log("MATCHERS")
+    console.log(editorMatchers)
+
   })
 
   // ------------------- //
