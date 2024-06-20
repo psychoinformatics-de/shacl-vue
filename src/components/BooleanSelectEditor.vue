@@ -1,7 +1,7 @@
 <template>
     <v-switch
         label="No/Yes"
-        v-model="graph[props.node_uid].properties[props.triple_uid].object"
+        v-model="formData[props.node_uid][props.triple_uid]"
         inset
         validate-on="lazy input"
         :rules="rules"
@@ -18,7 +18,7 @@
         node_uid: String,
         triple_uid: String,
     })
-    const graph = inject('graph');
+    const formData = inject('formData');
     const { rules } = useRules(props.property_shape)
 </script>
 
