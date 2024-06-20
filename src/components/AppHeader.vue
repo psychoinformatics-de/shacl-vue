@@ -1,17 +1,22 @@
 <template>
-  <v-app-bar :elevation="5" rounded>
+  <v-app-bar :elevation="1" rounded>
     <template v-slot:prepend>
-      <v-app-bar-nav-icon></v-app-bar-nav-icon>
+      <v-img
+        :width="36"
+        cover
+        src="../assets/shacl_vue.svg"
+        style="margin-left: 10px;"
+      ></v-img>
     </template>
 
-    <v-app-bar-title>shacl-vue</v-app-bar-title>
+    <v-app-bar-title>SHACL-Vue: Automatic generation of editors/viewers from SHACL</v-app-bar-title>
 
     <template v-slot:append>
-      <v-btn icon="mdi-heart"></v-btn>
-
-      <v-btn icon="mdi-magnify"></v-btn>
-
-      <v-btn icon="mdi-dots-vertical"></v-btn>
+      <v-btn 
+        icon="mdi-github"
+        href="https://github.com/psychoinformatics-de/shacl-vue"
+        target="_blank"
+      ></v-btn>
     </template>
   </v-app-bar>
 </template>
