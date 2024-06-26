@@ -11,8 +11,19 @@
 import formats from '@rdfjs/formats-common'
 import fetch from '@rdfjs/fetch-lite'
 
-export async function readRDF(file_url) {
-    const res = await fetch(file_url, { formats })
+export async function readRDF(file_url, headers) {
+    var res = null
+    if (headers) {
+        res = await fetch(file_url,
+            {
+                formats, 
+                headers: headers
+            }
+        )
+    } else {
+        res = await fetch(file_url,{formats })
+    }
+
     const quadStream = await res.quadStream()
     // quadStream.on('error', err => console.error(err))
     return quadStream

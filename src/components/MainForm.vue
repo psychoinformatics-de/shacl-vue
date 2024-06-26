@@ -5,7 +5,7 @@
         <h3>Forms</h3>
         <v-select v-if="prefixes_ready" :items="nodeShapeNamesArray" item-title="name" label="Select" density="compact">
           <template v-slot:item="{ props, item }">
-            <v-list-item v-bind="props" :title="toCURIE(nodeShapeNames[item.raw], prefixes)" @click="selectIRI(nodeShapeNames[item.raw])"></v-list-item>
+            <v-list-item v-bind="props" :title="toCURIE(nodeShapeNames[item.raw], shapePrefixes)" @click="selectIRI(nodeShapeNames[item.raw])"></v-list-item>
           </template>
         </v-select>
       </v-col>
@@ -27,17 +27,17 @@
             <h3>Form data</h3>
             <v-sheet class="pa-4" border rounded elevation="2">
               <code>
-                <span v-for="(value, key, index) in prefixes">
+                <span v-for="(value, key, index) in shapePrefixes">
                   @prefix {{ key }}: &lt;{{ value }}&gt; .<br>
                 </span>
                 <br>
                 <span v-for="(value, key, index) in formData">
                   _b{{ index }} <br>
-                  &nbsp;&nbsp;&nbsp; a {{ toCURIE(key, prefixes) }}
+                  &nbsp;&nbsp;&nbsp; a {{ toCURIE(key, shapePrefixes) }}
                   <span v-for="(prop_val, prop_key , prop_idx) in value">
                     <span v-if="prop_val">
                         ; <br>
-                      &nbsp;&nbsp;&nbsp; {{ toCURIE(prop_key, prefixes) }} &quot;{{  prop_val }}&quot;
+                      &nbsp;&nbsp;&nbsp; {{ toCURIE(prop_key, shapePrefixes) }} &quot;{{  prop_val }}&quot;
                     </span>
                   </span> .
                   <br><br>
@@ -52,7 +52,7 @@
 
 
 <script setup>
-  import { ref, onMounted, onBeforeMount, provide } from 'vue'
+  import { ref, onMounted, onBeforeMount, provide, inject} from 'vue'
   import { useFormData } from '@/composables/formdata';
   import { useShapeData } from '@/composables/shapedata';
   import { toCURIE } from '@/modules/utils';
@@ -74,7 +74,7 @@
     nodeShapes,
     propertyGroups,
     nodeShapeNamesArray,
-    prefixes,
+    shapePrefixes,
     prefixArray,
     prefixes_ready,
     nodeShapeIRIs,
@@ -94,7 +94,7 @@
   provide('add_node', add_node)
   provide('remove_triple', remove_triple)
   provide('edit_triple', edit_triple)
-  provide('prefixes', prefixes)
+  provide('shapePrefixes', shapePrefixes)
   provide('editorMatchers', editorMatchers)
   provide('defaultEditor', defaultEditor)
 

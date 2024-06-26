@@ -1,13 +1,25 @@
 export function toCURIE(IRI, prefixes) {
-    for (const [curie, iri] of Object.entries(prefixes)) {
-        if (IRI.indexOf(iri) >= 0) {
-          var parts = IRI.split('/')
-          return curie + ':' + parts[parts.length - 1]
-        }
+  // prefixes is an object with prefix as keys and the resolved prexif IRI as the value
+  const longToShort = Object.values(prefixes).sort((a, b) => b.length - a.length);
+  for (const iri of longToShort) {
+    if (IRI.indexOf(iri) >= 0) {
+      const prefix = objectFlip(prefixes)[iri]
+      const property = IRI.substring(iri.length)
+      return prefix + ':' + property
     }
+  }
 }
 
 export function orderArrayOfObjects(array, key) {
   // Returns an array of objects ordered by the value of a specific key 
   return array.sort((a,b) => a[key] - b[key])
+}
+
+
+function objectFlip(obj) {
+  // Flip the keys and values of an object
+  return Object.keys(obj).reduce((ret, key) => {
+    ret[obj[key]] = key;
+    return ret;
+  }, {});
 }

@@ -28,7 +28,36 @@
 
 
 <script setup>
-  import { ref } from 'vue'
+  import { ref, provide, onMounted} from 'vue';
+  import { useGraphData } from '@/composables/graphdata';
+  import { DLTHING, XSD } from '@/modules/namespaces';
+  import rdf from 'rdf-ext';
+
   var tab = ref(1)
+
+  const { graphData, getGraphData, graphPrefixes, serializedGraphData, graphTriples } = useGraphData()
+
+  provide('graphData', graphData)
+  provide('serializedGraphData', serializedGraphData)
+  provide('graphTriples', graphTriples)
+  provide('graphPrefixes', graphPrefixes)
+
+
+  onMounted( async () => {
+    console.log("App.vue async onmounted...")
+    const penguins = new URL("@/assets/distribution-penguins.ttl", import.meta.url).href
+    await getGraphData(penguins)
+
+    console.log(graphTriples.length)
+    console.log(graphData.size)
+    
+    const mypersonB = rdf.grapoi({ dataset: graphData })
+      .hasOut(DLTHING.meta_type, rdf.literal('dldist:Person', XSD.anyURI))
+      .quads();
+    console.log('Persons in Penguin Dataset, using literal in query:')
+    for (const quad of mypersonB) {
+      console.log(`\t${quad.subject.value}`)
+    }
+  })
   
 </script>
