@@ -1,5 +1,5 @@
 <template>
-    <h2>{{ toCURIE(shape_iri, prefixes) }}</h2>
+    <h2>{{ toCURIE(shape_iri, shapePrefixes) }}</h2>
     <br>
     <p>{{ shape_obj[sh_description] }}</p>
     <br>
@@ -66,7 +66,7 @@
     // ---- //
 
     const ready = ref(false)
-    const prefixes = inject('prefixes');
+    const shapePrefixes = inject('shapePrefixes');
     const sh_description = ref(SHACL.description.value)
     const defaultPropertyGroup = inject('defaultPropertyGroup');
     var tab = ref(null)

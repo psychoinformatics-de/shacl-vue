@@ -18,7 +18,7 @@ export function useShapeData(shapes_graph_url) {
 	var nodeShapes = ref({});
 	var propertyGroups = ref({});
 	var nodeShapeNamesArray = ref([]);
-	var prefixes = reactive({});
+	var shapePrefixes = reactive({});
 	var prefixArray = ref([]);
 	var prefixes_ready = ref(false);
 	var nodeShapeIRIs = ref(null);
@@ -42,7 +42,7 @@ export function useShapeData(shapes_graph_url) {
 		.then(quadStream => {
 			// Load shape prefixes
 			quadStream.on('prefix', (prefix, ns) => {
-				prefixes[prefix] = ns.value;
+				shapePrefixes[prefix] = ns.value;
 				prefixArray.value.push(ns.value)
                 console.log(`prefix: ${prefix} ${ns.value}`)
 			}).on('end', () => {
@@ -118,7 +118,7 @@ export function useShapeData(shapes_graph_url) {
         nodeShapes,
         propertyGroups,
         nodeShapeNamesArray,
-        prefixes,
+        shapePrefixes,
         prefixArray,
         prefixes_ready,
         nodeShapeIRIs,

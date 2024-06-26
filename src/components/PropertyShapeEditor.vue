@@ -45,7 +45,7 @@
 
     const my_uid = ref('');
     const add_triple = inject('add_triple');
-    const prefixes = inject('prefixes');
+    const shapePrefixes = inject('shapePrefixes');
     const editorMatchers = inject('editorMatchers');
     const defaultEditor = inject('defaultEditor');
     const isTripleAdded = ref(false);
@@ -78,7 +78,7 @@
         if (props.property_shape.hasOwnProperty(SHACL.name.value)) {
             return props.property_shape[SHACL.name.value]
         } else {
-            return toCURIE(props.property_shape[SHACL.path.value], prefixes)   
+            return toCURIE(props.property_shape[SHACL.path.value], shapePrefixes)   
         }
     });
 

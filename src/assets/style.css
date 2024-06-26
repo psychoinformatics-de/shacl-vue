@@ -1,3 +1,10 @@
 code {
     font-size: 12px;
 }
+.formatted-pre {
+    white-space:normal;
+    overflow-x: scroll;
+}
+.formatted-code {
+    white-space:pre;
+}
