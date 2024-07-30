@@ -43,6 +43,9 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    mimeTypes: {
+      '.vue': 'application/javascript',
+    },
   },
   base: '/shacl-vue/',
 })
