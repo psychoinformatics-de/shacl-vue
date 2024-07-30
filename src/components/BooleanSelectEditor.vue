@@ -1,7 +1,7 @@
 <template>
     <v-switch
         label="No/Yes"
-        v-model="formData[props.node_uid][props.triple_uid]"
+        v-model="triple_object"
         inset
         validate-on="lazy input"
         :rules="rules"
@@ -10,16 +10,27 @@
 </template>
 
 <script setup>
-    import { inject } from 'vue'
+    import { inject, computed } from 'vue'
     import { useRules } from '../composables/rules'
 
     const props = defineProps({
         property_shape: Object,
         node_uid: String,
-        triple_uid: String,
+        triple_uid: String
     })
     const formData = inject('formData');
     const { rules } = useRules(props.property_shape)
+    
+    const triple_object = computed({
+        get() {
+            return formData[props.node_uid].at(-1)[props.triple_uid].at(-1);
+        },
+        set(value) {
+            const node_idx = formData[props.node_uid].length - 1
+            const triple_idx = formData[props.node_uid][node_idx][props.triple_uid].length - 1
+            formData[props.node_uid][node_idx][props.triple_uid][triple_idx] = value;
+        }
+    });
 </script>
 
 <script>
