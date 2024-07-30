@@ -30,17 +30,22 @@
 <script setup>
   import { ref, provide, onMounted} from 'vue';
   import { useGraphData } from '@/composables/graphdata';
+  import { useClassData } from '@/composables/classdata';
   import { DLTHING, XSD } from '@/modules/namespaces';
   import rdf from 'rdf-ext';
 
   var tab = ref(1)
 
   const { graphData, getGraphData, graphPrefixes, serializedGraphData, graphTriples } = useGraphData()
+  const { classData, getClassData, classPrefixes, serializedClassData, classTriples } = useClassData()
 
   provide('graphData', graphData)
   provide('serializedGraphData', serializedGraphData)
   provide('graphTriples', graphTriples)
   provide('graphPrefixes', graphPrefixes)
+  provide('serializedClassData', serializedClassData)
+  provide('classData', classData)
+
 
 
   onMounted( async () => {
@@ -58,6 +63,9 @@
     for (const quad of mypersonB) {
       console.log(`\t${quad.subject.value}`)
     }
+
+    const classes = new URL("@/assets/class_hierarchy.ttl", import.meta.url).href
+    await getClassData(classes)
   })
   
 </script>
