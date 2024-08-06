@@ -1,4 +1,4 @@
-// graphdata.js
+// classdata.js
 import { reactive, ref } from 'vue'
 import { readRDF } from '@/modules/io'
 import rdf from 'rdf-ext';
