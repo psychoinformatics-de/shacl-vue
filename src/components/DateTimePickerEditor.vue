@@ -5,6 +5,7 @@
                 v-bind="activatorProps"
                 :text="formData[props.node_uid].at(-1)[props.triple_uid].at(-1) ? formData[props.node_uid].at(-1)[props.triple_uid].at(-1).toISOString().split('T')[0] : 'Select a date'"
             ></v-btn>
+            <br><br>
         </template>
 
         <template v-slot:default="{ isActive }">
