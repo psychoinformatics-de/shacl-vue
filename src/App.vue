@@ -31,8 +31,6 @@
   import { ref, provide, onMounted} from 'vue';
   import { useGraphData } from '@/composables/graphdata';
   import { useClassData } from '@/composables/classdata';
-  import { DLTHING, XSD } from '@/modules/namespaces';
-  import rdf from 'rdf-ext';
 
   var tab = ref(1)
 
@@ -45,27 +43,17 @@
   provide('graphPrefixes', graphPrefixes)
   provide('serializedClassData', serializedClassData)
   provide('classData', classData)
-
-
+  provide('classPrefixes', classPrefixes)
 
   onMounted( async () => {
     console.log("App.vue async onmounted...")
+    console.log("Getting graph data...")
     const penguins = new URL("@/assets/distribution-penguins.ttl", import.meta.url).href
     await getGraphData(penguins)
-
-    console.log(graphTriples.length)
-    console.log(graphData.size)
-    
-    const mypersonB = rdf.grapoi({ dataset: graphData })
-      .hasOut(DLTHING.meta_type, rdf.literal('dldist:Person', XSD.anyURI))
-      .quads();
-    console.log('Persons in Penguin Dataset, using literal in query:')
-    for (const quad of mypersonB) {
-      console.log(`\t${quad.subject.value}`)
-    }
-
+    console.log("Getting class hierarchy data...")
     const classes = new URL("@/assets/class_hierarchy.ttl", import.meta.url).href
     await getClassData(classes)
+    console.log(classTriples.length)
+    console.log(classData.size)
   })
-  
 </script>
