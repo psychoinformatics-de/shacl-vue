@@ -3,15 +3,16 @@
         <template v-slot:activator="{ props: activatorProps }">
             <v-btn
                 v-bind="activatorProps"
-                :text="formData[props.node_uid][props.triple_uid] ? formData[props.node_uid][props.triple_uid].toISOString().split('T')[0] : 'Select a date'"
+                :text="formData[props.node_uid].at(-1)[props.triple_uid].at(-1) ? formData[props.node_uid].at(-1)[props.triple_uid].at(-1).toISOString().split('T')[0] : 'Select a date'"
             ></v-btn>
+            <br><br>
         </template>
 
         <template v-slot:default="{ isActive }">
             <v-card title="Date">
                 <v-date-picker 
                     show-adjacent-months
-                    v-model="formData[props.node_uid][props.triple_uid]"
+                    v-model="triple_object"
                     validate-on="lazy input"
                     :rules="rules"
                 ></v-date-picker>
@@ -26,16 +27,27 @@
 </template>
 
 <script setup>
-    import {inject} from 'vue'
+    import {inject, computed} from 'vue'
     import { useRules } from '../composables/rules'
 
     const props = defineProps({
         property_shape: Object,
         node_uid: String,
-        triple_uid: String,
+        triple_uid: String
     })
     const formData = inject('formData');
     const { rules } = useRules(props.property_shape)
+
+    const triple_object = computed({
+        get() {
+            return formData[props.node_uid].at(-1)[props.triple_uid].at(-1);
+        },
+        set(value) {
+            const node_idx = formData[props.node_uid].length - 1
+            const triple_idx = formData[props.node_uid][node_idx][props.triple_uid].length - 1
+            formData[props.node_uid][node_idx][props.triple_uid][triple_idx] = value;
+        }
+    });
 </script>
 
 <script>

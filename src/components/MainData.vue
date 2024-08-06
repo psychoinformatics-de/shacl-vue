@@ -50,6 +50,15 @@
     </v-sheet>
 
     <br>
+    <v-sheet class="pa-4" border rounded elevation="2">
+      <suspense>
+        <pre class="formatted-pre">
+          <code class="formatted-code">{{ serializedClassData }}</code>
+        </pre>
+      </suspense>
+    </v-sheet>
+
+    <br>
 
     <v-sheet class="pa-4" border rounded elevation="2">
       <Suspense>
@@ -75,6 +84,8 @@
   const graphTriples = inject('graphTriples');
   const public_url = ref('')
   const upload_url = ref(null)
+
+  const serializedClassData = inject('serializedClassData');
 
 
 </script>

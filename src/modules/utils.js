@@ -8,6 +8,7 @@ export function toCURIE(IRI, prefixes) {
       return prefix + ':' + property
     }
   }
+  return IRI
 }
 
 export function orderArrayOfObjects(array, key) {

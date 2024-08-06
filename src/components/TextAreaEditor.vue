@@ -1,15 +1,26 @@
 <template>
-    <v-textarea v-model="formData[props.node_uid][props.triple_uid]" variant="outlined" label="(text area editor)"></v-textarea>
+    <v-textarea v-model="triple_object" variant="outlined" label="(text area editor)"></v-textarea>
 </template>
 
 <script setup>
-    import {inject} from 'vue'
+    import {inject, computed} from 'vue'
     const props = defineProps({
         property_shape: Object,
         node_uid: String,
         triple_uid: String
     })
     const formData = inject('formData');
+
+    const triple_object = computed({
+        get() {
+            return formData[props.node_uid].at(-1)[props.triple_uid].at(-1);
+        },
+        set(value) {
+            const node_idx = formData[props.node_uid].length - 1
+            const triple_idx = formData[props.node_uid][node_idx][props.triple_uid].length - 1
+            formData[props.node_uid][node_idx][props.triple_uid][triple_idx] = value;
+        }
+    });
 </script>
 
 <script>

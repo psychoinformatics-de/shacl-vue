@@ -12,16 +12,32 @@
       <v-col cols="6"><v-sheet class="pa-2 ma-2"></v-sheet></v-col>
     </v-row>
     <v-row align="start" style="flex-wrap: nowrap" no-gutters>
+        <!-- Display selected form -->
         <v-col cols="6">
           <h3>Selected form</h3>
             <v-sheet class="pa-4" border rounded elevation="2">
                 <span v-if="selectedIRI && prefixes_ready">
-                  <v-form @submit.prevent>
+                  <v-form ref="form" validate-on="submit lazy" @submit.prevent="saveForm()" >
                     <NodeShapeEditor :key="selectedIRI" :shape_iri="selectedIRI" :shape_obj="selectedShape" :prop_groups="propertyGroups"/>
+
+                    <div style="display: flex;">
+                      <v-btn
+                        class="mt-2"
+                        text="Reset"
+                        @click="resetForm()"
+                        style="margin-left: auto; margin-right: 1em;"
+                      ></v-btn>
+                      <v-btn
+                        class="mt-2"
+                        text="Save"
+                        type="submit"
+                      ></v-btn>
+                    </div>
                   </v-form>
                 </span>
             </v-sheet>
         </v-col>
+        <!-- Display entered form data -->
         <v-col class="ml-6">
           <span v-if="selectedIRI && prefixes_ready">
             <h3>Form data</h3>
@@ -31,13 +47,16 @@
                   @prefix {{ key }}: &lt;{{ value }}&gt; .<br>
                 </span>
                 <br>
-                <span v-for="(value, key, index) in formData">
+                <span v-for="(item, index) in flatFormData">
                   _b{{ index }} <br>
-                  &nbsp;&nbsp;&nbsp; a {{ toCURIE(key, shapePrefixes) }}
-                  <span v-for="(prop_val, prop_key , prop_idx) in value">
-                    <span v-if="prop_val">
-                        ; <br>
-                      &nbsp;&nbsp;&nbsp; {{ toCURIE(prop_key, shapePrefixes) }} &quot;{{  prop_val }}&quot;
+                  &nbsp;&nbsp;&nbsp; a {{ toCURIE(item["node_iri"], shapePrefixes) }}
+                  <!-- value is an array of objects -->
+                  <span v-for="(prop_vals, prop_key, prop_idx) in item['triples']">
+                    <span v-for="pval in prop_vals">
+                      <span v-if="pval">
+                          ; <br>
+                        &nbsp;&nbsp;&nbsp; {{ toCURIE(prop_key, shapePrefixes) }} &quot;{{  pval }}&quot;
+                      </span>
                     </span>
                   </span> .
                   <br><br>
@@ -52,7 +71,7 @@
 
 
 <script setup>
-  import { ref, onMounted, onBeforeMount, provide, inject} from 'vue'
+  import { ref, onMounted, onBeforeMount, provide, inject, computed} from 'vue'
   import { useFormData } from '@/composables/formdata';
   import { useShapeData } from '@/composables/shapedata';
   import { toCURIE } from '@/modules/utils';
@@ -67,7 +86,7 @@
   var selectedShape = ref(null)
   var current_instance = ref(null)
   var tab = ref(null)
-  const { formData, add_triple, add_node, remove_triple, edit_triple } = useFormData()
+  const { formData, add_empty_triple, add_empty_node, remove_triple, save_node } = useFormData()
   const shape_file_url = new URL("@/assets/shapesgraph.ttl", import.meta.url).href
   const {
     shapesDataset,
@@ -90,10 +109,9 @@
   }
   provide('defaultPropertyGroup', defaultPropertyGroup)
   provide('formData', formData)
-  provide('add_triple', add_triple)
-  provide('add_node', add_node)
+  provide('add_empty_triple', add_empty_triple)
+  provide('add_empty_node', add_empty_node)
   provide('remove_triple', remove_triple)
-  provide('edit_triple', edit_triple)
   provide('shapePrefixes', shapePrefixes)
   provide('editorMatchers', editorMatchers)
   provide('defaultEditor', defaultEditor)
@@ -115,6 +133,23 @@
   // Computed properties //
   // ------------------- //
 
+  const flatFormData = computed(() => {
+    var ffdata = []
+    for (const [key, value] of Object.entries(formData)) {
+      for (const obj of value) {
+        ffdata.push(
+          {
+            "node_iri": key,
+            "triples": obj
+          }
+        )
+      }
+    }
+    return ffdata
+  });
+
+  
+
 
   // --------- //
   // Functions //
@@ -123,6 +158,15 @@
   function selectIRI(IRI) { 
       selectedIRI.value = IRI
       selectedShape.value = nodeShapes.value[IRI]
-      add_node(IRI)
+      add_empty_node(IRI)
+  }
+
+  function saveForm() {
+    add_empty_node(selectedIRI.value)
+    // save_node()
+  }
+
+  function resetForm(IRI) {
+
   }
 </script>
