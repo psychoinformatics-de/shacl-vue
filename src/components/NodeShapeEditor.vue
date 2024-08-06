@@ -7,38 +7,40 @@
     <span v-if="group_layout == 'tabs'">
         <v-card>
             <v-tabs v-model="tab" bg-color="#C5CAE9" >
-                <span v-for="group in orderArrayOfObjects(Object.values(usedPropertyGroups), SHACL.order.value) ">
+                <span v-for="group in orderArrayOfObjects(Object.values(usedPropertyGroups), SHACL.order.value)" >
                     <v-tab :value="group[RDFS.label.value]">{{ group[RDFS.label.value] }}</v-tab>
                 </span>
             </v-tabs>
             <v-card-text>
-            <v-tabs-window v-model="tab">
-                <span v-for="group in orderArrayOfObjects(Object.values(usedPropertyGroups), SHACL.order.value) ">
-                    <v-tabs-window-item :value="group[RDFS.label.value]">
-                        <h3>{{ group[RDFS.label.value] }}</h3>
-                        <p>{{ group[RDFS.comment.value] }}</p>
-                        <br>
-                        <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)">
-                            <keep-alive>
-                                <PropertyShapeEditor :key="props.shape_iri + '--' + property[SHACL.path.value]" :property_shape="property" :node_uid="props.shape_iri"/>
-                            </keep-alive>
-                        </span>
-                        <br>
-                    </v-tabs-window-item>
-                </span>
-            </v-tabs-window>
+                <v-tabs-window v-model="tab">
+                    <span v-for="group in orderArrayOfObjects(Object.values(usedPropertyGroups), SHACL.order.value) ">
+                        <v-tabs-window-item v-if="group['own_properties'].length" :value="group[RDFS.label.value]">
+                            <h3>{{ group[RDFS.label.value] }}</h3>
+                            <p>{{ group[RDFS.comment.value] }}</p>
+                            <br>
+                            <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)" :key="props.shape_iri + '-' + String(node_idx) + '-' + property[SHACL.path.value]">
+                                <keep-alive>
+                                    <PropertyShapeEditor :property_shape="property" :node_uid="props.shape_iri"/>
+                                </keep-alive>
+                            </span>
+                            <br>
+                        </v-tabs-window-item>
+                    </span>
+                </v-tabs-window>
             </v-card-text>
         </v-card>
     </span>
     <span v-else>
         <span v-for="group in orderArrayOfObjects(Object.values(usedPropertyGroups), SHACL.order.value) ">
-            <h3>{{ group[RDFS.label.value] }}</h3>
-            <p><em>{{ group[RDFS.comment.value] }}</em></p>
-            <br>
-            <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)">
-                <keep-alive>
-                    <PropertyShapeEditor :key="props.shape_iri + '--' + property[SHACL.path.value]" :property_shape="property" :node_uid="props.shape_iri"/>
-                </keep-alive>
+            <span v-if="group['own_properties'].length">
+                <h3>{{ group[RDFS.label.value] }}</h3>
+                <p><em>{{ group[RDFS.comment.value] }}</em></p>
+                <br>
+                <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)" :key="props.shape_iri + '-' + String(node_idx) + '-' + property[SHACL.path.value]">
+                    <keep-alive>
+                        <PropertyShapeEditor :property_shape="property" :node_uid="props.shape_iri"/>
+                    </keep-alive>
+                </span>
             </span>
             <br>
         </span>
@@ -48,7 +50,7 @@
 
 <script setup>
     import { ref, onBeforeUpdate, onBeforeMount, onMounted, computed, inject} from 'vue'
-    import {SHACL, RDFS} from '../modules/namespaces'
+    import {SHACL, RDF, RDFS} from '../modules/namespaces'
     import { toCURIE, orderArrayOfObjects } from '../modules/utils';
 
     // ----- //
@@ -58,7 +60,7 @@
     const props = defineProps({
         shape_iri: String,
         shape_obj: Object,
-        prop_groups: Object,
+        prop_groups: Object
     })
 
     // ---- //
@@ -67,6 +69,7 @@
 
     const ready = ref(false)
     const shapePrefixes = inject('shapePrefixes');
+    const formData = inject('formData');
     const sh_description = ref(SHACL.description.value)
     const defaultPropertyGroup = inject('defaultPropertyGroup');
     var tab = ref(null)
@@ -115,6 +118,17 @@
         return props.shape_obj.properties.sort((a,b) => a[order] - b[order])
     });
 
+    const node_idx = computed(() => {
+        return formData[props.shape_iri].length - 0
+    })
+
+    const ignoredProperties = computed(() => {
+        var ignored = [RDF.type.value]
+        // TODO: need to get actual ignored properties from props.shape_obj[SHACL.ignoredProperties.value]
+        // TODO: also load ignored properties from some user-defined default
+        return ignored
+    })
+
     const usedPropertyGroups = computed(() => {
         // first get a list of all the sh:PropertyGroup instances 
         // that are provided for any property via sh:group
@@ -136,13 +150,16 @@
         for (var group_iri of Object.keys(used_prop_groups)) {
             used_prop_groups[group_iri]["own_properties"] = []
         }
-
+        
         // add shape properties to correct group
         for (var p of props.shape_obj.properties) {
+            console.log(p[SHACL.path])
             if (p.hasOwnProperty(SHACL.group.value)) {
                 used_prop_groups[p[SHACL.group.value]]["own_properties"].push(p)
             } else {
-                used_prop_groups[defaultPropertyGroup.key]["own_properties"].push(p)
+                if (ignoredProperties.value.indexOf(p[SHACL.path]) < 0) {
+                    used_prop_groups[defaultPropertyGroup.key]["own_properties"].push(p)
+                }
             }
         }
 
@@ -160,6 +177,7 @@
     // --------- //
 
     function orderGroups() {
+        console.log("ordering groups inside nodeshapeeditor")
         // first get a list of all the sh:PropertyGroup instances 
         // that are provided for any property via sh:group
         var group_instances = props.shape_obj.properties.map(function(shape_prop) {
@@ -171,4 +189,4 @@
         console.log(group_instances)
     }
 
-</script>../modules/namespaces
+</script>
