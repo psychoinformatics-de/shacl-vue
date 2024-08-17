@@ -1,3 +1,5 @@
+import { SHACL } from '../modules/namespaces'
+
 export function toCURIE(IRI, prefixes, return_type) {
   // prefixes is an object with prefix as keys and the resolved prefix IRI as the value
   if (!IRI) {
@@ -20,6 +22,16 @@ export function toCURIE(IRI, prefixes, return_type) {
   }
   return IRI
 }
+
+
+export function nameOrCURIE(shape, prefixes) {
+  if (shape.hasOwnProperty(SHACL.name.value)) {
+      return shape[SHACL.name.value]
+  } else {
+      return toCURIE(shape[SHACL.path.value], prefixes)   
+  }
+}
+
 
 export function orderArrayOfObjects(array, key) {
   // Returns an array of objects ordered by the value of a specific key 
