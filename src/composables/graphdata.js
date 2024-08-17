@@ -30,8 +30,6 @@ export function useGraphData() {
 			quadStream.on('data', quad => {
 				graphData.add(quad)
 			}).on('end', async () => {
-        console.log('--- Graph Data ---')
-        console.log(graphData)
         serializedGraphData.value = (await rdfPretty.io.dataset.toText('text/turtle', graphData)).trim()
         graphData.forEach(quad => {
           graphTriples.value.push(`${quad.subject.value} - ${quad.predicate.value} - ${quad.object.value}`)

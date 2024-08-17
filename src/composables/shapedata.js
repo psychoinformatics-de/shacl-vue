@@ -44,7 +44,6 @@ export function useShapeData(shapes_graph_url) {
 			quadStream.on('prefix', (prefix, ns) => {
 				shapePrefixes[prefix] = ns.value;
 				prefixArray.value.push(ns.value)
-                console.log(`prefix: ${prefix} ${ns.value}`)
 			}).on('end', () => {
 				prefixes_ready.value = true
 			})
