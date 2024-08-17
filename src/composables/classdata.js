@@ -28,8 +28,6 @@ export function useClassData() {
 			quadStream.on('data', quad => {
 				classData.add(quad)
 			}).on('end', async () => {
-        console.log('--- class Data ---')
-        console.log(classData)
         serializedClassData.value = (await rdfPretty.io.dataset.toText('text/turtle', classData)).trim()
         classData.forEach(quad => {
           classTriples.value.push(`${quad.subject.value} - ${quad.predicate.value} - ${quad.object.value}`)

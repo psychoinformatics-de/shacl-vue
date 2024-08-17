@@ -14,28 +14,10 @@
     <v-row align="start" style="flex-wrap: nowrap" no-gutters>
         <!-- Display selected form -->
         <v-col cols="6">
-          <h3>Selected form</h3>
-            <v-sheet class="pa-4" border rounded elevation="2">
-                <span v-if="selectedIRI && prefixes_ready">
-                  <v-form ref="form" validate-on="submit lazy" @submit.prevent="saveForm()" >
-                    <NodeShapeEditor :key="selectedIRI" :shape_iri="selectedIRI" :shape_obj="selectedShape" :prop_groups="propertyGroups"/>
-
-                    <div style="display: flex;">
-                      <v-btn
-                        class="mt-2"
-                        text="Reset"
-                        @click="resetForm()"
-                        style="margin-left: auto; margin-right: 1em;"
-                      ></v-btn>
-                      <v-btn
-                        class="mt-2"
-                        text="Save"
-                        type="submit"
-                      ></v-btn>
-                    </div>
-                  </v-form>
-                </span>
-            </v-sheet>
+          <span v-if="selectedIRI && prefixes_ready">
+            <h3>Selected form</h3>
+            <FormEditor :key="selectedIRI" :shape_iri="selectedIRI"></FormEditor>
+          </span>
         </v-col>
         <!-- Display entered form data -->
         <v-col class="ml-6">
@@ -115,6 +97,11 @@
   provide('shapePrefixes', shapePrefixes)
   provide('editorMatchers', editorMatchers)
   provide('defaultEditor', defaultEditor)
+  provide('nodeShapes', nodeShapes)
+  provide('propertyGroups', propertyGroups)
+  provide('shapesDataset', shapesDataset)
+  provide('prefixArray', prefixArray)
+  provide('nodeShapeIRIs', nodeShapeIRIs)
 
 
   // ----------------- //

@@ -4,7 +4,7 @@
         density="compact"
         variant="outlined"
         type="url"
-        label="(text field editor)"
+        label="add text"
         validate-on="lazy input"
         :rules="rules"
     >

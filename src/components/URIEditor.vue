@@ -1,50 +1,126 @@
+<!-- TODO: investigate https://vuetifyjs.com/en/components/inputs/
+ to combine below into a single input component -->
+
 <template>
-    <v-text-field
-        v-model="triple_object"
-        density="compact"
-        variant="outlined"
-        type="url"
-        label="(URI editor)"
-        validate-on="lazy input"
-        :rules="rules"
-    >
-    </v-text-field>
+    <v-row justify="start" no-gutters>
+        <v-col cols="5">
+            <v-select
+                label="prefix"
+                v-model="triple_prefix"
+                :items="prefixOptions"
+                density="compact"
+                variant="outlined"
+                ></v-select>
+        </v-col>
+        <v-col>
+            <v-text-field
+                :ref="props.triple_uid + '-' + props.triple_idx"
+                v-model="triple_property"
+                density="compact"
+                variant="outlined"
+                type="url"
+                label="add text"
+                validate-on="lazy input"
+                :rules="rules"
+            >
+            </v-text-field>
+        </v-col>
+    </v-row>
 </template>
 
 <script setup>
-    import { inject, computed, reactive} from 'vue'
+    import { inject, computed, ref, watch, onMounted} from 'vue'
     import { useRules } from '../composables/rules'
+    import { toCURIE } from '../modules/utils';
 
     const props = defineProps({
         property_shape: Object,
         node_uid: String,
-        triple_uid: String
+        triple_uid: String,
+        triple_idx: Number
     })
     const formData = inject('formData');
     const { rules } = useRules(props.property_shape)
+    const graphPrefixes = inject('graphPrefixes');
+    const shapePrefixes = inject('shapePrefixes');
+    const classPrefixes = inject('classPrefixes');
+    const allPrefixes = {...shapePrefixes, ...graphPrefixes, ...classPrefixes};
+    const selectedPrefix = ref('')
+    const enteredValue = ref('')
+    const prefixRules = ref([])
 
-    const triple_object = computed({
-        get() {
-            console.log("Inside triple_object computed getter")
-            // Have to account for the immediate switch when a form is saved
-            // the getter will run on a 
-            try {
-                const node_idx = formData[props.node_uid].length - 1
-                const triple_idx = formData[props.node_uid][node_idx][props.triple_uid].length - 1
-                return formData[props.node_uid].at(-1)[props.triple_uid].at(-1);
-            } catch (error) {
-                return null
-            }
-        },
-        set(value) {
-            const node_idx = formData[props.node_uid].length - 1
-            if (Object.keys(formData[props.node_uid][node_idx]).indexOf(props.triple_uid) < 0) {
-                formData[props.node_uid][node_idx][props.triple_uid] = reactive([null])
-            }
-            const triple_idx = formData[props.node_uid][node_idx][props.triple_uid].length - 1
-            formData[props.node_uid][node_idx][props.triple_uid][triple_idx] = value;
-        }
+    // ----------------- //
+    // Lifecycle methods //
+    // ----------------- //
+
+    onMounted(() => {
+        // prefixRules.value.push(
+        //     value => {
+        //         if (value) {
+        //             return true
+        //         } else {
+        //             if (triple_property.value) return 'This is a required field'
+        //         }
+        //     }
+        // )
     })
+
+
+    // ------------------- //
+    // Computed properties //
+    // ------------------- //
+
+    const prefixOptions = computed(() => {
+        var prefixes = []
+        for (const [k, v] of Object.entries(allPrefixes)) {
+            prefixes.push(
+                {
+                    title: k,
+                    value: k,
+                    props: { subtitle: v},
+                }
+            )
+        }
+        return prefixes
+    })
+
+    const triple_components = computed(() => {
+        var triple_obj = formData[props.node_uid].at(-1)[props.triple_uid][props.triple_idx]
+        return toCURIE(triple_obj, allPrefixes, "parts")
+    })
+
+    watch(triple_components, (newValue) => {
+        // console.log(`newval: ${newValue}`)
+        selectedPrefix.value = newValue ? newValue.prefix : '';
+        enteredValue.value = newValue ? newValue.property : '';
+    }, { immediate: true });
+
+    const triple_prefix = computed({
+      get() {
+        return selectedPrefix.value;
+      },
+      set(value) {
+        selectedPrefix.value = value;
+        updateFormData();
+      }
+    });
+
+    const triple_property = computed({
+      get() {
+        return enteredValue.value;
+      },
+      set(value) {
+        enteredValue.value = value;
+        updateFormData();
+      }
+    });
+
+    const updateFormData = () => {
+        formData[props.node_uid].at(-1)[props.triple_uid][props.triple_idx] = `${allPrefixes[selectedPrefix.value]}${enteredValue.value}`;
+    };
+
+
+
 </script>
 
 <script>

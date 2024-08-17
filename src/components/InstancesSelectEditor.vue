@@ -2,7 +2,7 @@
     <v-autocomplete
         density="compact"
         variant="outlined"
-        label="(instances select editor)"
+        label="select an item"
         v-model="triple_object"
         :items="instanceItems"
         validate-on="lazy input"
@@ -10,21 +10,45 @@
         item-value="value"
         item-text="title"
         return-object
+        ref="fieldRef"
+        :id="inputId"
     >
 
         <template v-slot:item="data">
-            <v-list-item @click="console.log('add new item')" v-if="data.item.props.isButton">
-                <template v-slot:prepend>
-                    <v-icon icon="item.icon">mdi-plus-box</v-icon>
-                </template>
-                <v-list-item-title>{{ data.item.title }}</v-list-item-title>
-            </v-list-item>
-            <v-list-item @click="selectItem(data.item)" v-else>
-                <v-list-item-title>{{ data.item.title }}</v-list-item-title>
-                <v-list-item-subtitle>{{ data.item.props.subtitle }}</v-list-item-subtitle>
-            </v-list-item>
+            <div v-if="data.item.props.isButton">
+                <v-list-item>
+                    <v-list-item-title>
+                        <v-menu location="end">
+                            <template v-slot:activator="{ props }">
+                                <v-btn variant="tonal" v-bind="props">{{ data.item.title }} &nbsp;&nbsp; <v-icon icon="item.icon">mdi-play</v-icon></v-btn>
+                            </template>
+
+                            <v-list>
+                                <v-list-item v-for="item in propClassList" @click="add_empty_node(item.value)">
+                                    <v-list-item-title>{{ item.title }}</v-list-item-title>
+                                    <v-dialog activator="parent" max-width="700">
+                                        <template v-slot:default="{ isActive }">
+                                            <FormEditor :shape_iri="item.value"></FormEditor>
+                                        </template>
+                                    </v-dialog>
+                                </v-list-item>
+                            </v-list>
+                        </v-menu>
+
+                    </v-list-item-title>
+                </v-list-item>
+            </div>
+            <div v-else>
+                <v-list-item @click="selectItem(data.item)">
+                    <v-list-item-title>{{ data.item.title }}</v-list-item-title>
+                    <v-list-item-subtitle>{{ data.item.props.subtitle }}</v-list-item-subtitle>
+                </v-list-item>
+            </div>
         </template>
     </v-autocomplete>
+
+
+
 </template>
 
 <script setup>
@@ -33,6 +57,9 @@
     import rdf from 'rdf-ext'
     import {SHACL, RDF, RDFS, DLTHING, XSD} from '@/modules/namespaces'
     import { toCURIE } from '../modules/utils';
+    import { useRegisterRef } from '../composables/refregister';
+
+
 
     // ----- //
     // Props //
@@ -50,16 +77,21 @@
     // ---- //
     
     const formData = inject('formData');
+    const propertyGroups = inject('propertyGroups');
+    const nodeShapes = inject('nodeShapes');
     const graphData = inject('graphData');
+    const add_empty_node = inject('add_empty_node');
     const graphPrefixes = inject('graphPrefixes');
     const shapePrefixes = inject('shapePrefixes');
     const classPrefixes = inject('classPrefixes');
+    const allPrefixes = {...shapePrefixes, ...graphPrefixes, ...classPrefixes};
     const classData = inject('classData');
     const { rules } = useRules(props.property_shape)
     var propClass = ref(null)
-    const combinedQuads = reactive([])
     const instanceItems = reactive([])
-
+    const inputId = `input-${Date.now()}`;
+    const { fieldRef } = useRegisterRef(inputId, props);
+    
     // ------------------- //
     // Computed properties //
     // ------------------- //
@@ -85,13 +117,12 @@
         // ---
         // TODO: what should the correct default value be here?
         propClass.value = props.property_shape[SHACL.class.value] ?? false
-        let allprefixes = {...shapePrefixes, ...graphPrefixes, ...classPrefixes};
         // find nodes with predicate rdf:type and object being the property class
         var quads = getLiteralAndNamedNodes(
             graphData,
             rdf.namedNode(RDF.type),
             propClass.value,
-            allprefixes
+            allPrefixes
         )
         // then find nodes with predicate rdfs:subClassOf and object being the property class
         // TODO: here we are only using a named node for the object because this is how the
@@ -105,7 +136,7 @@
         var myArr = []
         Array.from(subClasses).forEach(quad => {
             const cl = quad.subject.value
-            myArr = myArr.concat(getLiteralAndNamedNodes(graphData, rdf.namedNode(RDF.type), cl, allprefixes))
+            myArr = myArr.concat(getLiteralAndNamedNodes(graphData, rdf.namedNode(RDF.type), cl, allPrefixes))
         });
         // Then combine all quad arrays
         const combinedQuads = quads.concat(myArr);
@@ -126,10 +157,34 @@
                 {
                     title: quad.subject.value + extra,
                     value: quad.subject.value,
-                    props: { subtitle: toCURIE(quad.object.value, allprefixes) },
+                    props: { subtitle: toCURIE(quad.object.value, allPrefixes) },
                 }
             )
         });
+    })
+
+    const propClassList = computed(() => {
+        var items = []
+        // first add main property class
+        items.push(
+            {
+                title: toCURIE(propClass.value, allPrefixes),
+                value: propClass.value
+            }
+        )
+        const subClasses = rdf.grapoi({ dataset: classData })
+            .hasOut(rdf.namedNode(RDFS.subClassOf.value), rdf.namedNode(propClass.value))
+            .quads();
+        
+        Array.from(subClasses).forEach(quad => {
+            items.push(
+                {
+                    title: toCURIE(quad.subject.value, allPrefixes),
+                    value: quad.subject.value
+                }
+            )
+        });
+        return items
     })
 
     // --------- //
@@ -152,8 +207,8 @@
 
     function selectItem(item) {
         triple_object.value = item.value;
+        fieldRef.value.blur();
     }
-
 
 </script>
 

@@ -7,15 +7,14 @@ export function useFormData() {
 
   const formData = reactive({})
 
+
   function add_empty_node(node_uid) {
     // if the node key does not exist in the lookup object yet, add it
     // if the node key already exists in the lookup object, do nothing
-    console.log("Inside add_empty_node function in formdata composable")
     if (Object.keys(formData).indexOf(node_uid) < 0) {
       // The added value is an array of objects to allow multiple of the same
       // nodes to be added
       formData[node_uid] = reactive([{}])
-      console.log(`Node ${node_uid} added`, formData[node_uid].value)
     } else {
       formData[node_uid].push({})
     }
@@ -29,7 +28,6 @@ export function useFormData() {
       // Current node being edited is always the last in the array of nodes
       if (Object.keys(formData[node_uid].at(-1)).indexOf(triple_uid) < 0) {
         formData[node_uid].at(-1)[triple_uid] = reactive([null])
-        console.log(`Triple ${triple_uid} added to node ${node_uid}`, formData[node_uid].value)
       } else {
         formData[node_uid].at(-1)[triple_uid].push(null)
       }
@@ -42,9 +40,6 @@ export function useFormData() {
     // TODO: handle error if the node key does not exist in the lookup object yet
     // Check if the node exists before logging
     if (formData[node_uid]) {
-      console.log("Inside save_node function in formdata composable")
-      console.log(node_uid)
-      console.log(formData[node_uid])
       formData[node_uid].push({})
     } else {
       console.error(`Node ${node_uid} does not exist`)
@@ -73,3 +68,59 @@ export function useFormData() {
     save_node
   }
 }
+
+// -----------------------
+// Structure of form data:
+// -----------------------
+
+
+// Object with keys being the subject of a triple
+// {
+//   <class_iri>: [ // Array of class instances
+//      // class instance 1
+//      // Object with keys being predicates of triples 
+//      {
+//          // predicate 1
+//          <property_iri>: [ // Array with elements being objects of triples
+//             <value1>,
+//             <value2>
+//          ]
+//          // predicate 2
+//          <property_iri>: [
+//             <value3>,
+//             <value4>
+//          ]
+//          ...
+//      },
+//      // class instance 2
+//      {
+//         ...
+//      }
+//   ] 
+//   ...
+// }
+
+
+// -------------------------------
+// Example structure of form data:
+// -------------------------------
+
+// {
+//   "https://concepts.datalad.org/s/sddui/unreleased/ScientificDataDistribution": [
+//      {
+//          https://concepts.datalad.org/s/thing/unreleased/name": [
+//             <value1>,
+//             <value2>
+//          ]
+//          https://concepts.datalad.org/s/thing/unreleased/title": [
+//             <value3>,
+//             <value4>
+//          ]
+//          ...
+//      },
+//      {
+//         ...
+//      }
+//   ] 
+//   ...
+// }
