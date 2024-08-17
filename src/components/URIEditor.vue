@@ -1,8 +1,11 @@
+<!-- TODO: investigate https://vuetifyjs.com/en/components/inputs/
+ to combine below into a single input component -->
+
 <template>
     <v-row justify="start" no-gutters>
-        <v-col cols="4">
+        <v-col cols="5">
             <v-select
-                label="Prefix"
+                label="prefix"
                 v-model="triple_prefix"
                 :items="prefixOptions"
                 density="compact"
@@ -11,22 +14,22 @@
         </v-col>
         <v-col>
             <v-text-field
+                :ref="props.triple_uid + '-' + props.triple_idx"
                 v-model="triple_property"
                 density="compact"
                 variant="outlined"
                 type="url"
-                label="(URI editor)"
+                label="add text"
                 validate-on="lazy input"
                 :rules="rules"
             >
             </v-text-field>
-            
         </v-col>
     </v-row>
 </template>
 
 <script setup>
-    import { inject, computed, reactive, ref, watch} from 'vue'
+    import { inject, computed, ref, watch, onMounted} from 'vue'
     import { useRules } from '../composables/rules'
     import { toCURIE } from '../modules/utils';
 
@@ -44,6 +47,28 @@
     const allPrefixes = {...shapePrefixes, ...graphPrefixes, ...classPrefixes};
     const selectedPrefix = ref('')
     const enteredValue = ref('')
+    const prefixRules = ref([])
+
+    // ----------------- //
+    // Lifecycle methods //
+    // ----------------- //
+
+    onMounted(() => {
+        // prefixRules.value.push(
+        //     value => {
+        //         if (value) {
+        //             return true
+        //         } else {
+        //             if (triple_property.value) return 'This is a required field'
+        //         }
+        //     }
+        // )
+    })
+
+
+    // ------------------- //
+    // Computed properties //
+    // ------------------- //
 
     const prefixOptions = computed(() => {
         var prefixes = []
@@ -65,7 +90,7 @@
     })
 
     watch(triple_components, (newValue) => {
-        console.log(`newval: ${newValue}`)
+        // console.log(`newval: ${newValue}`)
         selectedPrefix.value = newValue ? newValue.prefix : '';
         enteredValue.value = newValue ? newValue.property : '';
     }, { immediate: true });
@@ -93,6 +118,8 @@
     const updateFormData = () => {
         formData[props.node_uid].at(-1)[props.triple_uid][props.triple_idx] = `${allPrefixes[selectedPrefix.value]}${enteredValue.value}`;
     };
+
+
 
 </script>
 
