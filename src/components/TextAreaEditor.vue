@@ -1,5 +1,9 @@
 <template>
-    <v-textarea v-model="triple_object" variant="outlined" label="(text area editor)"></v-textarea>
+    <v-textarea
+        v-model="triple_object"
+        variant="outlined"
+        label="add text">
+    </v-textarea>
 </template>
 
 <script setup>
