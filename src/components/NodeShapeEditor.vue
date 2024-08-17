@@ -1,9 +1,4 @@
 <template>
-    <h2>{{ toCURIE(shape_iri, shapePrefixes) }}</h2>
-    <br>
-    <p>{{ shape_obj[sh_description] }}</p>
-    <br>
-
     <span v-if="group_layout == 'tabs'">
         <v-card>
             <v-tabs v-model="tab" bg-color="#C5CAE9" >
@@ -51,7 +46,7 @@
 <script setup>
     import { ref, onBeforeUpdate, onBeforeMount, onMounted, computed, inject} from 'vue'
     import {SHACL, RDF, RDFS} from '../modules/namespaces'
-    import { toCURIE, orderArrayOfObjects } from '../modules/utils';
+    import { orderArrayOfObjects } from '../modules/utils';
 
     // ----- //
     // Props //
@@ -59,21 +54,19 @@
 
     const props = defineProps({
         shape_iri: String,
-        shape_obj: Object,
-        prop_groups: Object
     })
 
     // ---- //
     // Data //
     // ---- //
 
-    const ready = ref(false)
-    const shapePrefixes = inject('shapePrefixes');
     const formData = inject('formData');
-    const sh_description = ref(SHACL.description.value)
     const defaultPropertyGroup = inject('defaultPropertyGroup');
+    const propertyGroups = inject('propertyGroups');
+    const nodeShapes = inject('nodeShapes')
+    const shape_obj = nodeShapes.value[props.shape_iri]
+    const ready = ref(false)
     var tab = ref(null)
-    // const group_layout = ref('tabs') // ref('default') or ref('tabs')
     const group_layout = ref('default') // ref('default') or ref('tabs')
     
     // ----------------- //
@@ -105,7 +98,7 @@
             "http://www.w3.org/ns/shacl#ignoredProperties"
         ]
         var new_obj = {}
-        for (const [key, value] of Object.entries(props.shape_obj)) {
+        for (const [key, value] of Object.entries(shape_obj)) {
             if (ignore_properties.indexOf(key) < 0) {
                 new_obj[key] = value
             }
@@ -115,7 +108,7 @@
 
     const orderedProperties = computed(() => {
         var order = SHACL.order.value
-        return props.shape_obj.properties.sort((a,b) => a[order] - b[order])
+        return shape_obj.properties.sort((a,b) => a[order] - b[order])
     });
 
     const node_idx = computed(() => {
@@ -124,7 +117,7 @@
 
     const ignoredProperties = computed(() => {
         var ignored = [RDF.type.value]
-        // TODO: need to get actual ignored properties from props.shape_obj[SHACL.ignoredProperties.value]
+        // TODO: need to get actual ignored properties from shape_obj[SHACL.ignoredProperties.value]
         // TODO: also load ignored properties from some user-defined default
         return ignored
     })
@@ -132,19 +125,17 @@
     const usedPropertyGroups = computed(() => {
         // first get a list of all the sh:PropertyGroup instances 
         // that are provided for any property via sh:group
-        var group_instances = props.shape_obj.properties.map(function(shape_prop) {
+        var group_instances = shape_obj.properties.map(function(shape_prop) {
             return shape_prop[SHACL.group.value];
         });
         // make list unique and remove falsy values
         group_instances = [...new Set(group_instances)].filter( Boolean )
         var used_prop_groups = {}
         for (var group_iri of group_instances) {
-            used_prop_groups[group_iri] = props.prop_groups[group_iri]
+            used_prop_groups[group_iri] = propertyGroups.value[group_iri]
         }
         // add default property group
         used_prop_groups[defaultPropertyGroup.key] = defaultPropertyGroup.value
-
-        console.debug(used_prop_groups)
 
         // initialise 'own_properties' array
         for (var group_iri of Object.keys(used_prop_groups)) {
@@ -152,8 +143,7 @@
         }
         
         // add shape properties to correct group
-        for (var p of props.shape_obj.properties) {
-            console.log(p[SHACL.path])
+        for (var p of shape_obj.properties) {
             if (p.hasOwnProperty(SHACL.group.value)) {
                 used_prop_groups[p[SHACL.group.value]]["own_properties"].push(p)
             } else {
@@ -163,13 +153,9 @@
             }
         }
 
-        console.log("computed")
-        console.log(used_prop_groups)
-
         return used_prop_groups
         // var order = SHACL.order.value
         // return used_prop_groups.sort((a,b) => a[order] - b[order])
-
     });
 
     // --------- //
@@ -177,16 +163,13 @@
     // --------- //
 
     function orderGroups() {
-        console.log("ordering groups inside nodeshapeeditor")
         // first get a list of all the sh:PropertyGroup instances 
         // that are provided for any property via sh:group
-        var group_instances = props.shape_obj.properties.map(function(shape_prop) {
+        var group_instances = shape_obj.properties.map(function(shape_prop) {
             return shape_prop[SHACL.group.value];
         });
         // make list unique and remove falsy values
         group_instances = [...new Set(group_instances)].filter( Boolean )
-        console.log("group_instances")
-        console.log(group_instances)
     }
 
 </script>
