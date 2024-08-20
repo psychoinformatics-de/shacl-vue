@@ -16,21 +16,16 @@
 
         <template v-slot:item="data">
             <div v-if="data.item.props.isButton">
-                <v-list-item>
+                <v-list-item @click.stop>
                     <v-list-item-title>
-                        <v-menu location="end">
+                        <v-menu v-model="menu" location="end">
                             <template v-slot:activator="{ props }">
                                 <v-btn variant="tonal" v-bind="props">{{ data.item.title }} &nbsp;&nbsp; <v-icon icon="item.icon">mdi-play</v-icon></v-btn>
                             </template>
 
-                            <v-list>
-                                <v-list-item v-for="item in propClassList" @click="add_empty_node(item.value)">
+                            <v-list ref="addItemList">
+                                <v-list-item v-for="item in propClassList" @click.stop="handleAddItemClick(item)">
                                     <v-list-item-title>{{ item.title }}</v-list-item-title>
-                                    <v-dialog activator="parent" max-width="700">
-                                        <template v-slot:default="{ isActive }">
-                                            <FormEditor :shape_iri="item.value"></FormEditor>
-                                        </template>
-                                    </v-dialog>
                                 </v-list-item>
                             </v-list>
                         </v-menu>
@@ -46,6 +41,12 @@
             </div>
         </template>
     </v-autocomplete>
+
+    <v-dialog v-model="dialog" max-width="700">
+        <template v-slot:default="{ isActive }">
+            <FormEditor :shape_iri="selectedShapeIRI"></FormEditor>
+        </template>
+    </v-dialog>
 
 
 
@@ -81,16 +82,17 @@
     const nodeShapes = inject('nodeShapes');
     const graphData = inject('graphData');
     const add_empty_node = inject('add_empty_node');
-    const graphPrefixes = inject('graphPrefixes');
-    const shapePrefixes = inject('shapePrefixes');
-    const classPrefixes = inject('classPrefixes');
-    const allPrefixes = {...shapePrefixes, ...graphPrefixes, ...classPrefixes};
+    const allPrefixes = inject('allPrefixes');
     const classData = inject('classData');
     const { rules } = useRules(props.property_shape)
     var propClass = ref(null)
     const instanceItems = reactive([])
     const inputId = `input-${Date.now()}`;
     const { fieldRef } = useRegisterRef(inputId, props);
+    const addItemList = ref(null)
+    const dialog = ref(false)
+    const menu = ref(false)
+    const selectedShapeIRI = ref(null)
     
     // ------------------- //
     // Computed properties //
@@ -208,6 +210,13 @@
     function selectItem(item) {
         triple_object.value = item.value;
         fieldRef.value.blur();
+    }
+
+    function handleAddItemClick(item) {
+        selectedShapeIRI.value = item.value
+        menu.value = false;
+        dialog.value = true;
+        add_empty_node(item.value)
     }
 
 </script>
