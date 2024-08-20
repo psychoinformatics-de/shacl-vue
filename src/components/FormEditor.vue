@@ -23,16 +23,26 @@
     <v-form ref="form" v-model="formValid" validate-on="lazy input" @submit.prevent="saveForm()" >
         <NodeShapeEditor :key="props.shape_iri" :shape_iri="props.shape_iri"/>
         <div style="display: flex;">
+
+          <v-btn
+              class="mt-2"
+              text="Cancel"
+              @click="cancelForm()"
+              style="margin-left: auto; margin-right: 1em;"
+              prepend-icon="mdi-close-box"
+          ></v-btn>
           <v-btn
               class="mt-2"
               text="Reset"
               @click="resetForm()"
-              style="margin-left: auto; margin-right: 1em;"
+              style="margin-right: 1em;"
+              prepend-icon="mdi-undo"
           ></v-btn>
           <v-btn
               class="mt-2"
               text="Save"
               type="submit"
+              prepend-icon="mdi-content-save"
           ></v-btn>
         </div>
     </v-form>
@@ -58,8 +68,10 @@
   // ---- //
   
   const add_empty_node = inject('add_empty_node')
+  const clear_current_node = inject('clear_current_node')
   const shapePrefixes = inject('shapePrefixes');
   const nodeShapes = inject('nodeShapes')
+  const cancelFormHandler = inject('cancelFormHandler')
   const shape_obj = nodeShapes.value[props.shape_iri]
   const form = ref(null)
   const formValid = ref(null)
@@ -75,7 +87,6 @@
 
   provide('registerRef', registerRef);
   provide('unregisterRef', unregisterRef);
-
 
   // ----------------- //
   // Lifecycle methods //
@@ -130,7 +141,13 @@
   }
 
   function resetForm() {
-    form.value.reset()
+    clear_current_node(props.shape_iri)
+    form.value.resetValidation();
+
+  }
+
+  function cancelForm() {
+    cancelFormHandler();
   }
 
 

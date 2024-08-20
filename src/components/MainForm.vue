@@ -3,7 +3,7 @@
     <v-row align="start" no-gutters>
       <v-col>
         <h3>Forms</h3>
-        <v-select v-if="prefixes_ready" :items="nodeShapeNamesArray" item-title="name" label="Select" density="compact">
+        <v-select v-model="selectedFormItem" v-if="prefixes_ready" :items="nodeShapeNamesArray" item-title="name" label="Select" density="compact">
           <template v-slot:item="{ props, item }">
             <v-list-item v-bind="props" :title="toCURIE(nodeShapeNames[item.raw], shapePrefixes)" @click="selectIRI(nodeShapeNames[item.raw])"></v-list-item>
           </template>
@@ -108,6 +108,7 @@
   
   var selectedIRI = ref(null)
   var selectedShape = ref(null)
+  var selectedFormItem = ref(null)
   var current_instance = ref(null)
   var prefixForm = ref(null)
   var showPrefixForm = ref(false)
@@ -117,7 +118,14 @@
   const rules = {
     required: value => !!value || 'This field is required',
   }
-  const { formData, add_empty_triple, add_empty_node, remove_triple, save_node } = useFormData()
+  const {
+    formData,
+    add_empty_node,
+    remove_current_node,
+    clear_current_node,
+    add_empty_triple,
+    remove_triple
+  } = useFormData()
   const shape_file_url = new URL("@/assets/shapesgraph.ttl", import.meta.url).href
   const {
     shapesDataset,
@@ -143,6 +151,8 @@
   provide('add_empty_triple', add_empty_triple)
   provide('add_empty_node', add_empty_node)
   provide('remove_triple', remove_triple)
+  provide('remove_current_node', remove_current_node)
+  provide('clear_current_node', clear_current_node)
   provide('shapePrefixes', shapePrefixes)
   provide('editorMatchers', editorMatchers)
   provide('defaultEditor', defaultEditor)
@@ -159,6 +169,14 @@
     url: null
   })
   provide('allPrefixes', allPrefixes)
+
+  function cancelFormHandler() {
+    remove_current_node(selectedIRI.value)
+    selectedFormItem.value = null
+    selectedIRI.value = null
+  }
+
+  provide('cancelFormHandler', cancelFormHandler);
 
 
   // ----------------- //

@@ -20,6 +20,37 @@ export function useFormData() {
     }
   }
 
+  function remove_current_node(node_uid) {
+    // Error: if the node key does not exist in the lookup object
+    if (Object.keys(formData).indexOf(node_uid) < 0) {
+      console.error(`Trying to delete a node that does not exist in form data:\n${node_uid}`)
+    }
+    // Error: if the node value is not an array
+    else if (!Array.isArray(formData[node_uid])) {
+      console.error(`Not an array, cannot remove current node (${node_uid}):\n${formData[node_uid]}`)
+    }
+    // remove last element in array
+    else {
+      formData[node_uid].pop()
+    }
+  }
+
+  function clear_current_node(node_uid) {
+    // Error: if the node key does not exist in the lookup object
+    if (Object.keys(formData).indexOf(node_uid) < 0) {
+      console.error(`Trying to delete a node that does not exist in form data:\n${node_uid}`)
+    }
+    // Error: if the node value is not an array
+    else if (!Array.isArray(formData[node_uid])) {
+      console.error(`Not an array, cannot remove current node (${node_uid}):\n${formData[node_uid]}`)
+    }
+    // clear last element in array
+    else {
+      console.log(formData[node_uid].at(-1))
+      objectKeysToNull(formData[node_uid].at(-1))
+    }
+  }
+
   function add_empty_triple(node_uid, triple_uid) {
     // if the node uid exists and the triple uid (predicate) does not exist, add it
     // if the node uid exists and the triple uid already exists, add empty value to array
@@ -59,10 +90,28 @@ export function useFormData() {
     }
   }
 
+  function clearObjectKeys(obj) {
+    for (var key in obj){
+      if (obj.hasOwnProperty(key)){
+          delete obj[key];
+      }
+    }
+  }
+
+  function objectKeysToNull(obj) {
+    for (var key in obj){
+      if (obj.hasOwnProperty(key)){
+          obj[key] = reactive([null])
+      }
+    }
+  }
+
   // expose managed state as return value
   return {
     formData,
     add_empty_node,
+    remove_current_node,
+    clear_current_node,
     add_empty_triple,
     remove_triple,
     save_node

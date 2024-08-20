@@ -82,6 +82,7 @@
     const nodeShapes = inject('nodeShapes');
     const graphData = inject('graphData');
     const add_empty_node = inject('add_empty_node');
+    const remove_current_node = inject('remove_current_node');
     const allPrefixes = inject('allPrefixes');
     const classData = inject('classData');
     const { rules } = useRules(props.property_shape)
@@ -93,6 +94,15 @@
     const dialog = ref(false)
     const menu = ref(false)
     const selectedShapeIRI = ref(null)
+
+
+    const cancelDialogForm = () => {
+        console.log("Cancelling from form in dialog")
+        remove_current_node(selectedShapeIRI.value)
+        dialog.value = false;
+    };
+
+    provide('cancelFormHandler', cancelDialogForm);
     
     // ------------------- //
     // Computed properties //
@@ -225,6 +235,7 @@
 
 <script>
     import { SHACL } from '@/modules/namespaces'
+import { provide } from 'vue';
     export const matchingLogic = (shape) => {
         // sh:nodeKind exists
         if ( shape.hasOwnProperty(SHACL.nodeKind.value) ) {
