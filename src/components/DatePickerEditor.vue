@@ -1,10 +1,12 @@
 <template>
     <v-dialog max-width="500">
         <template v-slot:activator="{ props: activatorProps }">
-            <v-btn
-                v-bind="activatorProps"
-                :text="formData[props.node_uid].at(-1)[props.triple_uid].at(-1) ? formData[props.node_uid].at(-1)[props.triple_uid].at(-1).toISOString().split('T')[0] : 'Select a date'"
-            ></v-btn>
+            <v-input :rules="rules">
+                <v-btn
+                    v-bind="activatorProps"
+                    :text="formData[props.node_uid].at(-1)[props.triple_uid].at(-1) ? formData[props.node_uid].at(-1)[props.triple_uid].at(-1).toISOString().split('T')[0] : 'Select a date'"
+                ></v-btn>
+            </v-input>
         </template>
 
         <template v-slot:default="{ isActive }">

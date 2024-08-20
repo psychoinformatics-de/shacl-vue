@@ -9,7 +9,49 @@
           </template>
         </v-select>
       </v-col>
-      <v-col cols="6"><v-sheet class="pa-2 ma-2"></v-sheet></v-col>
+      <v-col cols="6">
+        <v-sheet class="pa-2 ma-2">
+          <div v-if="allPrefixes && selectedIRI" style="display: flex;">
+            <div style="margin-left: auto;">
+              <v-btn variant="tonal" @click="openDrawer">Prefixes <v-icon>mdi-menu-down</v-icon></v-btn>
+            <v-navigation-drawer
+              v-model="drawer"
+              location="right"
+              temporary
+              width="300"
+            >
+              <v-list density="compact">
+                <!-- Prepend button as the first list item -->
+                <v-list-item @click="togglePrefixFields">
+                  <v-list-item-title> <v-icon style="padding-bottom: 0.1em;">mdi-plus-box-outline</v-icon> Add new prefix</v-list-item-title>
+                </v-list-item>
+                <v-list-item v-if="showPrefixForm">
+                  <v-card outlined class="pa-4">
+                    <v-form ref="prefixForm" v-model="formValid" validate-on="input" @submit.prevent="savePrefix()">
+                      <v-text-field density="compact" label="Prefix code" v-model="new_prefix.code" :rules="[rules.required]" ></v-text-field>
+                      <v-text-field density="compact" label="Prefix URL" v-model="new_prefix.url" :rules="[rules.required]" ></v-text-field>
+                      <div style="display: flex;">
+                        <v-btn
+                            class="mt-2"
+                            text="Save"
+                            type="submit"
+                            style="margin-left: auto;"
+                        ></v-btn>
+                      </div>
+                    </v-form>
+                  </v-card>
+                </v-list-item>
+                <v-divider></v-divider>
+                <v-list-item v-for="(item, index) in prefixOptions" :key="index">
+                  <v-list-item-title>{{ item.title }}</v-list-item-title>
+                  <v-list-item-subtitle>{{ item.props.subtitle }}</v-list-item-subtitle>
+                </v-list-item>
+              </v-list>
+            </v-navigation-drawer>
+            </div>
+          </div>
+        </v-sheet>
+      </v-col>
     </v-row>
     <v-row align="start" style="flex-wrap: nowrap" no-gutters>
         <!-- Display selected form -->
@@ -53,7 +95,7 @@
 
 
 <script setup>
-  import { ref, onMounted, onBeforeMount, provide, inject, computed} from 'vue'
+  import { ref, onMounted, onBeforeMount, provide, inject, computed, reactive, watch} from 'vue'
   import { useFormData } from '@/composables/formdata';
   import { useShapeData } from '@/composables/shapedata';
   import { toCURIE } from '@/modules/utils';
@@ -67,7 +109,14 @@
   var selectedIRI = ref(null)
   var selectedShape = ref(null)
   var current_instance = ref(null)
+  var prefixForm = ref(null)
+  var showPrefixForm = ref(false)
+  var drawer = ref(false)
   var tab = ref(null)
+  var formValid = ref(false)
+  const rules = {
+    required: value => !!value || 'This field is required',
+  }
   const { formData, add_empty_triple, add_empty_node, remove_triple, save_node } = useFormData()
   const shape_file_url = new URL("@/assets/shapesgraph.ttl", import.meta.url).href
   const {
@@ -102,6 +151,14 @@
   provide('shapesDataset', shapesDataset)
   provide('prefixArray', prefixArray)
   provide('nodeShapeIRIs', nodeShapeIRIs)
+  const graphPrefixes = inject('graphPrefixes');
+  const classPrefixes = inject('classPrefixes');
+  const allPrefixes = reactive({});
+  const new_prefix = reactive({
+    code: null,
+    url: null
+  })
+  provide('allPrefixes', allPrefixes)
 
 
   // ----------------- //
@@ -111,6 +168,15 @@
   onBeforeMount(() => {
     console.log(`the root component is about to be mounted.`)
   })
+
+  watch(prefixes_ready, (newValue) => {
+    if (newValue) {
+      Object.assign(allPrefixes, shapePrefixes, graphPrefixes, classPrefixes)
+      // allPrefixes = {...shapePrefixes, ...graphPrefixes, ...classPrefixes}
+      console.log("All prefixes ready")
+      console.log(allPrefixes)
+    }
+    }, { immediate: true });
 
   onMounted(() => {
     console.log(`the root component is now mounted.`)
@@ -135,6 +201,20 @@
     return ffdata
   });
 
+  const prefixOptions = computed(() => {
+      var prefixes = []
+      for (const [k, v] of Object.entries(allPrefixes)) {
+          prefixes.push(
+              {
+                  title: k,
+                  value: k,
+                  props: { subtitle: v},
+              }
+          )
+      }
+      return prefixes.sort((a, b) => a.title.localeCompare(b.title))
+  })
+
   
 
 
@@ -148,12 +228,32 @@
       add_empty_node(IRI)
   }
 
-  function saveForm() {
-    add_empty_node(selectedIRI.value)
-    // save_node()
-  }
-
-  function resetForm(IRI) {
+  function openDrawer() {
+    resetPrefixFields()
+    showPrefixForm.value = false
+    drawer.value = true;
 
   }
+
+  function togglePrefixFields() {
+      showPrefixForm.value = !showPrefixForm.value
+      if (!showPrefixForm.value) resetPrefixFields()
+  }
+
+  function resetPrefixFields() {
+      new_prefix.code = null
+      new_prefix.url = null
+  }
+
+  async function savePrefix() {
+    const validationResult = await prefixForm.value.validate();
+    if (validationResult.valid) {
+      allPrefixes[new_prefix.code] = new_prefix.url
+      resetPrefixFields()
+      togglePrefixFields()
+    } else {
+      console.log("Prefix form validation error")
+    }
+  }
+
 </script>

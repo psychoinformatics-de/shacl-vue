@@ -41,10 +41,7 @@
     })
     const formData = inject('formData');
     const { rules } = useRules(props.property_shape)
-    const graphPrefixes = inject('graphPrefixes');
-    const shapePrefixes = inject('shapePrefixes');
-    const classPrefixes = inject('classPrefixes');
-    const allPrefixes = {...shapePrefixes, ...graphPrefixes, ...classPrefixes};
+    const allPrefixes = inject('allPrefixes');
     const selectedPrefix = ref('')
     const enteredValue = ref('')
     const prefixRules = ref([])
@@ -81,7 +78,7 @@
                 }
             )
         }
-        return prefixes
+        return prefixes.sort((a, b) => a.title.localeCompare(b.title))
     })
 
     const triple_components = computed(() => {
