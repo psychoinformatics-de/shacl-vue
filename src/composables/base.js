@@ -1,23 +1,57 @@
-// base.js
-import { reactive, ref, onMounted, onUnmounted } from 'vue'
-import { v4 as uuidv4 } from 'uuid';
+// composables/base.js
+import { ref, watch, computed } from 'vue';
 
-// by convention, composable function names start with "use"
-export function useBaseComponent() {
+/**
+ * Composable for managing the state and behavior of the BaseEditor component.
+ *
+ * @param {Object} props - The props passed to the custom input component.
+ * @param {Function} emit - The emit function to trigger events.
+ * @param {Function} valueParser - A function to parse the modelValue into subcomponent values.
+ * @param {Function} valueCombiner - A function to combine subcomponent values into the modelValue.
+ * @returns {Object} - Returns an object containing reactive references and methods for managing the input state.
+ */
 
-  var my_uid = ref(null)
+export function useBaseInput(props, emit, valueParser, valueCombiner) {
+  /**
+   * Reactive object to hold the individual values of subcomponents.
+   * @type {Object}
+   */
+  const subValues = ref(valueParser(props.modelValue) || {});
 
-  function assignUUID() {
-    my_uid = uuidv4();
-  }
+  /**
+   * Computed property to manage the internal value of the custom input component.
+   * - The getter combines the subcomponent values into the modelValue.
+   * - The setter parses the modelValue back into subcomponent values.
+   */
+  const internalValue = computed({
+    get() {
+      return valueCombiner(subValues.value);
+    },
+    set(value) {
+      subValues.value = valueParser(value);
+    }
+  });
 
-  onMounted(() => {
-    console.log("Component mounted, assigning UUID from composable code:\n")
-    assignUUID()
-    console.log(my_uid)
+  /**
+   * Watcher for the parent component's modelValue.
+   * Updates internal values when modelValue changes.
+   */
+  watch(
+    () => props.modelValue,
+    (newValue) => {
+      if (newValue !== internalValue.value) {
+        internalValue.value = newValue;
+      }
+    }
+  );
+
+  // Emit updates to parent
+  watch(internalValue, (newValue) => {
+      emit('update:modelValue', newValue);
   });
 
   return {
-    my_uid
-  }
+    subValues,
+    internalValue,
+  };
 }

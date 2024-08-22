@@ -9,9 +9,10 @@
         </v-col>
         <v-col cols="8">
 
-            <v-row no-gutters v-for="(triple, triple_idx) in formData[props.node_uid].at(-1)[my_uid]" :key="triple_idx">
+            <v-row no-gutters v-for="(triple, triple_idx) in formData[props.node_uid].at(-1)[my_uid]" :key="props.node_uid + '-' + my_uid + '-' + triple_idx">
                 <v-col cols="9">
                     <component
+                        v-model="formData[props.node_uid].at(-1)[my_uid][triple_idx]"
                         :is="matchedComponent"
                         :property_shape="property_shape"
                         :node_uid="props.node_uid"

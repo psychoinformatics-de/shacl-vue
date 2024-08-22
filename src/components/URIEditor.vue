@@ -1,17 +1,21 @@
-<!-- TODO: investigate https://vuetifyjs.com/en/components/inputs/
- to combine below into a single input component -->
-
- <!-- The v-bind="attrs" and v-on="listeners" directives in the v-input component are used to ensure that any attributes and event listeners passed to the custom URIeditor component from its parent are properly forwarded to the underlying v-input component. -->
-
 <template>
-    <v-input>
+    <v-input
+        v-model="internalValue"
+        :rules="rules"
+        ref="fieldRef"
+        :id="inputId"
+        hide-details="auto"
+        style="margin-bottom: 1em;"   
+    >
         <v-row justify="start" no-gutters>
             <v-col cols="9">
-                <span v-if="enterURI">
+                <span v-if="!enterCURIE">
                     <v-text-field
+                        v-model="subValues.uri_text"
                         label="add URI text"
                         density="compact"
                         variant="outlined"
+                        hide-details="auto"
                     ></v-text-field>
                 </span>
                 <span v-else>
@@ -19,33 +23,31 @@
                         <v-col cols="5">
                             <v-select
                                 label="prefix"
-                                v-model="triple_prefix"
+                                v-model="subValues.uri_prefix"
                                 :items="prefixOptions"
                                 density="compact"
                                 variant="outlined"
                                 style="margin-bottom: 0; padding-bottom: 0"
+                                hide-details="auto"
                                 ></v-select>
                         </v-col>
                         <v-col cols="7">
                             <v-text-field
-                                :ref="props.triple_uid + '-' + props.triple_idx"
-                                v-model="triple_property"
+                                v-model="subValues.uri_path"
                                 density="compact"
                                 style="margin-bottom: 0; padding-bottom: 0"
                                 variant="outlined"
-                                type="url"
                                 label="add text"
                                 validate-on="lazy input"
-                                :rules="rules"
+                                hide-details="auto"
                             >
                             </v-text-field>
                         </v-col>
                     </v-row>
-
                 </span>
             </v-col>
             <v-col>
-                <v-checkbox v-model="enterURI" density="compact" label="URI" style="margin-top:0; margin-left: 0.5em; padding-top:0"></v-checkbox>
+                <v-checkbox v-model="enterCURIE" density="compact" label="CURIE" hide-details="true" style="margin-top:0; margin-left: 0.5em; padding-top:0;"></v-checkbox>
             </v-col>
         </v-row>
     </v-input>
@@ -54,9 +56,12 @@
 <script setup>
     import { inject, computed, ref, watch, onMounted} from 'vue'
     import { useRules } from '../composables/rules'
-    import { toCURIE } from '../modules/utils';
+    import { toCURIE, isObject } from '../modules/utils';
+    import { useRegisterRef } from '../composables/refregister';
+    import { useBaseInput } from '@/composables/base';
 
     const props = defineProps({
+        modelValue: String,
         property_shape: Object,
         node_uid: String,
         triple_uid: String,
@@ -64,11 +69,26 @@
     })
     const formData = inject('formData');
     const { rules } = useRules(props.property_shape)
+    rules.value.push(
+      value => {
+        const uriRegex = /^([a-zA-Z][a-zA-Z0-9+-.]*):(?:\/\/((?:[a-zA-Z0-9\-._~%!$&'()*+,;=]+@)?(?:\[(?:[A-Fa-f0-9:.]+)\]|(?:[a-zA-Z0-9\-._~%]+))(?:\:[0-9]+)?)?)?((?:\/[a-zA-Z0-9\-._~%!$&'()*+,;=:@]*)*)(?:\?[a-zA-Z0-9\-._~%!$&'()*+,;=:@/?]*)?(?:\#[a-zA-Z0-9\-._~%!$&'()*+,;=:@/?]*)?$/;
+        if (uriRegex.test(value)) return true
+        return 'This is not a valid URI of type XSD:anyURI'
+      }
+    )
+    const inputId = `input-${Date.now()}`;
+    const { fieldRef } = useRegisterRef(inputId, props);
+    
     const allPrefixes = inject('allPrefixes');
-    const selectedPrefix = ref('')
-    const enteredValue = ref('')
-    // const prefixRules = ref([])
-    const enterURI = ref(false)
+    const enterCURIE = ref(false)
+
+    const emit = defineEmits(['update:modelValue']);
+    const { subValues, internalValue } = useBaseInput(
+        props,
+        emit,
+        valueParser,
+        valueCombiner
+    );
 
     // ----------------- //
     // Lifecycle methods //
@@ -96,42 +116,61 @@
         return prefixes.sort((a, b) => a.title.localeCompare(b.title))
     })
 
-    const triple_components = computed(() => {
-        var triple_obj = formData[props.node_uid].at(-1)[props.triple_uid][props.triple_idx]
-        return toCURIE(triple_obj, allPrefixes, "parts")
-    })
+    // --------- //
+    // Functions //
+    // --------- //
+    
 
-    watch(triple_components, (newValue) => {
-        selectedPrefix.value = newValue ? newValue.prefix : '';
-        enteredValue.value = newValue ? newValue.property : '';
-    }, { immediate: true });
+    function valueParser(value) {
+        // Parsing internalValue into ref values for separate subcomponent(s)
 
-    const triple_prefix = computed({
-      get() {
-        return selectedPrefix.value;
-      },
-      set(value) {
-        selectedPrefix.value = value;
-        updateFormData();
-      }
-    });
+        // internalValue is a URI
+        // - if internalValue is null, set all to null or empty strings
+        // - for the text field: set directly from internalValue
+        // - for the curie:
+        //   - call toCurie in order to split it up into prefix and path
+        //   - if toCurie not possible (i.e. unknown prefix), don't set the prefix nor path (or set to null or empty string?)
+        // whether the switch is set to uri or curie is not important here
+        var URItext, URIprefix, URIpath
+        if (!value) {
+            URItext = '';
+            URIprefix = null;
+            URIpath = '';
+        } else {
+            URItext = value
+            var curieparts = toCURIE(value, allPrefixes, "parts")
+            if ( isObject(curieparts)) {
+                URIprefix = curieparts.prefix;
+                URIpath = curieparts.property;
+            } else {
+                URIprefix = null;
+                URIpath = '';
+            }
+        }
+        return {
+            uri_text: URItext,
+            uri_prefix: URIprefix,
+            uri_path: URIpath
+        }
+    }
 
-    const triple_property = computed({
-      get() {
-        return enteredValue.value;
-      },
-      set(value) {
-        enteredValue.value = value;
-        updateFormData();
-      }
-    });
+    function valueCombiner(values) {
+        // Determing internalValue (a URI) from subvalues/subcomponents
 
-    const updateFormData = () => {
-        formData[props.node_uid].at(-1)[props.triple_uid][props.triple_idx] = `${allPrefixes[selectedPrefix.value]}${enteredValue.value}`;
-    };
-
-
-
+        // if the switch is set to URI:
+        // - return subValues.uri_text
+        // if switch set to CURIE (default):
+        // - if prefix not selected
+        if (!enterCURIE.value) {
+            return values.uri_text ?? ''
+        } else {
+            if (values.uri_prefix !== null) {
+                return `${allPrefixes[values.uri_prefix] ?? ''}${values.uri_path ?? ''}`
+            } else {
+                return `${values.uri_path ?? ''}`
+            }
+        }
+    }
 </script>
 
 <script>
