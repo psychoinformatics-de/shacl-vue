@@ -1,8 +1,8 @@
 <template>
   <v-sheet class="pa-4" border rounded elevation="2">
-    <div style="display: flex;">
+    <div style="display: flex; position: relative; ">
       <h2>{{ toCURIE(props.shape_iri, shapePrefixes) }}</h2>
-      <span v-if="validationErrors.length" style="margin-left: auto;">
+      <div v-if="validationErrors.length" class="position-sticky top-4" style="margin-left: auto;">
         <v-menu location="end">
             <template v-slot:activator="{ props }">
                 <v-btn color="warning" v-bind="props" density="compact" icon="mdi-alert-circle-outline"></v-btn>
@@ -14,7 +14,7 @@
                 </v-list-item>
             </v-list>
         </v-menu>
-      </span>
+      </div>
     </div>
     
     <br>
@@ -143,6 +143,7 @@
   function resetForm() {
     clear_current_node(props.shape_iri)
     form.value.resetValidation();
+    validationErrors.value = []
 
   }
 

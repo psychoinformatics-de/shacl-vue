@@ -7,6 +7,8 @@
         label="add text"
         validate-on="lazy input"
         :rules="rules"
+        ref="fieldRef"
+        :id="inputId"
     >
     </v-text-field>
 </template>
@@ -14,6 +16,7 @@
 <script setup>
     import { inject, computed} from 'vue'
     import { useRules } from '../composables/rules'
+    import { useRegisterRef } from '../composables/refregister';
 
     const props = defineProps({
         property_shape: Object,
@@ -22,6 +25,8 @@
     })
     const formData = inject('formData');
     const { rules } = useRules(props.property_shape)
+    const inputId = `input-${Date.now()}`;
+    const { fieldRef } = useRegisterRef(inputId, props);
 
     const triple_object = computed({
         get() {

@@ -2,18 +2,28 @@
     <v-textarea
         v-model="triple_object"
         variant="outlined"
-        label="add text">
+        label="add text"
+        :rules="rules"
+        ref="fieldRef"
+        :id="inputId"
+    >
     </v-textarea>
 </template>
 
 <script setup>
     import {inject, computed} from 'vue'
+    import { useRules } from '../composables/rules'
+    import { useRegisterRef } from '../composables/refregister';
+
     const props = defineProps({
         property_shape: Object,
         node_uid: String,
         triple_uid: String
     })
     const formData = inject('formData');
+    const { rules } = useRules(props.property_shape)
+    const inputId = `input-${Date.now()}`;
+    const { fieldRef } = useRegisterRef(inputId, props);
 
     const triple_object = computed({
         get() {

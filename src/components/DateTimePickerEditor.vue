@@ -1,7 +1,10 @@
 <template>
     <v-dialog max-width="500">
         <template v-slot:activator="{ props: activatorProps }">
-            <v-input :rules="rules">
+            <v-input
+            :rules="rules"
+            ref="fieldRef"
+            :id="inputId">
                 <v-btn
                     v-bind="activatorProps"
                     :text="formData[props.node_uid].at(-1)[props.triple_uid].at(-1) ? formData[props.node_uid].at(-1)[props.triple_uid].at(-1).toISOString().split('T')[0] : 'Select a date'"
@@ -15,7 +18,6 @@
                     show-adjacent-months
                     v-model="triple_object"
                     validate-on="lazy input"
-                    :rules="rules"
                 ></v-date-picker>
                 <v-card-actions>
                     <v-spacer></v-spacer>
@@ -30,6 +32,7 @@
 <script setup>
     import {inject, computed} from 'vue'
     import { useRules } from '../composables/rules'
+    import { useRegisterRef } from '../composables/refregister';
 
     const props = defineProps({
         property_shape: Object,
@@ -38,6 +41,8 @@
     })
     const formData = inject('formData');
     const { rules } = useRules(props.property_shape)
+    const inputId = `input-${Date.now()}`;
+    const { fieldRef } = useRegisterRef(inputId, props);
 
     const triple_object = computed({
         get() {

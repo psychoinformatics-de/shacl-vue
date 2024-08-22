@@ -60,8 +60,6 @@
     import { toCURIE } from '../modules/utils';
     import { useRegisterRef } from '../composables/refregister';
 
-
-
     // ----- //
     // Props //
     // ----- //
