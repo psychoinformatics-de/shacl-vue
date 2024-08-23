@@ -5,7 +5,7 @@
         ref="fieldRef"
         :id="inputId"
         hide-details="auto"
-        style="margin-bottom: 1em;"   
+        style="margin-bottom: 1em;"
     >
         <v-row justify="start" no-gutters>
             <v-col cols="9">
@@ -72,6 +72,7 @@
     rules.value.push(
       value => {
         const uriRegex = /^([a-zA-Z][a-zA-Z0-9+-.]*):(?:\/\/((?:[a-zA-Z0-9\-._~%!$&'()*+,;=]+@)?(?:\[(?:[A-Fa-f0-9:.]+)\]|(?:[a-zA-Z0-9\-._~%]+))(?:\:[0-9]+)?)?)?((?:\/[a-zA-Z0-9\-._~%!$&'()*+,;=:@]*)*)(?:\?[a-zA-Z0-9\-._~%!$&'()*+,;=:@/?]*)?(?:\#[a-zA-Z0-9\-._~%!$&'()*+,;=:@/?]*)?$/;
+        if (!value) return true
         if (uriRegex.test(value)) return true
         return 'This is not a valid URI of type XSD:anyURI'
       }

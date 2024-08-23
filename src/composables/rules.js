@@ -23,6 +23,7 @@ export function useRules(propShape) {
     rules.value.push(
       value => {
         const regex = new RegExp(propShape[SHACL.pattern.value]);
+        if (!value) return true
         if (regex.test(value)) return true
         return 'Regular expression matching failed'
         // TODO: this should be replaced by pattern-specific messaging, possibly using sh:message as source
