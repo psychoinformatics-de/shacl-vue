@@ -8,7 +8,7 @@
                 <v-btn color="warning" v-bind="props" density="compact" icon="mdi-alert-circle-outline"></v-btn>
             </template>
             <v-list>
-                <v-list-item v-for="e of validationErrors" @click="">
+                <v-list-item v-for="e of validationErrors" @click="goToError(e)">
                     <v-list-item-title> <em>{{ e.name }}</em></v-list-item-title>
                     <v-list-item-subtitle>{{ e.message }}</v-list-item-subtitle>
                 </v-list-item>
@@ -116,8 +116,6 @@
       validationErrors.value = []
       // Await the validation result
       const validationResult = await form.value.validate();
-
-
       if (validationResult.valid) {
         // If the form is valid, proceed with form submission
         add_empty_node(props.shape_iri);
@@ -131,6 +129,7 @@
             validationErrors.value.push({
               name: fieldData.name,
               message: error.errorMessages.join(', '),
+              element_id: error.id,
             });
           }
         });
@@ -149,6 +148,23 @@
 
   function cancelForm() {
     cancelFormHandler();
+  }
+
+  function goToError(e) {
+    console.log(e)
+    var el = document.getElementById(e.element_id)
+    if (el) {
+      el.scrollIntoView({
+        behavior: 'smooth'
+      });
+    } else {
+      el = document.getElementById(e.element_id + '-messages')
+      if (el) {
+        el.scrollIntoView({
+          behavior: 'smooth'
+        });
+      }
+    }
   }
 
 
