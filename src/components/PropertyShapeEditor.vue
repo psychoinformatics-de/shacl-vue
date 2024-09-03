@@ -14,7 +14,7 @@
                     <component
                         v-model="formData[props.node_uid].at(-1)[my_uid][triple_idx]"
                         :is="matchedComponent"
-                        :property_shape="property_shape"
+                        :property_shape="props.property_shape"
                         :node_uid="props.node_uid"
                         :triple_uid="my_uid"
                         :triple_idx="triple_idx"

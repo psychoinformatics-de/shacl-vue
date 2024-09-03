@@ -45,7 +45,7 @@
 
 <script setup>
     import { ref, onBeforeUpdate, onBeforeMount, onMounted, computed, inject} from 'vue'
-    import {SHACL, RDF, RDFS} from '../modules/namespaces'
+    import {SHACL, RDF, RDFS, DLTHING} from '../modules/namespaces'
     import { orderArrayOfObjects } from '../modules/utils';
 
     // ----- //
@@ -116,7 +116,10 @@
     })
 
     const ignoredProperties = computed(() => {
-        var ignored = [RDF.type.value]
+        var ignored = [
+            RDF.type.value,
+            DLTHING.meta_type.value,
+        ]
         // TODO: need to get actual ignored properties from shape_obj[SHACL.ignoredProperties.value]
         // TODO: also load ignored properties from some user-defined default
         return ignored

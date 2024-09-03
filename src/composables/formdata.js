@@ -1,12 +1,25 @@
 // formdata.js
 
 
-import { reactive, ref } from 'vue'
+import { reactive, ref, computed} from 'vue'
+import rdf from 'rdf-ext';
+import { DLTHING, SHACL, RDF} from '@/modules/namespaces';
+import formatsPretty from '@rdfjs/formats/pretty.js'
 
 export function useFormData() {
 
   const formData = reactive({})
+  const savedFormData = rdf.dataset()
+  const savedFormDummy = ref(0);
+  const rdfPretty = rdf.clone()
+  rdfPretty.formats.import(formatsPretty)
+  // This is a stopgap and needs to be parameterized or made part of config somehow
+  const ID_IRI = DLTHING.id.value
+  const serializedSavedData = ref('')
 
+  async function updateSerializedData() {
+    serializedSavedData.value = (await formatsPretty.io.dataset.toText('text/turtle', savedFormData)).trim();
+  }
 
   function add_empty_node(node_uid) {
     // if the node key does not exist in the lookup object yet, add it
@@ -67,16 +80,6 @@ export function useFormData() {
     }
   }
 
-  function save_node(node_uid) {
-    // TODO: handle error if the node key does not exist in the lookup object yet
-    // Check if the node exists before logging
-    if (formData[node_uid]) {
-      formData[node_uid].push({})
-    } else {
-      console.error(`Node ${node_uid} does not exist`)
-    }
-  }
-
   function remove_triple(node_uid, triple_uid, triple_idx) {
     if (Object.keys(formData).indexOf(node_uid) >= 0) {
       // Current node being edited is always the last in the array of nodes
@@ -87,6 +90,96 @@ export function useFormData() {
       }
     } else {
       console.error(`Node UID not in formData: ${node_uid}. Cannot remove triple from non-existing node.`)
+    }
+  }
+
+  function save_node(node_uid, nodeShapes) {
+    // Check if the node exists beforehand
+    console.log(`Saving node of type: ${node_uid}`)
+    if (formData[node_uid]) {
+      // console.log("Node has entry in formData")
+      // console.log(`Current node value: ${formData[node_uid].at(-1)}`)
+      var shape = nodeShapes[node_uid]
+      // console.log(`Node shape: ${shape}`)
+      var properties = shape.properties
+      // console.log(`Shape properties: ${properties}`)
+      // Subject should either be a named node or blank node
+      // - named node if any of the properties is an ID
+      // - blank node if no ID found
+      // TODO: how do we know know the IRI of the ID field?
+      var subject
+      if ( Object.keys(formData[node_uid].at(-1)).indexOf(ID_IRI) >= 0) {
+        console.log(`node has id field: ${formData[node_uid].at(-1)[ID_IRI]}`)
+        subject = rdf.namedNode(formData[node_uid].at(-1)[ID_IRI])
+      } else {
+        console.log(`node DOES NOT have id field`)
+        subject = rdf.blankNode()
+      }
+
+      let firstQuad = rdf.quad(subject, rdf.namedNode(RDF.type.value), rdf.namedNode(node_uid))
+      savedFormData.add(firstQuad)
+      savedFormDummy.value++
+
+      // Loop through all keys, i.e. properties of shape, i.e. triple predicates
+      for (var pred of Object.keys(formData[node_uid].at(-1))) {
+        console.log(`Processing predicate: ${pred}`)
+        // Only process entered values
+        if (Array.isArray(formData[node_uid].at(-1)[pred]) &&
+            formData[node_uid].at(-1)[pred].length == 1 &&
+            formData[node_uid].at(-1)[pred][0] === null) {
+            // console.log("Node predicate has no value, skipping")
+            continue;
+        }
+        // Don't add ID quad:
+        if (pred == ID_IRI) {
+            continue;
+        }
+        // console.log(`Predicate value:\n`)
+        // console.log(formData[node_uid].at(-1)[pred])
+        let predicate = rdf.namedNode(pred)
+        // Find associated property shape, for information about nodekind
+        var property_shape = properties.find((prop) => prop[SHACL.path.value] == pred)
+        var nodeFunc = null
+        var dt = null
+        if ( property_shape.hasOwnProperty(SHACL.nodeKind.value) ) {
+          // options = sh:BlankNode, sh:IRI, sh:Literal, sh:BlankNodeOrIRI, sh:BlankNodeOrLiteral, sh:IRIOrLiteral
+          // sh:nodeKind == sh:Literal
+          if ( property_shape[SHACL.nodeKind.value] == SHACL.Literal.value ) {
+            nodeFunc = rdf.literal
+            // sh:datatype exists
+            if ( property_shape.hasOwnProperty(SHACL.datatype.value) ) {
+              dt = property_shape[SHACL.datatype.value]
+            }
+          } else if ([SHACL.IRI.value, SHACL.BlankNodeOrIRI.value].includes(property_shape[SHACL.nodeKind.value])) {
+            nodeFunc = rdf.namedNode
+          } else {
+            console.error(`NodeKind not supported: ${property_shape[SHACL.nodeKind.value]}\n\tAdding triple with literal object to savedFormData`)
+            nodeFunc = rdf.literal
+          }
+        } else {
+          console.error(`NodeKind not found for property shape: ${pred}\n\tCannot add triple to savedFormData`)
+        }
+
+        // Loop through all elements of the array with triple objects
+        for (var obj of formData[node_uid].at(-1)[pred]) {
+          let object
+          if (dt) {
+            object = nodeFunc(String(obj), dt)
+          } else {
+            object = nodeFunc(obj)
+          }
+          let quad = rdf.quad(subject, predicate, object)
+          savedFormData.add(quad)
+          // change the savedFormDummy ref in order to trigger vue's reactivity system
+          savedFormDummy.value++
+          // update serialized data
+          // updateSerializedData();
+        }
+      }
+      // at the end, what to do with current data in formdata? delete node element?
+      // add_empty_node(node_uid);
+    } else {
+      console.error(`Node ${node_uid} does not exist`)
     }
   }
 
@@ -109,6 +202,9 @@ export function useFormData() {
   // expose managed state as return value
   return {
     formData,
+    savedFormData,
+    savedFormDummy,
+    serializedSavedData,
     add_empty_node,
     remove_current_node,
     clear_current_node,

@@ -67,11 +67,13 @@
   // Data //
   // ---- //
   
-  const add_empty_node = inject('add_empty_node')
+  const save_node = inject('save_node')
   const clear_current_node = inject('clear_current_node')
+  const remove_current_node = inject('remove_current_node')
   const shapePrefixes = inject('shapePrefixes');
   const nodeShapes = inject('nodeShapes')
   const cancelFormHandler = inject('cancelFormHandler')
+  const saveFormHandler = inject('saveFormHandler')
   const shape_obj = nodeShapes.value[props.shape_iri]
   const form = ref(null)
   const formValid = ref(null)
@@ -98,6 +100,7 @@
 
   onMounted(() => {
     console.log(`the FormEditor component is now mounted.`)
+    console.log(shape_obj)
   })
 
   // ------------------- //
@@ -112,13 +115,13 @@
 
   async function saveForm() {
     try {
-
       validationErrors.value = []
       // Await the validation result
       const validationResult = await form.value.validate();
       if (validationResult.valid) {
         // If the form is valid, proceed with form submission
-        add_empty_node(props.shape_iri);
+        save_node(props.shape_iri, nodeShapes.value);
+        saveFormHandler()
       } else {
         console.log("Still some validation errors, bro");
 
@@ -147,6 +150,7 @@
   }
 
   function cancelForm() {
+    remove_current_node(props.shape_iri)
     cancelFormHandler();
   }
 

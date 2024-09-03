@@ -53,7 +53,7 @@
 </template>
 
 <script setup>
-    import { inject, reactive, onMounted, ref, computed} from 'vue'
+    import { inject, reactive, onBeforeMount, ref, computed} from 'vue'
     import { useRules } from '../composables/rules'
     import rdf from 'rdf-ext'
     import {SHACL, RDF, RDFS, DLTHING, XSD} from '@/modules/namespaces'
@@ -76,16 +76,14 @@
     // ---- //
     
     const formData = inject('formData');
-    const propertyGroups = inject('propertyGroups');
-    const nodeShapes = inject('nodeShapes');
+    const savedFormData = inject('savedFormData');
+    const savedFormDummy = inject('savedFormDummy');
     const graphData = inject('graphData');
     const add_empty_node = inject('add_empty_node');
-    const remove_current_node = inject('remove_current_node');
     const allPrefixes = inject('allPrefixes');
     const classData = inject('classData');
     const { rules } = useRules(props.property_shape)
     var propClass = ref(null)
-    const instanceItems = reactive([])
     const inputId = `input-${Date.now()}`;
     const { fieldRef } = useRegisterRef(inputId, props);
     const addItemList = ref(null)
@@ -95,12 +93,15 @@
 
 
     const cancelDialogForm = () => {
-        console.log("Cancelling from form in dialog")
-        remove_current_node(selectedShapeIRI.value)
+        console.log("Canceling from form in dialog")
         dialog.value = false;
     };
-
     provide('cancelFormHandler', cancelDialogForm);
+    const saveDialogForm = () => {
+        console.log("Saving from form in dialog")
+        dialog.value = false;
+    };
+    provide('saveFormHandler', saveDialogForm);
     
     // ------------------- //
     // Computed properties //
@@ -120,16 +121,28 @@
     // Lifecycle methods //
     // ----------------- //
 
-    onMounted(() => {
+    onBeforeMount(() => {
+        // TODO: what should the correct default value be here?
+        propClass.value = props.property_shape[SHACL.class.value] ?? false
+    })
+
+    const instanceItems = computed(() => {
         // ---
         // The goal of this method is to populate the list of items for the
         // InstancesSelectEditor
         // ---
-        // TODO: what should the correct default value be here?
-        propClass.value = props.property_shape[SHACL.class.value] ?? false
+        savedFormDummy.value;
+        console.log("recalculating instance items")
         // find nodes with predicate rdf:type and object being the property class
         var quads = getLiteralAndNamedNodes(
             graphData,
+            rdf.namedNode(RDF.type),
+            propClass.value,
+            allPrefixes
+        )
+        // find nodes with predicate rdf:type and object being the property class
+        var savedQuads = getLiteralAndNamedNodes(
+            savedFormData,
             rdf.namedNode(RDF.type),
             propClass.value,
             allPrefixes
@@ -149,9 +162,10 @@
             myArr = myArr.concat(getLiteralAndNamedNodes(graphData, rdf.namedNode(RDF.type), cl, allPrefixes))
         });
         // Then combine all quad arrays
-        const combinedQuads = quads.concat(myArr);
+        const combinedQuads = quads.concat(savedQuads).concat(myArr);
         // Finally, create list items from quads
-        instanceItems.push(
+        var instanceItemsArr = []
+        instanceItemsArr.push(
             {
                 title: "Add New Item",
                 props: { subtitle: "bla", isButton: true, },
@@ -163,7 +177,7 @@
             if (quad.subject.termType === 'BlankNode') {
                 extra = ' (BlankNode)'
             }
-            instanceItems.push(
+            instanceItemsArr.push(
                 {
                     title: quad.subject.value + extra,
                     value: quad.subject.value,
@@ -171,6 +185,7 @@
                 }
             )
         });
+        return instanceItemsArr
     })
 
     const propClassList = computed(() => {

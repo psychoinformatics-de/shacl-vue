@@ -90,6 +90,17 @@
           </span>
         </v-col>
     </v-row>
+    <v-sheet class="pa-4" border rounded elevation="2">
+      <v-btn @click="testy">test</v-btn>
+      {{ savedTriples.length }}
+        <pre class="formatted-pre">
+          <code class="formatted-code">
+            <span v-for="trip in savedTriples">
+              {{ trip }}
+            </span>
+          </code>
+        </pre>
+    </v-sheet>    
   </v-container>
 </template>
 
@@ -120,11 +131,15 @@
   }
   const {
     formData,
+    savedFormData,
+    savedFormDummy,
+    serializedSavedData,
     add_empty_node,
     remove_current_node,
     clear_current_node,
     add_empty_triple,
-    remove_triple
+    remove_triple,
+    save_node,
   } = useFormData()
   const shape_file_url = new URL("@/assets/shapesgraph.ttl", import.meta.url).href
   const {
@@ -148,11 +163,14 @@
   }
   provide('defaultPropertyGroup', defaultPropertyGroup)
   provide('formData', formData)
+  provide('savedFormData', savedFormData)
+  provide('savedFormDummy', savedFormDummy)
   provide('add_empty_triple', add_empty_triple)
   provide('add_empty_node', add_empty_node)
   provide('remove_triple', remove_triple)
   provide('remove_current_node', remove_current_node)
   provide('clear_current_node', clear_current_node)
+  provide('save_node', save_node)
   provide('shapePrefixes', shapePrefixes)
   provide('editorMatchers', editorMatchers)
   provide('defaultEditor', defaultEditor)
@@ -171,12 +189,15 @@
   provide('allPrefixes', allPrefixes)
 
   function cancelFormHandler() {
-    remove_current_node(selectedIRI.value)
     selectedFormItem.value = null
     selectedIRI.value = null
   }
-
   provide('cancelFormHandler', cancelFormHandler);
+  const saveMainForm = () => {
+    selectedFormItem.value = null
+    selectedIRI.value = null
+  };
+  provide('saveFormHandler', saveMainForm);
 
 
   // ----------------- //
@@ -232,6 +253,23 @@
       }
       return prefixes.sort((a, b) => a.title.localeCompare(b.title))
   })
+
+  const savedTriples = computed(() => {
+    savedFormDummy.value
+    var st = []
+    savedFormData.forEach(quad => {
+      st.push(`${quad.subject.value} - ${quad.predicate.value} - ${quad.object.value}`)
+    });
+    return st
+  })
+
+  function testy() {
+    console.log(savedFormData.size)
+    savedFormData.forEach(quad => {
+      console.log(`${quad.subject.value} - ${quad.predicate.value} - ${quad.object.value}`)
+    });
+  }
+  
 
   
 
