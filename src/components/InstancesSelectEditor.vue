@@ -53,7 +53,7 @@
 </template>
 
 <script setup>
-    import { inject, reactive, onBeforeMount, ref, computed} from 'vue'
+    import { inject, watch, onBeforeMount, ref, computed} from 'vue'
     import { useRules } from '../composables/rules'
     import rdf from 'rdf-ext'
     import {SHACL, RDF, RDFS, DLTHING, XSD} from '@/modules/namespaces'
@@ -76,8 +76,6 @@
     // ---- //
     
     const formData = inject('formData');
-    const savedFormData = inject('savedFormData');
-    const savedFormDummy = inject('savedFormDummy');
     const graphData = inject('graphData');
     const add_empty_node = inject('add_empty_node');
     const allPrefixes = inject('allPrefixes');
@@ -90,6 +88,7 @@
     const dialog = ref(false)
     const menu = ref(false)
     const selectedShapeIRI = ref(null)
+    const instanceItems = ref([])
 
 
     const cancelDialogForm = () => {
@@ -124,25 +123,19 @@
     onBeforeMount(() => {
         // TODO: what should the correct default value be here?
         propClass.value = props.property_shape[SHACL.class.value] ?? false
+        getInstanceItems()
     })
 
-    const instanceItems = computed(() => {
+    function getInstanceItems() {
         // ---
         // The goal of this method is to populate the list of items for the
         // InstancesSelectEditor
         // ---
-        savedFormDummy.value;
-        console.log("recalculating instance items")
+        console.log("(Re)calculating instance items")
         // find nodes with predicate rdf:type and object being the property class
+        console.log("find nodes with predicate rdf:type and object being the property class:")
         var quads = getLiteralAndNamedNodes(
             graphData,
-            rdf.namedNode(RDF.type),
-            propClass.value,
-            allPrefixes
-        )
-        // find nodes with predicate rdf:type and object being the property class
-        var savedQuads = getLiteralAndNamedNodes(
-            savedFormData,
             rdf.namedNode(RDF.type),
             propClass.value,
             allPrefixes
@@ -159,16 +152,19 @@
         var myArr = []
         Array.from(subClasses).forEach(quad => {
             const cl = quad.subject.value
+            console.log(`\t - getting quads with class: ${cl}`)
+            console.log(`\t - (size of data graph: ${graphData.size})`)
             myArr = myArr.concat(getLiteralAndNamedNodes(graphData, rdf.namedNode(RDF.type), cl, allPrefixes))
         });
         // Then combine all quad arrays
-        const combinedQuads = quads.concat(savedQuads).concat(myArr);
+        // const combinedQuads = quads.concat(savedQuads).concat(myArr);
+        const combinedQuads = quads.concat(myArr);
         // Finally, create list items from quads
         var instanceItemsArr = []
         instanceItemsArr.push(
             {
                 title: "Add New Item",
-                props: { subtitle: "bla", isButton: true, },
+                props: { isButton: true, },
             }
         )
         combinedQuads.forEach(quad => {
@@ -185,8 +181,12 @@
                 }
             )
         });
-        return instanceItemsArr
-    })
+        instanceItems.value = instanceItemsArr
+    }
+
+    watch(graphData, () => {
+        getInstanceItems()
+    }, { deep: true });
 
     const propClassList = computed(() => {
         var items = []
@@ -224,7 +224,7 @@
             .quads();
         // b) and the named node
         const uriNodes = rdf.grapoi({ dataset: graphData })
-            .hasOut(predicate, rdf.namedNode(propClass.value))
+            .hasOut(predicate, rdf.namedNode(propertyClass))
             .quads();
         // return as a concatenated array of quads
         return Array.from(literalNodes).concat(Array.from(uriNodes))
