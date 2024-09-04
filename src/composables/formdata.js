@@ -1,7 +1,7 @@
 // formdata.js
 
 
-import { reactive, ref, computed} from 'vue'
+import { reactive, ref, computed, inject} from 'vue'
 import rdf from 'rdf-ext';
 import { DLTHING, SHACL, RDF} from '@/modules/namespaces';
 import formatsPretty from '@rdfjs/formats/pretty.js'
@@ -9,17 +9,12 @@ import formatsPretty from '@rdfjs/formats/pretty.js'
 export function useFormData() {
 
   const formData = reactive({})
-  const savedFormData = rdf.dataset()
-  const savedFormDummy = ref(0);
   const rdfPretty = rdf.clone()
   rdfPretty.formats.import(formatsPretty)
   // This is a stopgap and needs to be parameterized or made part of config somehow
   const ID_IRI = DLTHING.id.value
-  const serializedSavedData = ref('')
 
-  async function updateSerializedData() {
-    serializedSavedData.value = (await formatsPretty.io.dataset.toText('text/turtle', savedFormData)).trim();
-  }
+  const graphData = inject('graphData')
 
   function add_empty_node(node_uid) {
     // if the node key does not exist in the lookup object yet, add it
@@ -109,20 +104,19 @@ export function useFormData() {
       // TODO: how do we know know the IRI of the ID field?
       var subject
       if ( Object.keys(formData[node_uid].at(-1)).indexOf(ID_IRI) >= 0) {
-        console.log(`node has id field: ${formData[node_uid].at(-1)[ID_IRI]}`)
+        console.log(`\t- node has id field: ${formData[node_uid].at(-1)[ID_IRI]}`)
         subject = rdf.namedNode(formData[node_uid].at(-1)[ID_IRI])
       } else {
-        console.log(`node DOES NOT have id field`)
+        console.log(`\t- node DOES NOT have id field`)
         subject = rdf.blankNode()
       }
 
       let firstQuad = rdf.quad(subject, rdf.namedNode(RDF.type.value), rdf.namedNode(node_uid))
-      savedFormData.add(firstQuad)
-      savedFormDummy.value++
+      graphData.add(firstQuad)
 
       // Loop through all keys, i.e. properties of shape, i.e. triple predicates
       for (var pred of Object.keys(formData[node_uid].at(-1))) {
-        console.log(`Processing predicate: ${pred}`)
+        console.log(`\t- processing predicate: ${pred}`)
         // Only process entered values
         if (Array.isArray(formData[node_uid].at(-1)[pred]) &&
             formData[node_uid].at(-1)[pred].length == 1 &&
@@ -153,11 +147,11 @@ export function useFormData() {
           } else if ([SHACL.IRI.value, SHACL.BlankNodeOrIRI.value].includes(property_shape[SHACL.nodeKind.value])) {
             nodeFunc = rdf.namedNode
           } else {
-            console.error(`NodeKind not supported: ${property_shape[SHACL.nodeKind.value]}\n\tAdding triple with literal object to savedFormData`)
+            console.error(`\t- NodeKind not supported: ${property_shape[SHACL.nodeKind.value]}\n\t\tAdding triple with literal object to graphData`)
             nodeFunc = rdf.literal
           }
         } else {
-          console.error(`NodeKind not found for property shape: ${pred}\n\tCannot add triple to savedFormData`)
+          console.error(`\t- NodeKind not found for property shape: ${pred}\n\tCannot add triple to graphData`)
         }
 
         // Loop through all elements of the array with triple objects
@@ -169,17 +163,13 @@ export function useFormData() {
             object = nodeFunc(obj)
           }
           let quad = rdf.quad(subject, predicate, object)
-          savedFormData.add(quad)
-          // change the savedFormDummy ref in order to trigger vue's reactivity system
-          savedFormDummy.value++
-          // update serialized data
-          // updateSerializedData();
+          graphData.add(quad)
         }
       }
       // at the end, what to do with current data in formdata? delete node element?
       // add_empty_node(node_uid);
     } else {
-      console.error(`Node ${node_uid} does not exist`)
+      console.error(`\t- Node ${node_uid} does not exist`)
     }
   }
 
@@ -202,9 +192,6 @@ export function useFormData() {
   // expose managed state as return value
   return {
     formData,
-    savedFormData,
-    savedFormDummy,
-    serializedSavedData,
     add_empty_node,
     remove_current_node,
     clear_current_node,
