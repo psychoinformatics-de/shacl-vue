@@ -48,7 +48,7 @@
   onMounted( async () => {
     console.log("App.vue async onmounted...")
     console.log("Getting graph data...")
-    const penguins = new URL("@/assets/distribution-penguins.ttl", import.meta.url).href
+    const penguins = new URL("@/assets/distribution-penguins-mini.ttl", import.meta.url).href
     await getGraphData(penguins)
     console.log("Getting class hierarchy data...")
     const classes = new URL("@/assets/class_hierarchy.ttl", import.meta.url).href
