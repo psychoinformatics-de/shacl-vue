@@ -90,17 +90,9 @@
           </span>
         </v-col>
     </v-row>
-    <v-sheet class="pa-4" border rounded elevation="2">
+    <!-- <v-sheet class="pa-4" border rounded elevation="2">
       <v-btn @click="testy">test</v-btn>
-      {{ savedTriples.length }}
-        <pre class="formatted-pre">
-          <code class="formatted-code">
-            <span v-for="trip in savedTriples">
-              {{ trip }}
-            </span>
-          </code>
-        </pre>
-    </v-sheet>    
+    </v-sheet> -->
   </v-container>
 </template>
 
@@ -120,20 +112,15 @@
   var selectedIRI = ref(null)
   var selectedShape = ref(null)
   var selectedFormItem = ref(null)
-  var current_instance = ref(null)
   var prefixForm = ref(null)
   var showPrefixForm = ref(false)
   var drawer = ref(false)
-  var tab = ref(null)
   var formValid = ref(false)
   const rules = {
     required: value => !!value || 'This field is required',
   }
   const {
     formData,
-    savedFormData,
-    savedFormDummy,
-    serializedSavedData,
     add_empty_node,
     remove_current_node,
     clear_current_node,
@@ -163,8 +150,6 @@
   }
   provide('defaultPropertyGroup', defaultPropertyGroup)
   provide('formData', formData)
-  provide('savedFormData', savedFormData)
-  provide('savedFormDummy', savedFormDummy)
   provide('add_empty_triple', add_empty_triple)
   provide('add_empty_node', add_empty_node)
   provide('remove_triple', remove_triple)
@@ -253,22 +238,6 @@
       }
       return prefixes.sort((a, b) => a.title.localeCompare(b.title))
   })
-
-  const savedTriples = computed(() => {
-    savedFormDummy.value
-    var st = []
-    savedFormData.forEach(quad => {
-      st.push(`${quad.subject.value} - ${quad.predicate.value} - ${quad.object.value}`)
-    });
-    return st
-  })
-
-  function testy() {
-    console.log(savedFormData.size)
-    savedFormData.forEach(quad => {
-      console.log(`${quad.subject.value} - ${quad.predicate.value} - ${quad.object.value}`)
-    });
-  }
   
 
   

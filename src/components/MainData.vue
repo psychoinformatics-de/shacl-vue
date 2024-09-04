@@ -50,26 +50,26 @@
     </v-sheet>
 
     <br>
+
+    <v-sheet class="pa-4" border rounded elevation="2">
+      <Suspense>
+        <pre class="formatted-pre">
+          <code class="formatted-code">
+            <span v-for="(trip, index) in graphTriples">
+              {{index + 1}}: {{ trip }}
+            </span>
+          </code>
+        </pre>
+      </Suspense>
+    </v-sheet>
+
+    <br>
     <v-sheet class="pa-4" border rounded elevation="2">
       <suspense>
         <pre class="formatted-pre">
           <code class="formatted-code">{{ serializedClassData }}</code>
         </pre>
       </suspense>
-    </v-sheet>
-
-    <br>
-
-    <v-sheet class="pa-4" border rounded elevation="2">
-      <Suspense>
-        <pre class="formatted-pre">
-          <code class="formatted-code">
-            <span v-for="trip in graphTriples">
-              {{ trip }}
-            </span>
-          </code>
-        </pre>
-      </Suspense>
     </v-sheet>
 
 
