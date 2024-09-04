@@ -15,6 +15,7 @@
     >
 
         <template v-slot:item="data">
+            <!-- Show the "Add Item" button first -->
             <div v-if="data.item.props.isButton">
                 <v-list-item @click.stop>
                     <v-list-item-title>
@@ -33,10 +34,39 @@
                     </v-list-item-title>
                 </v-list-item>
             </div>
+            <!-- Then show all other items -->
             <div v-else>
                 <v-list-item @click="selectItem(data.item)">
-                    <v-list-item-title>{{ data.item.title }}</v-list-item-title>
-                    <v-list-item-subtitle>{{ data.item.props.subtitle }}</v-list-item-subtitle>
+                    <div style="display: flex;">
+                        <div>
+                            <v-list-item-content>
+                                <v-list-item-title>{{ data.item.title }}</v-list-item-title>
+                                <v-list-item-subtitle>{{ data.item.props.subtitle }}</v-list-item-subtitle>
+                            </v-list-item-content>
+                        </div>
+                        <div style="margin-left: auto;">
+                            <v-tooltip location="end">
+                                    <template v-slot:activator="{ props }">
+                                        <v-icon
+                                            v-bind="props"
+                                            small
+                                            class="ml-2 info-tooltip"
+                                            color="primary"
+                                        >
+                                            mdi-information-outline
+                                        </v-icon>
+                                    </template>
+                                    <v-container>
+                                        <span v-for="(value, key, index) in data.item.props">
+                                            <v-row v-if="['title', 'subtitle', 'name', 'value'].indexOf(key) < 0">
+                                                <v-col cols="5">{{ key }}</v-col>
+                                                <v-col>{{ value }}</v-col>
+                                            </v-row>
+                                        </span>
+                                    </v-container>
+                                </v-tooltip>
+                        </div>
+                    </div>
                 </v-list-item>
             </div>
         </template>
@@ -53,7 +83,7 @@
 </template>
 
 <script setup>
-    import { inject, watch, onBeforeMount, ref, computed} from 'vue'
+    import { inject, watch, onBeforeMount, ref, provide, computed} from 'vue'
     import { useRules } from '../composables/rules'
     import rdf from 'rdf-ext'
     import {SHACL, RDF, RDFS, DLTHING, XSD} from '@/modules/namespaces'
@@ -168,18 +198,20 @@
             }
         )
         combinedQuads.forEach(quad => {
-            console.log(`\t${quad.subject.value}`)
             var extra = ''
             if (quad.subject.termType === 'BlankNode') {
                 extra = ' (BlankNode)'
             }
-            instanceItemsArr.push(
-                {
-                    title: quad.subject.value + extra,
-                    value: quad.subject.value,
-                    props: { subtitle: toCURIE(quad.object.value, allPrefixes) },
-                }
-            )
+            var relatedTrips = getRelatedTriples(quad.subject)
+            var item = {
+                title: quad.subject.value + extra,
+                value: quad.subject.value,
+                props: { subtitle: toCURIE(quad.object.value, allPrefixes) },
+            }
+            relatedTrips.forEach(quad => {
+                item.props[toCURIE(quad.predicate.value, allPrefixes)] = toCURIE(quad.object.value, allPrefixes)
+            })
+            instanceItemsArr.push(item)
         });
         instanceItems.value = instanceItemsArr
     }
@@ -242,13 +274,21 @@
         add_empty_node(item.value)
     }
 
+    function getRelatedTriples(someTerm) {
+        console.log(`Getting all properties of ${someTerm.value}:`)
+        const quads = rdf.grapoi({ dataset: graphData, term: someTerm }).out().quads();
+        Array.from(quads).forEach(quad => {
+            console.log(`\t${quad.subject.value} - ${quad.predicate.value} - ${quad.object.value}`)
+        })
+        return Array.from(quads)
+    }
+
 </script>
 
 <!-- Component matching logic -->
 
 <script>
     import { SHACL } from '@/modules/namespaces'
-import { provide } from 'vue';
     export const matchingLogic = (shape) => {
         // sh:nodeKind exists
         if ( shape.hasOwnProperty(SHACL.nodeKind.value) ) {
@@ -259,3 +299,10 @@ import { provide } from 'vue';
         return false
     };
 </script>
+
+
+<style scoped>
+.info-tooltip {
+  cursor: pointer;
+}
+</style>
