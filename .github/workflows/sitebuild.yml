@@ -41,12 +41,12 @@ jobs:
         run: npm run build
       - name: Build VitePress docs
         run: |
-          cd .docs
+          cd ./docs
           npm ci
           npm run build
           cd ..
           # Move VitePress build to the /dist/docs folder
-          mv .docs/.vitepress/dist dist/docs
+          mv ./docs/.vitepress/dist ./dist/docs
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifacts (both Vue.js app and VitePress docs)
