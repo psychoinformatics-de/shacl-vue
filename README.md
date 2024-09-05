@@ -11,7 +11,6 @@ This is a [VueJS 3](https://vuejs.org/) application, using [Vuetify frontend com
 For reading, manipulating, and writing RDF data (including shacl), the package uses libraries compatible with the [RDF/JS](https://rdf.js.org/) specifications (see also: https://github.com/rdfjs-base)
 
 Planned additions:
-- No build step has been incorporated yet, but will likely be incorporated as a Vite process in a github action, generating a site that is served via github pages
 - No continuous integration tests are implemented yet; these will likely be done with [Vitest](https://vitest.dev/) (because of its native integration with Vite)
 
 
