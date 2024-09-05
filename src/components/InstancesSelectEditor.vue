@@ -45,26 +45,26 @@
                             </v-list-item-content>
                         </div>
                         <div style="margin-left: auto;">
-                            <v-tooltip location="end">
-                                    <template v-slot:activator="{ props }">
-                                        <v-icon
-                                            v-bind="props"
-                                            small
-                                            class="ml-2 info-tooltip"
-                                            color="primary"
-                                        >
-                                            mdi-information-outline
-                                        </v-icon>
-                                    </template>
-                                    <v-container>
-                                        <span v-for="(value, key, index) in data.item.props">
-                                            <v-row v-if="['title', 'subtitle', 'name', 'value'].indexOf(key) < 0">
-                                                <v-col cols="5">{{ key }}</v-col>
-                                                <v-col>{{ value }}</v-col>
-                                            </v-row>
-                                        </span>
-                                    </v-container>
-                                </v-tooltip>
+                            <v-tooltip location="end" min-width="480px">
+                                <template v-slot:activator="{ props }">
+                                    <v-icon
+                                        v-bind="props"
+                                        small
+                                        class="ml-2 info-tooltip"
+                                        color="primary"
+                                    >
+                                        mdi-information-outline
+                                    </v-icon>
+                                </template>
+                                <v-container>
+                                    <span v-for="(value, key, index) in data.item.props">
+                                        <v-row v-if="['title', 'subtitle', 'name', 'value'].indexOf(key) < 0">
+                                            <v-col cols="5">{{ key }}</v-col>
+                                            <v-col>{{ value }}</v-col>
+                                        </v-row>
+                                    </span>
+                                </v-container>
+                            </v-tooltip>
                         </div>
                     </div>
                 </v-list-item>
