@@ -3,6 +3,10 @@ node_modules
 /dist
 _ignore
 
+# VItepress
+docs/.vitepress/dist
+docs/.vitepress/cache
+
 # local env files
 .env.local
 .env.*.local
