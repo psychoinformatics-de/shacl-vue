@@ -11,15 +11,29 @@ export default defineConfig({
     logo: '/shacl_vue.svg',
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Examples', link: '/markdown-examples' }
+      { text: 'Get started', link: '/get-started' }
     ],
 
     sidebar: [
       {
-        text: 'Examples',
         items: [
-          { text: 'Markdown Examples', link: '/markdown-examples' },
-          { text: 'Runtime API Examples', link: '/api-examples' }
+          { text: 'Overview', link: '/get-started' },
+        ]
+      },
+      {
+        text: 'App design',
+        items: [
+          { text: 'The big picture', link: '/app-design' },
+        ]
+      },
+      {
+        text: 'Setup and deployment',
+        items: [
+        ]
+      },
+      {
+        text: 'API Docs',
+        items: [
         ]
       }
     ],

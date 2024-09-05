@@ -5,20 +5,19 @@ layout: home
 hero:
   name: "shacl-vue"
   text: "Automatic generation of user interfaces from SHACL"
+  image:
+    src: /shacl_vue.svg
+    alt: shacl-vue
   actions:
     - theme: brand
-      text: Markdown Examples
-      link: /markdown-examples
+      text: Try it out!
+      link: https://psychoinformatics-de.github.io/shacl-vue
     - theme: alt
-      text: API Examples
-      link: /api-examples
+      text: User Docs
+      link: /get-started
+    - theme: alt
+      text: Source
+      link: https://github.com/psychoinformatics-de/shacl-vue
 
-features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
 ---
 
