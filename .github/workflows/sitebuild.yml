@@ -41,11 +41,7 @@ jobs:
         run: npm run build
       - name: Build VitePress docs
         run: |
-          cd ./docs
-          npm ci
-          npm run build
-          cd ..
-          # Move VitePress build to the /dist/docs folder
+          npm run docs:build
           mv ./docs/.vitepress/dist ./dist/docs
       - name: Setup Pages
         uses: actions/configure-pages@v4
