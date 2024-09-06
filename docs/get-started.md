@@ -2,7 +2,7 @@
 layout: doc
 ---
 
-# Overview
+# Get started
 
 ## What is `shacl-vue`?
 
@@ -45,8 +45,24 @@ npm install
 
 ### Local rendering
 
-To serve the application locally in order to test it in the browser, run:
+To serve the application locally in order to test it in the browser while developing, run:
 
 ```
 npm run dev
 ```
+
+To serve the documentation locally, run:
+
+```
+npm run docs:dev
+```
+
+## Roll your own
+
+`shacl-vue` needs a set of inputs to function as intended. These are explained in the [App inputs section](./app-inputs).
+
+To roll your own instance while using the existing set of editor components that are used for the demo instance, just replace the content of the input files in-place, or update the code that fetches these resources to point to a different URL.
+
+::: info 
+TODO: this procedure for creating your own instance of `shacl-vue` is cumbersome and is currently being revamped. In future necessary inputs will likely be specified via some app-level configuration that is then encapsulated during the build process, or read by the application itself in real-time.
+:::

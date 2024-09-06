@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   base: "/shacl-vue/docs/",
-  title: "shacl-vue",
+  title: "shacl-vue (alpha)",
   description: "Automatic generation of user interfaces from SHACL",
   head: [['link', { rel: 'icon', href: '/shacl-vue/docs/favicon.ico' }]],
   themeConfig: {
@@ -17,24 +17,34 @@ export default defineConfig({
     sidebar: [
       {
         items: [
-          { text: 'Overview', link: '/get-started' },
+          { text: 'Get started', link: '/get-started' },
         ]
       },
       {
         text: 'App design',
         items: [
           { text: 'The big picture', link: '/app-design' },
+          { text: 'Core concepts', link: '/core-concepts' },
+          { text: 'Code layout', link: '/code-layout' },
+          { text: 'Component hierarchy', link: '/component-hierarchy' },
+          { text: 'The editor component', link: '/editor-component' },
+          { text: 'Editor component matching', link: '/component-matching' },
         ]
       },
       {
         text: 'Setup and deployment',
         items: [
+          { text: 'Application inputs', link: '/app-inputs' },
         ]
       },
       {
-        text: 'API Docs',
+        text: 'API Docs (TODO)',
         items: [
         ]
+      },
+      {
+        text: 'Contributing',
+        link: '/contributing'
       }
     ],
 

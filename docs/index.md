@@ -3,7 +3,7 @@
 layout: home
 
 hero:
-  name: "shacl-vue"
+  name: "shacl-vue (alpha)"
   text: "Automatic generation of user interfaces from SHACL"
   image:
     src: /shacl_vue.svg
