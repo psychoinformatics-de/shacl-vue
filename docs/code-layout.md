@@ -34,3 +34,4 @@ For developers/controbutors, the noteworthy parts of this code repository are sh
       - `rules.js` for common functionality used in input field validation
       - `shapedata.js` for managing the source shapes graph
    - *modules* and *plugins* have further modules with helper functionality or functionality that extends the application
+- **tools**: this directory contains scripts and data that are used to generate required inputs for the `shacl-vue` application; see the [Application inputs section](./app-inputs) for more detail.

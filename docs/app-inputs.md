@@ -121,8 +121,4 @@ When users complete forms, they often do so for data that exists in a wider cont
 
 While `shacl-vue` ships with a set of default editor components that cover most standard use cases of form entry, developers are free to add their own custom components.
 
-**to be continued...**
-
-
-
-
+The way to achieve this is explained fully in the [Editor Component section](./editor-component)

@@ -2,7 +2,7 @@
 layout: doc
 ---
 
-# Editor Component Matching
+# State management
 
 ::: info
 TODO

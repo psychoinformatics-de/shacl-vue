@@ -28,7 +28,7 @@ export default defineConfig({
           { text: 'Code layout', link: '/code-layout' },
           { text: 'Component hierarchy', link: '/component-hierarchy' },
           { text: 'The editor component', link: '/editor-component' },
-          { text: 'Editor component matching', link: '/component-matching' },
+          { text: 'State management (TODO)', link: '/state-management' },
         ]
       },
       {

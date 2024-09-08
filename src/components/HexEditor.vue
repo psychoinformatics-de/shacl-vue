@@ -19,7 +19,6 @@
 </template>
 
 <script setup>
-    import { inject, onMounted} from 'vue'
     import { useRules } from '../composables/rules'
     import { useRegisterRef } from '../composables/refregister';
     import { useBaseInput } from '@/composables/base';
@@ -34,8 +33,6 @@
     const { rules } = useRules(props.property_shape)
     const inputId = `input-${Date.now()}`;
     const { fieldRef } = useRegisterRef(inputId, props);
-    const allPrefixes = inject('allPrefixes');
-
     const emit = defineEmits(['update:modelValue']);
     const { subValues, internalValue } = useBaseInput(
         props,
@@ -43,23 +40,6 @@
         valueParser,
         valueCombiner
     );
-
-    // ----------------- //
-    // Lifecycle methods //
-    // ----------------- //
-
-    onMounted(() => {
-    })
-
-
-    // ------------------- //
-    // Computed properties //
-    // ------------------- //
-
-    // --------- //
-    // Functions //
-    // --------- //
-    
 
     function valueParser(value) {
         // Parsing internalValue into ref values for separate subcomponent(s)
