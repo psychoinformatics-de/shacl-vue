@@ -12,4 +12,4 @@ By default, a child component is instantiated by its parent using the appropriat
 
 This approach is used in `shacl-vue` for dynamically matching the appropriate editor component for a given `sh:PropertyShape`.
 
-![component hierarchy diagram](./component_hierarchy.png)
+![component hierarchy diagram](/component_hierarchy.png)
