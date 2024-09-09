@@ -35,6 +35,7 @@ export default defineConfig({
         text: 'Setup and deployment',
         items: [
           { text: 'Application inputs', link: '/app-inputs' },
+          { text: 'Application configuration', link: '/app-configuration' },
         ]
       },
       {

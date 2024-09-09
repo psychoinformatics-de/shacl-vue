@@ -2,7 +2,7 @@
 import { ref, watch, computed } from 'vue';
 
 /**
- * Composable for managing the state and behavior of the BaseEditor component.
+ * Composable for managing the state and behavior of a custom editor
  *
  * @param {Object} props - The props passed to the custom input component.
  * @param {Function} emit - The emit function to trigger events.

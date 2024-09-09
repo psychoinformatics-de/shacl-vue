@@ -61,8 +61,6 @@ npm run docs:dev
 
 `shacl-vue` needs a set of inputs to function as intended. These are explained in the [App inputs section](./app-inputs).
 
-To roll your own instance while using the existing set of editor components that are used for the demo instance, just replace the content of the input files in-place, or update the code that fetches these resources to point to a different URL.
+To roll your own instance while using the existing set of editor components that are used for the demo instance, together with the demo data, just install and run the application locally as explained above.
 
-::: info 
-TODO: this procedure for creating your own instance of `shacl-vue` is cumbersome and is currently being revamped. In future necessary inputs will likely be specified via some app-level configuration that is then encapsulated during the build process, or read by the application itself in real-time.
-:::
+To work with a completely different set of shapes, classes and data, you can use the application config to customize your instance. This involves updating the config file that is located at `shacl-vue/src/assets/config.json`. Details are provided in the [App configuration section](./app-configuration). After editing the config file, while running a local development server, just refresh your browser page and the customizations should be available.

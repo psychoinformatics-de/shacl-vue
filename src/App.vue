@@ -2,40 +2,58 @@
   <v-app>
       <AppHeader />
       <v-main>
-        <v-card height="100%">
-          <v-tabs
-            v-model="tab"
-            align-tabs="left"
-            color="deep-purple-accent-4"
-          >
-            <v-tab :value="1"> <v-icon icon="mdi-list-box-outline"></v-icon>&nbsp;&nbsp; Editor</v-tab>
-            <v-tab :value="2"><v-icon icon="mdi-database"></v-icon>&nbsp;&nbsp;Data</v-tab>
-            <v-tab :value="3"><v-icon icon="mdi-book-open"></v-icon>&nbsp;&nbsp;Viewer</v-tab>
-          </v-tabs>
-          
-          <br>
-
-
-          <v-tabs-window v-model="tab">
-            <v-tabs-window-item :key="1" :value="1"> <MainForm/> </v-tabs-window-item>
-            <v-tabs-window-item :key="2" :value="2"> <MainData/> </v-tabs-window-item>
-            <v-tabs-window-item :key="3" :value="3"> <MainViewer/> </v-tabs-window-item>
-          </v-tabs-window>
-        </v-card>
+        <span v-if="dataFetched">
+          <v-card height="100%">
+            <v-tabs
+              v-model="tab"
+              align-tabs="left"
+              color="deep-purple-accent-4"
+            >
+              <v-tab :value="1"> <v-icon icon="mdi-list-box-outline"></v-icon>&nbsp;&nbsp; Editor</v-tab>
+              <v-tab :value="2"><v-icon icon="mdi-database"></v-icon>&nbsp;&nbsp;Data</v-tab>
+              <v-tab :value="3"><v-icon icon="mdi-book-open"></v-icon>&nbsp;&nbsp;Viewer</v-tab>
+            </v-tabs>
+            <br>
+            <v-tabs-window v-model="tab">
+              <v-tabs-window-item :key="1" :value="1"> <MainForm :ready="page_ready"/> </v-tabs-window-item>
+              <v-tabs-window-item :key="2" :value="2"> <MainData/> </v-tabs-window-item>
+              <v-tabs-window-item :key="3" :value="3"> <MainViewer/> </v-tabs-window-item>
+            </v-tabs-window>
+          </v-card>
+        </span>
       </v-main>
   </v-app>
 </template>
 
 
 <script setup>
-  import { ref, provide, onMounted} from 'vue';
+  import { ref, provide, watch} from 'vue';
+  import { useConfig } from '@/composables/configuration';
+  const dataFetched = ref(false)
+  var tab = ref(1)
+  const { config, configFetched } = useConfig();
+  provide('config', config)
+  provide('configFetched', configFetched)
+
   import { useGraphData } from '@/composables/graphdata';
   import { useClassData } from '@/composables/classdata';
+  import { useShapeData } from '@/composables/shapedata';
 
-  var tab = ref(1)
-
-  const { graphData, getGraphData, graphPrefixes, serializedGraphData, graphTriples } = useGraphData()
-  const { classData, getClassData, classPrefixes, serializedClassData, classTriples } = useClassData()
+  const { graphData, getGraphData, graphPrefixes, serializedGraphData, graphTriples } = useGraphData(config)
+  const { classData, getClassData, classPrefixes, serializedClassData, classTriples } = useClassData(config)
+  const {
+        shapesDataset,
+        nodeShapes,
+        propertyGroups,
+        nodeShapeNamesArray,
+        shapePrefixes,
+        prefixArray,
+        prefixes_ready,
+        nodeShapeIRIs,
+        nodeShapeNames,
+        page_ready,
+        getSHACLschema,
+      } = useShapeData(config)
 
   provide('graphData', graphData)
   provide('serializedGraphData', serializedGraphData)
@@ -44,16 +62,29 @@
   provide('serializedClassData', serializedClassData)
   provide('classData', classData)
   provide('classPrefixes', classPrefixes)
+  provide('shapesDataset', shapesDataset)
+  provide('nodeShapes', nodeShapes)
+  provide('propertyGroups', propertyGroups)
+  provide('nodeShapeNamesArray', nodeShapeNamesArray)
+  provide('shapePrefixes', shapePrefixes)
+  provide('prefixArray', prefixArray)
+  provide('prefixes_ready', prefixes_ready)
+  provide('nodeShapeIRIs', nodeShapeIRIs)
+  provide('nodeShapeNames', nodeShapeNames)
+  provide('page_ready', page_ready)
 
-  onMounted( async () => {
-    console.log("App.vue async onmounted...")
-    console.log("Getting graph data...")
-    const penguins = new URL("@/assets/distribution-penguins-mini.ttl", import.meta.url).href
-    await getGraphData(penguins)
-    console.log("Getting class hierarchy data...")
-    const classes = new URL("@/assets/class_hierarchy.ttl", import.meta.url).href
-    await getClassData(classes)
-    console.log(classTriples.length)
-    console.log(classData.size)
-  })
+  watch(configFetched, async (newValue) => {
+    console.log("CHECK: configfetched")
+    if (newValue) {
+      // const { graphData, getGraphData, graphPrefixes, serializedGraphData, graphTriples } = useGraphData(config)
+      // const { classData, getClassData, classPrefixes, serializedClassData, classTriples } = useClassData(config)
+      await getGraphData()
+      await getClassData()
+      await getSHACLschema()
+      dataFetched.value = true
+      
+    }
+    }, { immediate: true }
+  );
+
 </script>

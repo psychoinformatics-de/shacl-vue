@@ -217,6 +217,7 @@
     }
 
     watch(graphData, () => {
+        console.log("CHECK: graphdata instanceselecteditor")
         getInstanceItems()
     }, { deep: true });
 

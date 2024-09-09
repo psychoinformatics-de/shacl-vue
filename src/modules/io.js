@@ -11,17 +11,20 @@
 import formats from '@rdfjs/formats-common'
 import fetch from '@rdfjs/fetch-lite'
 
-export async function readRDF(file_url, headers) {
+export async function readRDF(file_url, headers = {}) {
     var res = null
-    if (headers) {
-        res = await fetch(file_url,
-            {
-                formats, 
-                headers: headers
-            }
-        )
-    } else {
-        res = await fetch(file_url,{formats })
+    res = await fetch(file_url,
+        {
+            formats, 
+            headers: headers
+        }
+    )
+
+    // Handle cases where the server returns generic 'text/plain' content type
+    if (res.headers.get('content-type').indexOf('text/plain') >= 0) {
+        // default to turtle
+        headers['Content-Type'] = 'text/turtle';
+        res = await fetch(file_url, { formats, headers });
     }
 
     const quadStream = await res.quadStream()

@@ -67,6 +67,7 @@
     const shape_obj = nodeShapes.value[props.shape_iri]
     const ready = ref(false)
     var tab = ref(null)
+    const config = inject('config')
     const group_layout = ref('default') // ref('default') or ref('tabs')
     
     // ----------------- //
@@ -80,6 +81,9 @@
     onBeforeMount(() => {
         console.log(`the NodeShapeEditor component is about to be mounted.`)
         orderGroups()
+        if (config.value.hasOwnProperty("group_layout") && config.value.group_layout == "tabs") {
+            group_layout.value = "tabs"
+        }
     })
 
     onBeforeUpdate(() => {

@@ -7,13 +7,14 @@ import { reactive, ref, onBeforeMount} from 'vue'
 import { readRDF } from '@/modules/io'
 import rdf from 'rdf-ext';
 import {SHACL, RDF} from '@/modules/namespaces';
+const baseURL = new URL(import.meta.env.BASE_URL || '/', import.meta.url).href;
 
-export function useShapeData(shapes_graph_url) {
+export function useShapeData(config) {
 
     // ---- //
     // Data //
     // ---- //
-
+	const defaultURL = new URL("@/assets/shapesgraph.ttl", import.meta.url).href
 	var shapesDataset = reactive(rdf.dataset());
 	var nodeShapes = ref({});
 	var propertyGroups = ref({});
@@ -25,20 +26,33 @@ export function useShapeData(shapes_graph_url) {
 	var nodeShapeNames = ref({});
 	var page_ready = ref(false);
 
-    // ----------------- //
-    // Lifecycle methods //
-    // ----------------- //
+    // // ----------------- //
+    // // Lifecycle methods //
+    // // ----------------- //
 
-    onBeforeMount(() => {
-        getSHACLschema(shapes_graph_url);
-    })
+    // onBeforeMount(() => {
+    //     getSHACLschema(shapes_graph_url);
+    // })
 
     // --------- //
     // Functions //
     // --------- //
 
-	function getSHACLschema(url) {
-		readRDF(url)
+	async function getSHACLschema(url) {
+		console.log(`default url is: ${defaultURL}`)
+		console.log(`config url is: ${config.value.shapes_url}`)
+		var relURL
+		if (config.value.shapes_url) {
+			if (config.value.shapes_url.indexOf("http") >= 0) {
+			  relURL = config.value.shapes_url
+			} else {
+			  relURL = new URL("src/" + config.value.shapes_url, baseURL).href
+			}
+		}
+		const shapesURL = relURL ? relURL : defaultURL
+		const getURL = url ? url : shapesURL
+		console.log(`shapes url is: ${getURL}`)
+		readRDF(getURL)
 		.then(quadStream => {
 			// Load shape prefixes
 			quadStream.on('prefix', (prefix, ns) => {
@@ -113,6 +127,7 @@ export function useShapeData(shapes_graph_url) {
     // Returns //
     // ------- //
 	return {
+		getSHACLschema,
 		shapesDataset,
         nodeShapes,
         propertyGroups,

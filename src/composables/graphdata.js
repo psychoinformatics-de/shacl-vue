@@ -1,10 +1,13 @@
 // graphdata.js
-import { reactive, ref, computed, watch} from 'vue'
+import { reactive, ref, inject, watch} from 'vue'
 import { readRDF } from '@/modules/io'
 import rdf from 'rdf-ext';
 import formatsPretty from '@rdfjs/formats/pretty.js'
+const baseURL = new URL(import.meta.env.BASE_URL || '/', import.meta.url).href;
 
-export function useGraphData() {
+export function useGraphData(config) {
+
+  const defaultURL = new URL("@/assets/distribution-penguins-mini.ttl", import.meta.url).href
   const graphData = createReactiveDataset();
   const serializedGraphData = ref('');
   const graphTriples = ref([]);
@@ -13,10 +16,25 @@ export function useGraphData() {
 	var prefixes_ready = ref(false);
   const rdfPretty = rdf.clone()
   rdfPretty.formats.import(formatsPretty)
+  const batchMode = ref(false);
 
 
   async function getGraphData(url) {
-		readRDF(url)
+    console.log(`default url is: ${defaultURL}`)
+    console.log(`config url is: ${config.value.data_url}`)
+    var relURL
+		if (config.value.data_url) {
+      if (config.value.data_url.indexOf("http") >= 0) {
+        relURL = config.value.data_url
+      } else {
+        relURL = new URL("src/" + config.value.data_url, baseURL).href
+      }
+		}
+    const dataURL = relURL ? relURL : defaultURL
+    const getURL = url ? url : dataURL
+    console.log(`data url is: ${getURL}`)
+    batchMode.value = true;
+		readRDF(getURL)
 		.then(quadStream => {
 			// Load prefixes
 			quadStream.on('prefix', (prefix, ns) => {
@@ -30,6 +48,8 @@ export function useGraphData() {
 				graphData.add(quad)
 			}).on('end', () => {
         updateSerializedData();
+        triggerReactivity();
+        batchMode.value = false;
       });
 		})
 		.catch(error => {
@@ -42,6 +62,7 @@ export function useGraphData() {
   }
 
   watch(graphData, async () => {
+    console.log("CHECK: graphdata from composable")
     await updateSerializedData();
     updateGraphTriples();
   }, { deep: true });
@@ -63,7 +84,9 @@ export function useGraphData() {
         if (typeof value === 'function' && ['add', 'delete'].includes(prop)) {
           return function (...args) {
             const result = value.apply(target, args);
-            triggerReactivity(); // Manually trigger reactivity when dataset is mutated
+            if (!batchMode.value) {
+              triggerReactivity(); // Trigger reactivity when dataset is mutated
+            }
             console.log("(Adding triple to reactive rdf.dataset)")
             return result;
           };
@@ -87,6 +110,7 @@ export function useGraphData() {
     // expose managed state as return value
     return {
       graphData,
+      batchMode,
       getGraphData,
       graphPrefixes,
       serializedGraphData,

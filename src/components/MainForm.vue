@@ -1,5 +1,8 @@
 <template>
-    <v-container fluid v-show="page_ready">
+    <v-container fluid v-show="!props.ready">
+      <v-skeleton-loader type="article"></v-skeleton-loader>
+    </v-container>
+    <v-container fluid v-show="props.ready">
     <v-row align="start" no-gutters>
       <v-col>
         <h3>Forms</h3>
@@ -100,10 +103,18 @@
 <script setup>
   import { ref, onMounted, onBeforeMount, provide, inject, computed, reactive, watch} from 'vue'
   import { useFormData } from '@/composables/formdata';
-  import { useShapeData } from '@/composables/shapedata';
   import { toCURIE } from '@/modules/utils';
   import editorMatchers from '@/modules/editors';
   import defaultEditor from '@/components/UnknownEditor.vue';
+
+
+  // ----- //
+  // Props //
+  // ----- //
+
+  const props = defineProps({
+      ready: Boolean,
+  })
 
   // ---- //
   // Data //
@@ -128,19 +139,6 @@
     remove_triple,
     save_node,
   } = useFormData()
-  const shape_file_url = new URL("@/assets/shapesgraph.ttl", import.meta.url).href
-  const {
-    shapesDataset,
-    nodeShapes,
-    propertyGroups,
-    nodeShapeNamesArray,
-    shapePrefixes,
-    prefixArray,
-    prefixes_ready,
-    nodeShapeIRIs,
-    nodeShapeNames,
-    page_ready
-  } = useShapeData(shape_file_url)
   const defaultPropertyGroup = {}
   defaultPropertyGroup.key = "https://concepts.datalad.org/DefaultPropertyGroup"
   defaultPropertyGroup.value = {
@@ -156,14 +154,14 @@
   provide('remove_current_node', remove_current_node)
   provide('clear_current_node', clear_current_node)
   provide('save_node', save_node)
-  provide('shapePrefixes', shapePrefixes)
   provide('editorMatchers', editorMatchers)
   provide('defaultEditor', defaultEditor)
-  provide('nodeShapes', nodeShapes)
-  provide('propertyGroups', propertyGroups)
-  provide('shapesDataset', shapesDataset)
-  provide('prefixArray', prefixArray)
-  provide('nodeShapeIRIs', nodeShapeIRIs)
+  
+  const shapePrefixes = inject('shapePrefixes')
+  const nodeShapes = inject('nodeShapes')
+  const nodeShapeNamesArray = inject('nodeShapeNamesArray')
+  const nodeShapeNames = inject('nodeShapeNames')
+  const prefixes_ready = inject('prefixes_ready')
   const graphPrefixes = inject('graphPrefixes');
   const classPrefixes = inject('classPrefixes');
   const allPrefixes = reactive({});
@@ -194,6 +192,7 @@
   })
 
   watch(prefixes_ready, (newValue) => {
+    console.log("CHECK: prefixesready")
     if (newValue) {
       Object.assign(allPrefixes, shapePrefixes, graphPrefixes, classPrefixes)
       // allPrefixes = {...shapePrefixes, ...graphPrefixes, ...classPrefixes}
