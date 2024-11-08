@@ -18,6 +18,7 @@
     "buffer": "^6.0.3",
     "cytoscape": "^3.30.3",
     "rdf-ext": "^2.5.1",
+    "rdf-object": "^2.0.0",
     "roboto-fontface": "*",
     "stream-browserify": "^3.0.0",
     "util": "^0.12.5",
