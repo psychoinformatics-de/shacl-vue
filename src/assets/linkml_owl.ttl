@@ -1,0 +1,141 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+rdf:object rdfs:subClassOf <https://w3id.org/linkml/RelationalRoleEnum> .
+
+rdf:predicate rdfs:subClassOf <https://w3id.org/linkml/RelationalRoleEnum> .
+
+rdf:subject rdfs:subClassOf <https://w3id.org/linkml/RelationalRoleEnum> .
+
+skos:broaderMatch rdfs:subClassOf <https://w3id.org/linkml/AliasPredicateEnum> .
+
+skos:exactMatch rdfs:subClassOf <https://w3id.org/linkml/AliasPredicateEnum> .
+
+skos:narrowerMatch rdfs:subClassOf <https://w3id.org/linkml/AliasPredicateEnum> .
+
+skos:relatedMatch rdfs:subClassOf <https://w3id.org/linkml/AliasPredicateEnum> .
+
+<https://w3id.org/linkml/Annotation> rdfs:subClassOf <https://w3id.org/linkml/Annotatable>,
+        <https://w3id.org/linkml/Extension> .
+
+<https://w3id.org/linkml/AnonymousClassExpression> rdfs:subClassOf <https://w3id.org/linkml/AnonymousExpression>,
+        <https://w3id.org/linkml/ClassExpression> .
+
+<https://w3id.org/linkml/AnonymousEnumExpression> rdfs:subClassOf <https://w3id.org/linkml/EnumExpression> .
+
+<https://w3id.org/linkml/AnonymousSlotExpression> rdfs:subClassOf <https://w3id.org/linkml/AnonymousExpression>,
+        <https://w3id.org/linkml/SlotExpression> .
+
+<https://w3id.org/linkml/AnonymousTypeExpression> rdfs:subClassOf <https://w3id.org/linkml/TypeExpression> .
+
+<https://w3id.org/linkml/ArrayExpression> rdfs:subClassOf <https://w3id.org/linkml/Annotatable>,
+        <https://w3id.org/linkml/CommonMetadata>,
+        <https://w3id.org/linkml/Extensible> .
+
+<https://w3id.org/linkml/ClassDefinition> rdfs:subClassOf <https://w3id.org/linkml/ClassExpression>,
+        <https://w3id.org/linkml/Definition> .
+
+<https://w3id.org/linkml/ClassRule> rdfs:subClassOf <https://w3id.org/linkml/Annotatable>,
+        <https://w3id.org/linkml/ClassLevelRule>,
+        <https://w3id.org/linkml/CommonMetadata>,
+        <https://w3id.org/linkml/Extensible> .
+
+<https://w3id.org/linkml/DimensionExpression> rdfs:subClassOf <https://w3id.org/linkml/Annotatable>,
+        <https://w3id.org/linkml/CommonMetadata>,
+        <https://w3id.org/linkml/Extensible> .
+
+<https://w3id.org/linkml/EnumBinding> rdfs:subClassOf <https://w3id.org/linkml/Annotatable>,
+        <https://w3id.org/linkml/CommonMetadata>,
+        <https://w3id.org/linkml/Extensible> .
+
+<https://w3id.org/linkml/EnumDefinition> rdfs:subClassOf <https://w3id.org/linkml/Definition>,
+        <https://w3id.org/linkml/EnumExpression> .
+
+<https://w3id.org/linkml/ImportExpression> rdfs:subClassOf <https://w3id.org/linkml/Annotatable>,
+        <https://w3id.org/linkml/CommonMetadata>,
+        <https://w3id.org/linkml/Extensible> .
+
+<https://w3id.org/linkml/ObligationLevelEnum#DISCOURAGED> rdfs:subClassOf <https://w3id.org/linkml/ObligationLevelEnum> .
+
+<https://w3id.org/linkml/ObligationLevelEnum#EXAMPLE> rdfs:subClassOf <https://w3id.org/linkml/ObligationLevelEnum> .
+
+<https://w3id.org/linkml/ObligationLevelEnum#OPTIONAL> rdfs:subClassOf <https://w3id.org/linkml/ObligationLevelEnum> .
+
+<https://w3id.org/linkml/ObligationLevelEnum#RECOMMENDED> rdfs:subClassOf <https://w3id.org/linkml/ObligationLevelEnum> .
+
+<https://w3id.org/linkml/ObligationLevelEnum#REQUIRED> rdfs:subClassOf <https://w3id.org/linkml/ObligationLevelEnum> .
+
+<https://w3id.org/linkml/PathExpression> rdfs:subClassOf <https://w3id.org/linkml/Annotatable>,
+        <https://w3id.org/linkml/CommonMetadata>,
+        <https://w3id.org/linkml/Expression>,
+        <https://w3id.org/linkml/Extensible> .
+
+<https://w3id.org/linkml/PatternExpression> rdfs:subClassOf <https://w3id.org/linkml/Annotatable>,
+        <https://w3id.org/linkml/CommonMetadata>,
+        <https://w3id.org/linkml/Extensible> .
+
+<https://w3id.org/linkml/PermissibleValue> rdfs:subClassOf <https://w3id.org/linkml/Annotatable>,
+        <https://w3id.org/linkml/CommonMetadata>,
+        <https://w3id.org/linkml/Extensible> .
+
+<https://w3id.org/linkml/PresenceEnum#ABSENT> rdfs:subClassOf <https://w3id.org/linkml/PresenceEnum> .
+
+<https://w3id.org/linkml/PresenceEnum#PRESENT> rdfs:subClassOf <https://w3id.org/linkml/PresenceEnum> .
+
+<https://w3id.org/linkml/PresenceEnum#UNCOMMITTED> rdfs:subClassOf <https://w3id.org/linkml/PresenceEnum> .
+
+<https://w3id.org/linkml/PvFormulaOptions#CODE> rdfs:subClassOf <https://w3id.org/linkml/PvFormulaOptions> .
+
+<https://w3id.org/linkml/PvFormulaOptions#CURIE> rdfs:subClassOf <https://w3id.org/linkml/PvFormulaOptions> .
+
+<https://w3id.org/linkml/PvFormulaOptions#FHIR_CODING> rdfs:subClassOf <https://w3id.org/linkml/PvFormulaOptions> .
+
+<https://w3id.org/linkml/PvFormulaOptions#LABEL> rdfs:subClassOf <https://w3id.org/linkml/PvFormulaOptions> .
+
+<https://w3id.org/linkml/PvFormulaOptions#URI> rdfs:subClassOf <https://w3id.org/linkml/PvFormulaOptions> .
+
+<https://w3id.org/linkml/RelationalRoleEnum#NODE> rdfs:subClassOf <https://w3id.org/linkml/RelationalRoleEnum> .
+
+<https://w3id.org/linkml/RelationalRoleEnum#OTHER_ROLE> rdfs:subClassOf <https://w3id.org/linkml/RelationalRoleEnum> .
+
+<https://w3id.org/linkml/SchemaDefinition> rdfs:subClassOf <https://w3id.org/linkml/Element> .
+
+<https://w3id.org/linkml/SlotDefinition> rdfs:subClassOf <https://w3id.org/linkml/Definition>,
+        <https://w3id.org/linkml/SlotExpression> .
+
+<https://w3id.org/linkml/StructuredAlias> rdfs:subClassOf <https://w3id.org/linkml/Annotatable>,
+        <https://w3id.org/linkml/CommonMetadata>,
+        <https://w3id.org/linkml/Expression>,
+        <https://w3id.org/linkml/Extensible> .
+
+<https://w3id.org/linkml/SubsetDefinition> rdfs:subClassOf <https://w3id.org/linkml/Element> .
+
+<https://w3id.org/linkml/TypeDefinition> rdfs:subClassOf <https://w3id.org/linkml/Element>,
+        <https://w3id.org/linkml/TypeExpression> .
+
+<https://w3id.org/linkml/TypeMapping> rdfs:subClassOf <https://w3id.org/linkml/Annotatable>,
+        <https://w3id.org/linkml/CommonMetadata>,
+        <https://w3id.org/linkml/Extensible> .
+
+<https://w3id.org/linkml/UniqueKey> rdfs:subClassOf <https://w3id.org/linkml/Annotatable>,
+        <https://w3id.org/linkml/CommonMetadata>,
+        <https://w3id.org/linkml/Extensible> .
+
+<https://w3id.org/linkml/AnonymousExpression> rdfs:subClassOf <https://w3id.org/linkml/Annotatable>,
+        <https://w3id.org/linkml/CommonMetadata>,
+        <https://w3id.org/linkml/Expression>,
+        <https://w3id.org/linkml/Extensible> .
+
+<https://w3id.org/linkml/EnumExpression> rdfs:subClassOf <https://w3id.org/linkml/Expression> .
+
+<https://w3id.org/linkml/SlotExpression> rdfs:subClassOf <https://w3id.org/linkml/Expression> .
+
+<https://w3id.org/linkml/TypeExpression> rdfs:subClassOf <https://w3id.org/linkml/Expression> .
+
+<https://w3id.org/linkml/Definition> rdfs:subClassOf <https://w3id.org/linkml/Element> .
+
+<https://w3id.org/linkml/Element> rdfs:subClassOf <https://w3id.org/linkml/Annotatable>,
+        <https://w3id.org/linkml/CommonMetadata>,
+        <https://w3id.org/linkml/Extensible> .
+

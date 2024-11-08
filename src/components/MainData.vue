@@ -40,6 +40,7 @@
     </v-sheet>
     <br>
     <h3>Data Graph</h3>
+    <v-btn text="Download samples.tsv" @click="serializeNodesToTSV"></v-btn>
     
     <v-sheet class="pa-4" border rounded elevation="2">
       <suspense>
@@ -79,9 +80,11 @@
 
 <script setup>
   import { ref, computed, onMounted, inject } from 'vue'
+  const getGraphData = inject('getGraphData');
   const graphData = inject('graphData');
   const serializedGraphData = inject('serializedGraphData');
   const graphTriples = inject('graphTriples');
+  const serializeNodesToTSV = inject('serializeNodesToTSV')
   const public_url = ref('')
   const upload_url = ref(null)
 

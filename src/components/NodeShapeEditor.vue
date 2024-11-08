@@ -13,9 +13,9 @@
                             <h3>{{ group[RDFS.label.value] }}</h3>
                             <p>{{ group[RDFS.comment.value] }}</p>
                             <br>
-                            <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)" :key="props.shape_iri + '-' + String(node_idx) + '-' + property[SHACL.path.value]">
+                            <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)" :key="localShapeIri + '-' + String(Date.now()) + '-' + property[SHACL.path.value]">
                                 <keep-alive>
-                                    <PropertyShapeEditor :property_shape="property" :node_uid="props.shape_iri"/>
+                                    <PropertyShapeEditor :property_shape="property" :node_uid="localShapeIri"/>
                                 </keep-alive>
                             </span>
                             <br>
@@ -31,9 +31,9 @@
                 <h3>{{ group[RDFS.label.value] }}</h3>
                 <p><em>{{ group[RDFS.comment.value] }}</em></p>
                 <br>
-                <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)" :key="props.shape_iri + '-' + String(node_idx) + '-' + property[SHACL.path.value]">
+                <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)" :key="localShapeIri + '-' + String(Date.now()) + '-' + property[SHACL.path.value]">
                     <keep-alive>
-                        <PropertyShapeEditor :property_shape="property" :node_uid="props.shape_iri"/>
+                        <PropertyShapeEditor :property_shape="property" :node_uid="localShapeIri"/>
                     </keep-alive>
                 </span>
             </span>
@@ -44,7 +44,7 @@
 
 
 <script setup>
-    import { ref, onBeforeUpdate, onBeforeMount, onMounted, computed, inject} from 'vue'
+    import { ref, onBeforeUpdate, onBeforeMount, onBeforeUnmount, onMounted, computed, inject} from 'vue'
     import {SHACL, RDF, RDFS, DLTHING} from '../modules/namespaces'
     import { orderArrayOfObjects } from '../modules/utils';
 
@@ -60,11 +60,12 @@
     // Data //
     // ---- //
 
+    const localShapeIri = ref(props.shape_iri);
     const formData = inject('formData');
     const defaultPropertyGroup = inject('defaultPropertyGroup');
     const propertyGroups = inject('propertyGroups');
     const nodeShapes = inject('nodeShapes')
-    const shape_obj = nodeShapes.value[props.shape_iri]
+    const shape_obj = nodeShapes.value[localShapeIri.value]
     const ready = ref(false)
     var tab = ref(null)
     const config = inject('config')
@@ -91,6 +92,10 @@
         orderGroups()
     })
 
+    onBeforeUnmount(() => {
+        localShapeIri.value = null
+    });
+
     // ------------------- //
     // Computed properties //
     // ------------------- //
@@ -115,9 +120,11 @@
         return shape_obj.properties.sort((a,b) => a[order] - b[order])
     });
 
-    const node_idx = computed(() => {
-        return formData[props.shape_iri].length - 0
-    })
+    // const node_idx = computed(() => {
+    //     console.log("Inside computed in nodeshapeeditor. localShapeIri.value:")
+    //     console.log(localShapeIri.value)
+    //     return formData[localShapeIri.value].length - 0
+    // })
 
     const ignoredProperties = computed(() => {
         var ignored = [

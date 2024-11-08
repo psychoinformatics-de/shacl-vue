@@ -74,7 +74,7 @@
 
     <v-dialog v-model="dialog" max-width="700">
         <template v-slot:default="{ isActive }">
-            <FormEditor :shape_iri="selectedShapeIRI"></FormEditor>
+            <FormEditor :key="selectedShapeIRI" :shape_iri="selectedShapeIRI"></FormEditor>
         </template>
     </v-dialog>
 
@@ -104,7 +104,7 @@
     // ---- //
     // Data //
     // ---- //
-    
+    const localNodeUid = ref(props.node_uid)
     const formData = inject('formData');
     const graphData = inject('graphData');
     const add_empty_node = inject('add_empty_node');
@@ -138,11 +138,11 @@
 
     const triple_object = computed({
         get() {
-            return formData[props.node_uid].at(-1)[props.triple_uid][props.triple_idx];
+            return formData[localNodeUid.value].at(-1)[props.triple_uid][props.triple_idx];
         },
         set(value) {
-            const node_idx = formData[props.node_uid].length - 1
-            formData[props.node_uid][node_idx][props.triple_uid][props.triple_idx] = value;
+            const node_idx = formData[localNodeUid.value].length - 1
+            formData[localNodeUid.value][node_idx][props.triple_uid][props.triple_idx] = value;
         }
     });
 

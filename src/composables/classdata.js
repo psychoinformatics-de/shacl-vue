@@ -27,6 +27,11 @@ export function useClassData(config) {
     const classURL = relURL ? relURL : defaultURL
     const getURL = url ? url : classURL
 
+    if (getURL === classURL && !config.value.use_default_classes) {
+      console.log("getURL === classURL; returning")
+      return
+    }
+
     console.log(`class url is: ${getURL}`)
 		readRDF(getURL)
 		.then(quadStream => {

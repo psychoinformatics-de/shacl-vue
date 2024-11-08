@@ -29,6 +29,7 @@ export function useFormData() {
   }
 
   function remove_current_node(node_uid) {
+    console.log(`Instructed to remove the last element of the node array: ${node_uid}`)
     // Error: if the node key does not exist in the lookup object
     if (Object.keys(formData).indexOf(node_uid) < 0) {
       console.error(`Trying to delete a node that does not exist in form data:\n${node_uid}`)
@@ -39,7 +40,19 @@ export function useFormData() {
     }
     // remove last element in array
     else {
+      console.log("formdata in remove_current_node function")
+      console.log(formData)
       formData[node_uid].pop()
+      if (formData[node_uid].length == 0 ){ delete formData[node_uid]}
+      
+      // if (formData[node_uid].length == 1) {
+      //   formData[node_uid] = reactive([{}])
+      // } else {
+      //   formData[node_uid].pop()
+      // }
+
+      
+      
     }
   }
 
@@ -150,8 +163,15 @@ export function useFormData() {
             console.error(`\t- NodeKind not supported: ${property_shape[SHACL.nodeKind.value]}\n\t\tAdding triple with literal object to graphData`)
             nodeFunc = rdf.literal
           }
-        } else {
-          console.error(`\t- NodeKind not found for property shape: ${pred}\n\tCannot add triple to graphData`)
+        } else if (property_shape.hasOwnProperty(SHACL.in.value)) {
+          // This is a temporary workaround; should definitely not be permanent
+          // Assume Literal nodekind for any arrays
+          nodeFunc = rdf.literal
+
+        }
+        else {
+          console.error(`\t- NodeKind not found for property shape: ${pred}\n\tCannot add triple to graphData. Here's the full property shape:`)
+          console.error(property_shape)
         }
 
         // Loop through all elements of the array with triple objects

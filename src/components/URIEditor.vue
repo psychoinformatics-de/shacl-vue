@@ -188,6 +188,11 @@
                 }
             }
         }
+        // if sh:nodeKind does not exist, but datatype still exists
+        if ( shape.hasOwnProperty(SHACL.datatype.value) ) {
+            // sh:datatype == xsd:anyURI
+            return shape[SHACL.datatype.value] == XSD.anyURI.value
+        }
         return false
     };
 </script>

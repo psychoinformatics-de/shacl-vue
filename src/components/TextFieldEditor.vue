@@ -53,7 +53,7 @@
                     // sh:datatype == xsd:string
                     if ( shape[SHACL.datatype.value] == XSD.string.value) {
                         // text field or text area
-                        if (shape.hasOwnProperty(SHACL.datatype.value) && shape[DASH.singleLine.value] == "false") {
+                        if (shape.hasOwnProperty(DASH.singleLine.value) && shape[DASH.singleLine.value] == "false") {
                             return false
                         } else {
                             return true
@@ -65,6 +65,22 @@
                             shape[SHACL.datatype.value] == DLDIST.EmailAddress.value
                 }
             }
+        }
+        // sh:nodeKind does not exist BUT sh:datatype exists
+        if ( shape.hasOwnProperty(SHACL.datatype.value) ) {
+            // sh:datatype == xsd:string
+            if ( shape[SHACL.datatype.value] == XSD.string.value) {
+                // text field or text area
+                if (shape.hasOwnProperty(DASH.singleLine.value) && shape[DASH.singleLine.value] == "false") {
+                    return false
+                } else {
+                    return true
+                }   
+            }
+            // sh:datatype == xsd:nonNegativeInteger ||
+            // sh:datatype == dlco:EmailAddress
+            return shape[SHACL.datatype.value] == XSD.nonNegativeInteger.value ||
+                    shape[SHACL.datatype.value] == DLDIST.EmailAddress.value
         }
         return false
     };

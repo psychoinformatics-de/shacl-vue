@@ -13,7 +13,7 @@ export function useConfig() {
 
   onMounted(async () => {
     try {
-      const response = await fetch(configURL);
+      const response = await fetch(configURL, {cache: "no-cache"});
       if (!response.ok) {
         throw new Error(`Error fetching config file: ${response.statusText}`);
       }

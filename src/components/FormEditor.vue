@@ -1,8 +1,19 @@
 <template>
   <v-sheet class="pa-4" border rounded elevation="2">
     <div style="display: flex; position: relative; ">
-      <h2>{{ toCURIE(props.shape_iri, shapePrefixes) }}</h2>
-      <div v-if="validationErrors.length" class="position-sticky top-4" style="margin-left: auto;">
+      <h2>{{ toCURIE(localShapeIri, shapePrefixes) }}</h2>
+
+      <div style="margin-left: auto; " class="top-1">
+        <v-switch
+          v-model="show_all_fields"
+          :label="`All fields`"
+          hide-details
+          color="primary"
+        ></v-switch>
+      </div>
+
+      
+      <div v-if="validationErrors.length" class="position-sticky top-4" style="margin-left: 1em;">
         <v-menu location="end">
             <template v-slot:activator="{ props }">
                 <v-btn color="warning" v-bind="props" density="compact" icon="mdi-alert-circle-outline"></v-btn>
@@ -21,7 +32,7 @@
     <p>{{ shape_obj[SHACL.description] }}</p>
     <br>
     <v-form ref="form" v-model="formValid" validate-on="lazy input" @submit.prevent="saveForm()" >
-        <NodeShapeEditor :key="props.shape_iri" :shape_iri="props.shape_iri"/>
+        <NodeShapeEditor :key="localShapeIri" :shape_iri="localShapeIri" />
         <div style="display: flex;">
 
           <v-btn
@@ -51,7 +62,7 @@
 
 
 <script setup>
-  import { ref, onMounted, onBeforeMount, provide, inject, reactive} from 'vue'
+  import { ref, onMounted, onBeforeMount, onBeforeUnmount, provide, inject, reactive} from 'vue'
   import { SHACL } from '../modules/namespaces'
   import { toCURIE } from '../modules/utils';
 
@@ -66,7 +77,8 @@
   // ---- //
   // Data //
   // ---- //
-  
+  const localShapeIri = ref(props.shape_iri);
+  const show_all_fields = ref(false)
   const save_node = inject('save_node')
   const clear_current_node = inject('clear_current_node')
   const remove_current_node = inject('remove_current_node')
@@ -74,7 +86,7 @@
   const nodeShapes = inject('nodeShapes')
   const cancelFormHandler = inject('cancelFormHandler')
   const saveFormHandler = inject('saveFormHandler')
-  const shape_obj = nodeShapes.value[props.shape_iri]
+  const shape_obj = nodeShapes.value[localShapeIri.value]
   const form = ref(null)
   const formValid = ref(null)
   const fieldMap = reactive({}); // Maps element IDs to human-readable labels
@@ -89,6 +101,7 @@
 
   provide('registerRef', registerRef);
   provide('unregisterRef', unregisterRef);
+  provide('show_all_fields', show_all_fields);
 
   // ----------------- //
   // Lifecycle methods //
@@ -97,6 +110,11 @@
   onBeforeMount(() => {
     console.log(`the FormEditor component is about to be mounted.`)
   })
+
+  onBeforeUnmount(() => {
+      console.log("Running onBeforeUnmount for formeditor")
+      localShapeIri.value = null
+  });
 
   onMounted(() => {
     console.log(`the FormEditor component is now mounted.`)
@@ -120,7 +138,7 @@
       const validationResult = await form.value.validate();
       if (validationResult.valid) {
         // If the form is valid, proceed with form submission
-        save_node(props.shape_iri, nodeShapes.value);
+        save_node(localShapeIri.value, nodeShapes.value);
         saveFormHandler()
       } else {
         console.log("Still some validation errors, bro");
@@ -143,14 +161,16 @@
   }
 
   function resetForm() {
-    clear_current_node(props.shape_iri)
+    clear_current_node(localShapeIri.value)
     form.value.resetValidation();
     validationErrors.value = []
 
   }
 
   function cancelForm() {
-    remove_current_node(props.shape_iri)
+    console.log("Cancelling form from FormEditor")
+    console.log(`Removing current node: ${localShapeIri.value}`)
+    remove_current_node(localShapeIri.value)
     cancelFormHandler();
   }
 

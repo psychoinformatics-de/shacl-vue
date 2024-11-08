@@ -1,0 +1,54 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<https://concepts.datalad.org/s/distribution/unreleased/DataService> rdfs:subClassOf <https://concepts.datalad.org/s/distribution/unreleased/Resource> .
+
+<https://concepts.datalad.org/s/distribution/unreleased/LicenseDocument> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Entity> .
+
+<https://concepts.datalad.org/s/distribution/unreleased/Organization> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Agent> .
+
+<https://concepts.datalad.org/s/distribution/unreleased/Parameter> rdfs:subClassOf <https://concepts.datalad.org/s/thing/unreleased/Characteristic> .
+
+<https://concepts.datalad.org/s/distribution/unreleased/Person> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Agent> .
+
+<https://concepts.datalad.org/s/prov/unreleased/Activity> rdfs:subClassOf <https://concepts.datalad.org/s/thing/unreleased/Thing> .
+
+<https://concepts.datalad.org/s/prov/unreleased/Attribution> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/AgentInfluence> .
+
+<https://concepts.datalad.org/s/prov/unreleased/Derivation> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/EntityInfluence> .
+
+<https://concepts.datalad.org/s/thing/unreleased/QuantitativeProperty> rdfs:subClassOf <https://concepts.datalad.org/s/thing/unreleased/Property> .
+
+<https://example.org/ns/ex/terms/Grant> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Entity> .
+
+<https://example.org/ns/ex/terms/GroupOptions#CTRL> rdfs:subClassOf <https://example.org/ns/ex/terms/GroupOptions> .
+
+<https://example.org/ns/ex/terms/GroupOptions#PAT> rdfs:subClassOf <https://example.org/ns/ex/terms/GroupOptions> .
+
+<https://example.org/ns/ex/terms/Publication> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Entity> .
+
+<https://example.org/ns/ex/terms/ScientificDataDistribution> rdfs:subClassOf <https://concepts.datalad.org/s/distribution/unreleased/Distribution> .
+
+<https://example.org/ns/ex/terms/SexOptions#F> rdfs:subClassOf <https://example.org/ns/ex/terms/SexOptions> .
+
+<https://example.org/ns/ex/terms/SexOptions#M> rdfs:subClassOf <https://example.org/ns/ex/terms/SexOptions> .
+
+<https://example.org/ns/ex/terms/StudyParticipant> rdfs:subClassOf <https://concepts.datalad.org/s/thing/unreleased/Thing> .
+
+<https://example.org/ns/ex/terms/StudySample> rdfs:subClassOf <https://concepts.datalad.org/s/thing/unreleased/Thing> .
+
+<https://example.org/ns/ex/terms/StudySession> rdfs:subClassOf <https://concepts.datalad.org/s/thing/unreleased/Thing> .
+
+<https://concepts.datalad.org/s/distribution/unreleased/Distribution> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Entity> .
+
+<https://concepts.datalad.org/s/distribution/unreleased/Resource> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Entity> .
+
+<https://concepts.datalad.org/s/prov/unreleased/AgentInfluence> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Influence> .
+
+<https://concepts.datalad.org/s/prov/unreleased/EntityInfluence> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Influence> .
+
+<https://concepts.datalad.org/s/thing/unreleased/Property> rdfs:subClassOf <https://concepts.datalad.org/s/thing/unreleased/Characteristic> .
+
+<https://concepts.datalad.org/s/prov/unreleased/Agent> rdfs:subClassOf <https://concepts.datalad.org/s/thing/unreleased/Thing> .
+
+<https://concepts.datalad.org/s/prov/unreleased/Entity> rdfs:subClassOf <https://concepts.datalad.org/s/thing/unreleased/Thing> .
+

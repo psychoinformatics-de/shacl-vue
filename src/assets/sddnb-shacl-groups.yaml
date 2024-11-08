@@ -1,0 +1,39 @@
+property_groups:
+  - id: dlsddnb:BasicPropertyGroup 
+    label: Basic
+    order: 0
+    description: >-
+      Basic properties of the dataset distribution
+  - id: dlsddnb:DataPropertyGroup
+    label: Data
+    order: 1
+    description: >-
+      Properties related to the actual data file(s) of the dataset distribution
+  - id: dlsddnb:PartsPropertyGroup
+    label: Parts
+    order: 2
+    description: >-
+      The parts that together constitute the whole of the dataset distribution
+  - id: dlsddnb:ProvenancePropertyGroup
+    label: Provenance
+    order: 3
+    description: >-
+      Properties that define the Agents, Entities, Activities, and Roles
+      that together determined how a specific state of the dataset
+      distribution came to be
+  - id: dlsddnb:RelationPropertyGroup
+    label: Relation
+    order: 4
+    description: >-
+      Properties that relate to the dataset distribution in any way or form
+  - id: dlsddnb:AccessPropertyGroup
+    label: Access
+    order: 5
+    description: >-
+      Properties that describe how the dataset distribution can be accessed
+  - id: dlsddnb:SamplePropertyGroup
+    label: Study Samples
+    order: 6
+    description: >-
+      Study samples collected from specific study participants, possibly across
+      multiple study sessions, 

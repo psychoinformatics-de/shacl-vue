@@ -1,5 +1,5 @@
 <template>
-    <v-row align="start" no-gutters>
+    <v-row align="start" no-gutters v-if="formData[localNodeUid] && show_field">
         <v-col cols="4">
             <span>{{ nameOrCURIE(props.property_shape, shapePrefixes, SHACL) }}<span v-if="isRequired" style="color: red;"> *</span>:
                 <v-tooltip activator="parent" location="right" max-width="400px" max-height="400px">
@@ -9,13 +9,13 @@
         </v-col>
         <v-col cols="8">
 
-            <v-row no-gutters v-for="(triple, triple_idx) in formData[props.node_uid].at(-1)[my_uid]" :key="props.node_uid + '-' + my_uid + '-' + triple_idx">
+            <v-row no-gutters v-for="(triple, triple_idx) in formData[localNodeUid].at(-1)[my_uid]" :key="localNodeUid + '-' + my_uid + '-' + triple_idx">
                 <v-col cols="9">
                     <component
-                        v-model="formData[props.node_uid].at(-1)[my_uid][triple_idx]"
+                        v-model="formData[localNodeUid].at(-1)[my_uid][triple_idx]"
                         :is="matchedComponent"
                         :property_shape="props.property_shape"
-                        :node_uid="props.node_uid"
+                        :node_uid="localNodeUid"
                         :triple_uid="my_uid"
                         :triple_idx="triple_idx"
                         >
@@ -28,7 +28,7 @@
                             rounded="0"
                             elevation="1"
                             icon="mdi-delete-outline"
-                            @click="remove_triple(props.node_uid, my_uid, triple_idx)"
+                            @click="remove_triple(localNodeUid, my_uid, triple_idx)"
                             density="comfortable"
                         ></v-btn>
                         &nbsp;
@@ -37,7 +37,7 @@
                             rounded="0"
                             elevation="1"
                             icon="mdi-plus-circle-outline"
-                            @click="add_empty_triple(props.node_uid, my_uid)"
+                            @click="add_empty_triple(localNodeUid, my_uid)"
                             density="comfortable"
                         ></v-btn>
                 </v-col>
@@ -66,12 +66,14 @@
     // ---- //
 
     const my_uid = ref('');
+    const localNodeUid = ref(props.node_uid)
     const add_empty_triple = inject('add_empty_triple');
     const remove_triple = inject('remove_triple');
     const shapePrefixes = inject('shapePrefixes');
     const editorMatchers = inject('editorMatchers');
     const defaultEditor = inject('defaultEditor');
     const formData = inject('formData');
+    const show_all_fields = inject('show_all_fields');
     const { isRequired } = useRules(props.property_shape)
 
     // ----------------- //
@@ -79,12 +81,16 @@
     // ----------------- //
 
     onMounted(() => {
-        add_empty_triple(props.node_uid, my_uid.value)
+        add_empty_triple(localNodeUid.value, my_uid.value)
     })
 
     onBeforeMount(() => {
-        console.log("PropertyShapeEditor is about to be mounted")
+        console.log("PropertyShapeEditor is about to be mounted. The property shape:")
+        console.log(props.property_shape)
         my_uid.value = props.property_shape[SHACL.path.value]
+        console.log("Form data before propertyshapeeditor mounting")
+        console.log(formData)
+
     })
 
     onBeforeUpdate(() => {
@@ -104,6 +110,26 @@
         return defaultEditor;
     });
 
+    const show_field = computed(() => {
+        // Determine whether to show this field based on some explicit
+        // and derived logic:
+        // - show if the switch to "show_all_fields" is true
+        // - show if the switch to "show_all_fields" is false, but the field is required
+        // - show if the switch to "show_all_fields" is false, but the field has a sh:name attribute in the shape
+        //   (which means it was likely annotated and therefore likely important)
+        if (show_all_fields.value) {
+            return true
+        } else {
+            if (isRequired.value) {
+                return true
+            }
+            if (props.property_shape.hasOwnProperty(SHACL.name.value)) {
+                return true
+            }
+            return false
+        }
+    });
+
 
     // --------- //
     // Functions //
@@ -117,15 +143,15 @@
             if (props.property_shape[SHACL.maxCount] == 1) {
                 return false
             } else if (props.property_shape[SHACL.maxCount] > 1
-                        && formData[props.node_uid].at(-1)[my_uid.value].length < props.property_shape[SHACL.maxCount]
-                        && formData[props.node_uid].at(-1)[my_uid.value].length == idx + 1
+                        && formData[localNodeUid.value].at(-1)[my_uid.value].length < props.property_shape[SHACL.maxCount]
+                        && formData[localNodeUid.value].at(-1)[my_uid.value].length == idx + 1
             ) {
                 return true
             } else {
                 return false   
             }
         } else {
-            if (formData[props.node_uid].at(-1)[my_uid.value].length == idx + 1) {
+            if (formData[localNodeUid.value].at(-1)[my_uid.value].length == idx + 1) {
                 return true
             } else {
                 return false
@@ -134,7 +160,7 @@
     }
 
     function allowRemoveTriple(idx) {
-        if (formData[props.node_uid].at(-1)[my_uid.value].length > 1) {
+        if (formData[localNodeUid.value].at(-1)[my_uid.value].length > 1) {
             return true
         }
         return false
