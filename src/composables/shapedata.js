@@ -19,7 +19,7 @@ export function useShapeData(config) {
     // ---- //
     // Data //
     // ---- //
-	const defaultURL = new URL("@/assets/shapesgraph.ttl", import.meta.url).href
+	const defaultURL = "/shapesgraph.ttl"
 	var shapesDataset = reactive(rdf.dataset());
 	var nodeShapes = ref({});
 	var propertyGroups = ref({});
@@ -47,21 +47,8 @@ export function useShapeData(config) {
 	async function getSHACLschema(url) {
 		// console.log(`default url is: ${defaultURL}`)
 		// console.log(`config url is: ${config.value.shapes_url}`)
-		var relURL
-		if (config.value.shapes_url) {
-			if (config.value.shapes_url.indexOf("http") >= 0) {
-			  relURL = config.value.shapes_url
-			} else {
-			  relURL = new URL("src/" + config.value.shapes_url, baseURL).href
-			}
-		}
-		const shapesURL = relURL ? relURL : defaultURL
+		const shapesURL = config.value.shapes_url ? config.value.shapes_url : defaultURL
 		const getURL = url ? url : shapesURL
-
-		// if (getURL === shapesURL && !config.value.use_default_shapes) {
-		// 	return
-		// }
-
 		// console.log(`shapes url is: ${getURL}`)
 		readRDF(getURL)
 		.then(quadStream => {

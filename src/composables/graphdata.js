@@ -5,11 +5,12 @@ import rdf from 'rdf-ext';
 import { SHACL , RDF} from '../modules/namespaces'
 import formatsPretty from '@rdfjs/formats/pretty.js'
 import { downloadTSV } from '@/modules/utils';
-const baseURL = new URL(import.meta.env.BASE_URL || '/', import.meta.url).href;
+
+const basePath = import.meta.env.BASE_URL || '/';
 
 export function useGraphData(config) {
 
-  const defaultURL = new URL("@/assets/distribution-penguins-mini.ttl", import.meta.url).href
+  const defaultURL = `${basePath}distribution-penguins-mini.ttl`
   const graphData = createReactiveDataset();
   const serializedGraphData = ref('');
   const graphTriples = ref([]);
@@ -33,12 +34,10 @@ export function useGraphData(config) {
       // - if the data_url is provided, use it and ignore use_default_data
       // - if the data_url is NOT provided, use default if use_default_data==true, else nothing
       if (config.value.data_url) {
-        // If config url is an online resource (proxy = contains http), keep as is
-        // If not, construct relative url
-        if (config.value.data_url.indexOf("http") >= 0) {
+        if (config.value.data_url.indexOf('http')) {
           getURL = config.value.data_url
         } else {
-          getURL = new URL("src/" + config.value.data_url, baseURL).href
+          getURL = `${basePath}${config.value.data_url}`;
         }
       } else {
         if (config.value.use_default_data == true) {

@@ -1,0 +1,9 @@
+{
+    "shapes_url": "shapesgraph.ttl",
+    "use_default_shapes": false,
+    "data_url": "distribution-penguins.ttl",
+    "use_default_data": false,
+    "class_url": "linkml_owl.ttl",
+    "use_default_classes": false,
+    "group_layout": ""
+}
