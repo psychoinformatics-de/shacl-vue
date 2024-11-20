@@ -27,6 +27,7 @@
         modelValue: String,
         property_shape: Object,
         node_uid: String,
+        node_idx: String,
         triple_uid: String,
         triple_idx: Number
     })

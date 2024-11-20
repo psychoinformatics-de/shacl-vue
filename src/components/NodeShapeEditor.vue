@@ -15,7 +15,7 @@
                             <br>
                             <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)" :key="localShapeIri + '-' + String(Date.now()) + '-' + property[SHACL.path.value]">
                                 <keep-alive>
-                                    <PropertyShapeEditor :property_shape="property" :node_uid="localShapeIri"/>
+                                    <PropertyShapeEditor :property_shape="property" :node_uid="localShapeIri" :node_idx="localNodeIdx"/>
                                 </keep-alive>
                             </span>
                             <br>
@@ -33,7 +33,7 @@
                 <br>
                 <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)" :key="localShapeIri + '-' + String(Date.now()) + '-' + property[SHACL.path.value]">
                     <keep-alive>
-                        <PropertyShapeEditor :property_shape="property" :node_uid="localShapeIri"/>
+                        <PropertyShapeEditor :property_shape="property" :node_uid="localShapeIri" :node_idx="localNodeIdx"/>
                     </keep-alive>
                 </span>
             </span>
@@ -54,6 +54,7 @@
 
     const props = defineProps({
         shape_iri: String,
+        node_idx: Number,
     })
 
     // ---- //
@@ -61,6 +62,7 @@
     // ---- //
 
     const localShapeIri = ref(props.shape_iri);
+    const localNodeIdx = ref(props.node_idx);
     const formData = inject('formData');
     const defaultPropertyGroup = inject('defaultPropertyGroup');
     const propertyGroups = inject('propertyGroups');
@@ -80,7 +82,7 @@
     })
 
     onBeforeMount(() => {
-        console.log(`the NodeShapeEditor component is about to be mounted.`)
+        // console.log(`the NodeShapeEditor component is about to be mounted.`)
         orderGroups()
         if (config.value.hasOwnProperty("group_layout") && config.value.group_layout == "tabs") {
             group_layout.value = "tabs"
@@ -88,12 +90,13 @@
     })
 
     onBeforeUpdate(() => {
-        console.log(`the NodeShapeEditor component is about to be updated.`)
+        // console.log(`the NodeShapeEditor component is about to be updated.`)
         orderGroups()
     })
 
     onBeforeUnmount(() => {
         localShapeIri.value = null
+        localNodeIdx.value = null
     });
 
     // ------------------- //

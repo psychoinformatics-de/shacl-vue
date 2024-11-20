@@ -41,7 +41,9 @@
         modelValue: String,
         property_shape: Object,
         node_uid: String,
-        triple_uid: String
+        node_idx: String,
+        triple_uid: String,
+        triple_idx: Number
     })
     const formData = inject('formData');
     const { rules } = useRules(props.property_shape)
@@ -63,7 +65,15 @@
     }
 
     function valueCombiner(values) {
-        if (values.picked_date) return values.picked_date.toISOString().split('T')[0]
+        if (values.picked_date) {
+            try {
+                return values.picked_date.toISOString().split('T')[0]
+            }
+            catch (error) {
+                console.log(error)
+                return values.picked_date
+            }
+        }
         return null
     }
 </script>

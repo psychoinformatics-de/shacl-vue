@@ -74,7 +74,7 @@
 
     <v-dialog v-model="dialog" max-width="700">
         <template v-slot:default="{ isActive }">
-            <FormEditor :key="selectedShapeIRI" :shape_iri="selectedShapeIRI"></FormEditor>
+            <FormEditor :key="selectedShapeIRI" :shape_iri="selectedShapeIRI" :node_idx="newNodeIdx"></FormEditor>
         </template>
     </v-dialog>
 
@@ -87,7 +87,7 @@
     import { useRules } from '../composables/rules'
     import rdf from 'rdf-ext'
     import {SHACL, RDF, RDFS, DLTHING, XSD} from '@/modules/namespaces'
-    import { toCURIE } from '../modules/utils';
+    import { toCURIE, getLiteralAndNamedNodes, getSubjectTriples} from '../modules/utils';
     import { useRegisterRef } from '../composables/refregister';
 
     // ----- //
@@ -97,6 +97,7 @@
     const props = defineProps({
         property_shape: Object,
         node_uid: String,
+        node_idx: String,
         triple_uid: String,
         triple_idx: Number,
     })
@@ -105,6 +106,7 @@
     // Data //
     // ---- //
     const localNodeUid = ref(props.node_uid)
+    const newNodeIdx = ref(null)
     const formData = inject('formData');
     const graphData = inject('graphData');
     const add_empty_node = inject('add_empty_node');
@@ -120,15 +122,16 @@
     const selectedShapeIRI = ref(null)
     const instanceItems = ref([])
 
-
     const cancelDialogForm = () => {
-        console.log("Canceling from form in dialog")
+        // console.log("Canceling from form in dialog")
         dialog.value = false;
+        newNodeIdx.value = null
     };
     provide('cancelFormHandler', cancelDialogForm);
     const saveDialogForm = () => {
-        console.log("Saving from form in dialog")
+        // console.log("Saving from form in dialog")
         dialog.value = false;
+        newNodeIdx.value = null
     };
     provide('saveFormHandler', saveDialogForm);
     
@@ -138,11 +141,10 @@
 
     const triple_object = computed({
         get() {
-            return formData[localNodeUid.value].at(-1)[props.triple_uid][props.triple_idx];
+            return formData[localNodeUid.value][props.node_idx][props.triple_uid][props.triple_idx];
         },
         set(value) {
-            const node_idx = formData[localNodeUid.value].length - 1
-            formData[localNodeUid.value][node_idx][props.triple_uid][props.triple_idx] = value;
+            formData[localNodeUid.value][props.node_idx][props.triple_uid][props.triple_idx] = value;
         }
     });
 
@@ -161,9 +163,9 @@
         // The goal of this method is to populate the list of items for the
         // InstancesSelectEditor
         // ---
-        console.log("(Re)calculating instance items")
+        // console.log("(Re)calculating instance items")
         // find nodes with predicate rdf:type and object being the property class
-        console.log("find nodes with predicate rdf:type and object being the property class:")
+        // console.log("find nodes with predicate rdf:type and object being the property class:")
         var quads = getLiteralAndNamedNodes(
             graphData,
             rdf.namedNode(RDF.type),
@@ -182,8 +184,8 @@
         var myArr = []
         Array.from(subClasses).forEach(quad => {
             const cl = quad.subject.value
-            console.log(`\t - getting quads with class: ${cl}`)
-            console.log(`\t - (size of data graph: ${graphData.size})`)
+            // console.log(`\t - getting quads with class: ${cl}`)
+            // console.log(`\t - (size of data graph: ${graphData.size})`)
             myArr = myArr.concat(getLiteralAndNamedNodes(graphData, rdf.namedNode(RDF.type), cl, allPrefixes))
         });
         // Then combine all quad arrays
@@ -202,7 +204,7 @@
             if (quad.subject.termType === 'BlankNode') {
                 extra = ' (BlankNode)'
             }
-            var relatedTrips = getRelatedTriples(quad.subject)
+            var relatedTrips = getSubjectTriples(graphData, quad.subject)
             var item = {
                 title: quad.subject.value + extra,
                 value: quad.subject.value,
@@ -217,7 +219,7 @@
     }
 
     watch(graphData, () => {
-        console.log("CHECK: graphdata instanceselecteditor")
+        // console.log("CHECK: graphdata instanceselecteditor")
         getInstanceItems()
     }, { deep: true });
 
@@ -249,20 +251,6 @@
     // Functions //
     // --------- //
 
-    function getLiteralAndNamedNodes(graphData, predicate, propertyClass, prefixes) {
-        var propClassCurie = toCURIE(propertyClass, prefixes)
-        // a) use the literal node with xsd data type
-        const literalNodes = rdf.grapoi({ dataset: graphData })
-            .hasOut(predicate, rdf.literal(String(propClassCurie), XSD.anyURI))
-            .quads();
-        // b) and the named node
-        const uriNodes = rdf.grapoi({ dataset: graphData })
-            .hasOut(predicate, rdf.namedNode(propertyClass))
-            .quads();
-        // return as a concatenated array of quads
-        return Array.from(literalNodes).concat(Array.from(uriNodes))
-    }
-
     function selectItem(item) {
         triple_object.value = item.value;
         fieldRef.value.blur();
@@ -271,17 +259,9 @@
     function handleAddItemClick(item) {
         selectedShapeIRI.value = item.value
         menu.value = false;
+        newNodeIdx.value = '_:' + crypto.randomUUID()
+        add_empty_node(item.value, newNodeIdx.value)
         dialog.value = true;
-        add_empty_node(item.value)
-    }
-
-    function getRelatedTriples(someTerm) {
-        console.log(`Getting all properties of ${someTerm.value}:`)
-        const quads = rdf.grapoi({ dataset: graphData, term: someTerm }).out().quads();
-        Array.from(quads).forEach(quad => {
-            console.log(`\t${quad.subject.value} - ${quad.predicate.value} - ${quad.object.value}`)
-        })
-        return Array.from(quads)
     }
 
 </script>

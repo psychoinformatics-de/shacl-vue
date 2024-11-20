@@ -9,39 +9,42 @@
         </v-col>
         <v-col cols="8">
 
-            <v-row no-gutters v-for="(triple, triple_idx) in formData[localNodeUid].at(-1)[my_uid]" :key="localNodeUid + '-' + my_uid + '-' + triple_idx">
-                <v-col cols="9">
-                    <component
-                        v-model="formData[localNodeUid].at(-1)[my_uid][triple_idx]"
-                        :is="matchedComponent"
-                        :property_shape="props.property_shape"
-                        :node_uid="localNodeUid"
-                        :triple_uid="my_uid"
-                        :triple_idx="triple_idx"
-                        >
-                    </component>
-                </v-col>
-                <v-col>
-                        &nbsp;
-                        <!-- Remove button -->
-                        <v-btn v-if="allowRemoveTriple(triple_idx)"
-                            rounded="0"
-                            elevation="1"
-                            icon="mdi-delete-outline"
-                            @click="remove_triple(localNodeUid, my_uid, triple_idx)"
-                            density="comfortable"
-                        ></v-btn>
-                        &nbsp;
-                        <!-- Add button -->
-                        <v-btn v-if="allowAddTriple(triple_idx)"
-                            rounded="0"
-                            elevation="1"
-                            icon="mdi-plus-circle-outline"
-                            @click="add_empty_triple(localNodeUid, my_uid)"
-                            density="comfortable"
-                        ></v-btn>
-                </v-col>
-            </v-row>
+            <span v-if="formData[localNodeUid][props.node_idx]">
+                <v-row no-gutters v-for="(triple, triple_idx) in formData[localNodeUid][props.node_idx][my_uid]" :key="localNodeUid + '-' + my_uid + '-' + triple_idx">
+                    <v-col cols="9">
+                        <component
+                            v-model="formData[localNodeUid][props.node_idx][my_uid][triple_idx]"
+                            :is="matchedComponent"
+                            :property_shape="props.property_shape"
+                            :node_uid="localNodeUid"
+                            :node_idx="props.node_idx"
+                            :triple_uid="my_uid"
+                            :triple_idx="triple_idx"
+                            >
+                        </component>
+                    </v-col>
+                    <v-col>
+                            &nbsp;
+                            <!-- Remove button -->
+                            <v-btn v-if="allowRemoveTriple(triple_idx)"
+                                rounded="0"
+                                elevation="1"
+                                icon="mdi-delete-outline"
+                                @click="remove_triple(localNodeUid, props.node_idx, my_uid, triple_idx)"
+                                density="comfortable"
+                            ></v-btn>
+                            &nbsp;
+                            <!-- Add button -->
+                            <v-btn v-if="allowAddTriple(triple_idx)"
+                                rounded="0"
+                                elevation="1"
+                                icon="mdi-plus-circle-outline"
+                                @click="add_empty_triple(localNodeUid, props.node_idx, my_uid)"
+                                density="comfortable"
+                            ></v-btn>
+                    </v-col>
+                </v-row>
+            </span>
         </v-col>
     </v-row>
 </template>
@@ -58,7 +61,8 @@
     
     const props = defineProps({
         property_shape: Object,
-        node_uid: String
+        node_uid: String,
+        node_idx: Number,
     })
 
     // ---- //
@@ -67,7 +71,9 @@
 
     const my_uid = ref('');
     const localNodeUid = ref(props.node_uid)
+
     const add_empty_triple = inject('add_empty_triple');
+    const editMode = inject('editMode');
     const remove_triple = inject('remove_triple');
     const shapePrefixes = inject('shapePrefixes');
     const editorMatchers = inject('editorMatchers');
@@ -81,20 +87,29 @@
     // ----------------- //
 
     onMounted(() => {
-        add_empty_triple(localNodeUid.value, my_uid.value)
+        if (editMode.graph || editMode.form) {
+            // if we're busy editing, and if the triple already has a value,
+            // don't add another empty element
+            if (formData[localNodeUid.value][props.node_idx][my_uid.value]) return;
+        }
+        add_empty_triple(localNodeUid.value, props.node_idx, my_uid.value)
     })
 
     onBeforeMount(() => {
-        console.log("PropertyShapeEditor is about to be mounted. The property shape:")
-        console.log(props.property_shape)
+        // console.log("PropertyShapeEditor is about to be mounted. The property shape:")
+        // console.log(props.property_shape)
         my_uid.value = props.property_shape[SHACL.path.value]
-        console.log("Form data before propertyshapeeditor mounting")
-        console.log(formData)
+        // console.log("Form data and props before propertyshapeeditor mounting:")
+        // console.log(formData)
+        // console.log(props)
+        // console.log(`props.node_idx: ${props.node_idx}`)
+
 
     })
 
     onBeforeUpdate(() => {
-        console.log(`PropertyShapeEditor is about to be updated: ${my_uid.value}`)
+        // console.log(`PropertyShapeEditor is about to be updated: ${my_uid.value}`)
+        // console.log(`props.node_idx: ${props.node_idx}`)
     })
 
     // ------------------- //
@@ -143,15 +158,15 @@
             if (props.property_shape[SHACL.maxCount] == 1) {
                 return false
             } else if (props.property_shape[SHACL.maxCount] > 1
-                        && formData[localNodeUid.value].at(-1)[my_uid.value].length < props.property_shape[SHACL.maxCount]
-                        && formData[localNodeUid.value].at(-1)[my_uid.value].length == idx + 1
+                        && formData[localNodeUid.value][props.node_idx][my_uid.value].length < props.property_shape[SHACL.maxCount]
+                        && formData[localNodeUid.value][props.node_idx][my_uid.value].length == idx + 1
             ) {
                 return true
             } else {
                 return false   
             }
         } else {
-            if (formData[localNodeUid.value].at(-1)[my_uid.value].length == idx + 1) {
+            if (formData[localNodeUid.value][props.node_idx][my_uid.value].length == idx + 1) {
                 return true
             } else {
                 return false
@@ -160,7 +175,7 @@
     }
 
     function allowRemoveTriple(idx) {
-        if (formData[localNodeUid.value].at(-1)[my_uid.value].length > 1) {
+        if (formData[localNodeUid.value][props.node_idx][my_uid.value].length > 1) {
             return true
         }
         return false

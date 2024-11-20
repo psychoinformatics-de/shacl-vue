@@ -1,10 +1,14 @@
-import { SHACL, RDF } from '../modules/namespaces'
+import { SHACL, RDF, XSD} from '../modules/namespaces'
 import rdf from 'rdf-ext';
+
 
 export function toCURIE(IRI, prefixes, return_type) {
   // prefixes is an object with prefix as keys and the resolved prefix IRI as the value
   if (!IRI) {
     return null
+  }
+  if (!prefixes) {
+    console.log("no prefixes passed!!")
   }
   const longToShort = Object.values(prefixes).sort((a, b) => b.length - a.length);
   for (const iri of longToShort) {
@@ -22,6 +26,30 @@ export function toCURIE(IRI, prefixes, return_type) {
     }
   }
   return IRI
+}
+
+
+export function toIRI(CURIE, prefixes) {
+  // prefixes is an object with prefix as keys and the resolved prefix IRI as the value
+  if (!CURIE) {
+    return null
+  }
+  if (!prefixes) {
+    console.error("no prefixes passed!!")
+    return null
+  }
+  if (CURIE.indexOf(':') < 0) {
+    console.log("not a valid curie, returning")
+    return CURIE
+  }
+  var parts = CURIE.split(':')
+  var pref = parts[0]
+  var prop = parts[1]
+  if (Object.keys(prefixes).indexOf(pref) < 0) {
+    console.log("unknown prefix in curie, returning")
+    return CURIE
+  }
+  return prefixes[pref] + prop
 }
 
 
@@ -48,12 +76,23 @@ function objectFlip(obj) {
   }, {});
 }
 
+
 export function isObject(val) {
   return typeof val === 'object' && !Array.isArray(val) && val !== null
 }
 
-export function resolveBlankNode(blankNode, shapesDataset) {
 
+export function isEmptyObject(obj) {
+  for (const prop in obj) {
+    if (Object.hasOwn(obj, prop)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+export function resolveBlankNode(blankNode, shapesDataset) {
   // Check if a node is an RDF list (rdf:first and rdf:rest)
   const isRdfList = (node) => {
     let hasFirst = false;
@@ -134,83 +173,6 @@ export function resolveBlankNode(blankNode, shapesDataset) {
 }
 
 
-
-// export function resolveBlankNode(blankNode, shapesDataset) {
-
-//   // Function to check if a node is an RDF list (rdf:first and rdf:rest)
-//   const isRdfList = (node) => {
-//     let hasFirst = false;
-//     let hasRest = false;
-//     shapesDataset.forEach((quad) => {
-//       if (quad.subject.equals(node)) {
-//         if (quad.predicate.value === RDF.first.value) hasFirst = true;
-//         if (quad.predicate.value === RDF.rest.value) hasRest = true;
-//       }
-//     });
-//     return hasFirst && hasRest;
-//   };
-
-//   // Function to convert an RDF list into an array
-//   const rdfListToArray = (startNode) => {
-//     const listItems = [];
-//     let currentNode = startNode;
-
-//     while (currentNode && currentNode.value !== RDF.nil.value) {
-//       let listItem = null;
-
-//       // Get the first element in the RDF list
-//       shapesDataset.forEach((quad) => {
-//         if (quad.subject.equals(currentNode) && quad.predicate.value === RDF.first.value) {
-//           if (quad.object.termType === "BlankNode") {
-//             listItem = resolveBlankNode(quad.object, shapesDataset); // Recursively resolve blank nodes
-//           } else {
-//             listItem = { [quad.predicate.value]: quad.object.value }; // Store object value
-//           }
-//         }
-//       });
-
-//       if (listItem !== null) {
-//         listItems.push(listItem);
-//       }
-
-//       // Move to the next item in the list (rdf:rest)
-//       let nextNode = null;
-//       shapesDataset.forEach((quad) => {
-//         if (quad.subject.equals(currentNode) && quad.predicate.value === RDF.rest.value) {
-//           nextNode = quad.object;
-//         }
-//       });
-
-//       currentNode = nextNode;
-//     }
-
-//     return listItems;
-//   };
-
-//   let resolvedObject = {};
-  
-//   shapesDataset.forEach((quad) => {
-//     if (quad.subject.equals(blankNode)) {
-//       const predicate = quad.predicate.value;
-//       const object = quad.object;
-
-//       // If the object is a blank node, resolve it recursively
-//       if (object.termType === "BlankNode") {
-//         // Check if it's an RDF list and convert it to an array
-//         if (isRdfList(object)) {
-//           resolvedObject[predicate] = rdfListToArray(object);
-//         } else {
-//           resolvedObject[predicate] = resolveBlankNode(object, shapesDataset);
-//         }
-//       } else {
-//         resolvedObject[predicate] = object.value; // Store the value
-//       }
-//     }
-//   });
-
-//   return resolvedObject;
-// }
-
 export function dlJSON(jsonObject) {
   // Data
   const jsonString = JSON.stringify(jsonObject);
@@ -225,6 +187,20 @@ export function dlJSON(jsonObject) {
   document.body.removeChild(link);
 }
 
+export function dlTTL(ttlstring) {
+  // Data
+  const blob = new Blob([ttlstring], { type: "text/turtle" });
+  // Create a link element
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "graphdata.ttl";
+  document.body.appendChild(link);
+  // Click to download, and remove
+  link.click();
+  document.body.removeChild(link);
+}
+
+
 export function downloadTSV(data, filename) {
   const blob = new Blob([data], { type: 'text/tsv;charset=utf-8;' });
   const link = document.createElement('a');
@@ -236,4 +212,39 @@ export function downloadTSV(data, filename) {
     link.click();
     document.body.removeChild(link);
   }
+}
+
+
+export function getLiteralAndNamedNodes(graphData, predicate, propertyClass, prefixes) {
+  var propClassCurie = toCURIE(propertyClass, prefixes)
+  // a) use the literal node with xsd data type
+  const literalNodes = rdf.grapoi({ dataset: graphData })
+      .hasOut(predicate, rdf.literal(String(propClassCurie), XSD.anyURI))
+      .quads();
+  // b) and the named node
+  const uriNodes = rdf.grapoi({ dataset: graphData })
+      .hasOut(predicate, rdf.namedNode(propertyClass))
+      .quads();
+  // return as a concatenated array of quads
+  return Array.from(literalNodes).concat(Array.from(uriNodes))
+}
+
+
+export function getSubjectTriples(graphData, someTerm) {
+  // console.log(`Getting all triples with subject: ${someTerm.value}`)
+  const quads = rdf.grapoi({ dataset: graphData, term: someTerm }).out().quads();
+  // Array.from(quads).forEach(quad => {
+  //     console.log(`\t${quad.subject.value} - ${quad.predicate.value} - ${quad.object.value}`)
+  // })
+  return Array.from(quads)
+}
+
+
+export function getObjectTriples(graphData, someTerm) {
+  // console.log(`Getting all triples with object: ${someTerm.value}`)
+  const quads = rdf.grapoi({ dataset: graphData, term: someTerm }).in().quads();
+  // Array.from(quads).forEach(quad => {
+  //     console.log(`\t${quad.subject.value} - ${quad.predicate.value} - ${quad.object.value}`)
+  // })
+  return Array.from(quads)
 }

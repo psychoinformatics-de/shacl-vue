@@ -45,8 +45,8 @@ export function useShapeData(config) {
     // --------- //
 
 	async function getSHACLschema(url) {
-		console.log(`default url is: ${defaultURL}`)
-		console.log(`config url is: ${config.value.shapes_url}`)
+		// console.log(`default url is: ${defaultURL}`)
+		// console.log(`config url is: ${config.value.shapes_url}`)
 		var relURL
 		if (config.value.shapes_url) {
 			if (config.value.shapes_url.indexOf("http") >= 0) {
@@ -62,7 +62,7 @@ export function useShapeData(config) {
 		// 	return
 		// }
 
-		console.log(`shapes url is: ${getURL}`)
+		// console.log(`shapes url is: ${getURL}`)
 		readRDF(getURL)
 		.then(quadStream => {
 			// Load shape prefixes
@@ -93,7 +93,7 @@ export function useShapeData(config) {
 			}).on('end', () => {
 
 				// Loop through all nodeshapes
-				console.log("Restructuring up nodeshapes object...")
+				// console.log("Restructuring up nodeshapes object...")
 				for (const [key, val] of Object.entries(nodeShapes.value)) {
 					// Get attributes (other than 'properties') of the nodeshape
 					// console.log(`Restructuring node (i.e. key): ${key}`)
@@ -151,8 +151,8 @@ export function useShapeData(config) {
                     });
                 }
 				updateSerializedData()
-				console.log("All nodeshapes from shapes graph:")
-				console.log(toRaw(nodeShapes.value))
+				// console.log("All nodeshapes from shapes graph:")
+				// console.log(toRaw(nodeShapes.value))
                 page_ready.value = true
             });
 		})

@@ -1,5 +1,4 @@
 <template>
-
     <v-select
         :items="orList"
         density="compact"
@@ -22,44 +21,15 @@
 
     <component
         v-if="orElementSelected"
-        v-model="formData[props.node_uid].at(-1)[props.triple_uid][props.triple_idx]"
+        v-model="formData[props.node_uid][props.node_idx][props.triple_uid][props.triple_idx]"
         :is="matchedComponent"
         :property_shape="updatedShape"
         :node_uid="props.node_uid"
+        :node_idx="props.node_idx"
         :triple_uid="props.triple_uid"
         :triple_idx="props.triple_idx"
         >
-    </component>
-
-
-
-    <!-- <v-select>
-        <v-list-item v-for="item in props.property_shape[SHACL.or.value]">
-            <v-container>
-                <span v-for="(value, key, index) in item">
-                        <v-col cols="5">{{ key }}</v-col>
-                        <v-col>{{ value }}</v-col>
-                </span>
-            </v-container>
-        </v-list-item>
-    </v-select> -->
-
-
-    <!-- selectItem(data.item) -->
-    
-
-
-        <!-- <v-text-field
-            v-model="subValues.hex_text"
-            density="compact"
-            variant="outlined"
-            label="boobs"
-            hide-details="auto"
-        >
-        </v-text-field> -->
-
-
-        
+    </component>        
 </template>
 
 <script setup>
@@ -74,6 +44,7 @@
         modelValue: String,
         property_shape: Object,
         node_uid: String,
+        node_idx: String,
         triple_uid: String,
         triple_idx: Number
     })
