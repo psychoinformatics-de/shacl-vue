@@ -3,10 +3,11 @@ import { inject, reactive, ref} from 'vue'
 import { readRDF } from '@/modules/io'
 import rdf from 'rdf-ext';
 import formatsPretty from '@rdfjs/formats/pretty.js'
-const baseURL = new URL(import.meta.env.BASE_URL || '/', import.meta.url).href;
+
+const basePath = import.meta.env.BASE_URL || '/';
 
 export function useClassData(config) { 
-  const defaultURL = new URL("@/assets/class_hierarchy.ttl", import.meta.url).href
+  const defaultURL = `${basePath}class_hierarchy.ttl`;
   const classData = reactive(rdf.dataset())
   const serializedClassData = ref('')
   var classPrefixes = reactive({});
@@ -16,17 +17,17 @@ export function useClassData(config) {
   var classTriples = ref([]);
 
   async function getClassData(url) {
-    var relURL
+    var classURL
     if (config.value.class_url) {
-			if (config.value.class_url.indexOf("http") >= 0) {
-			  relURL = config.value.class_url
-			} else {
-			  relURL = new URL("src/" + config.value.class_url, baseURL).href
-			}
-		}
-    const classURL = relURL ? relURL : defaultURL
+      if (config.value.class_url.indexOf('http')) {
+        classURL = config.value.class_url
+      } else {
+        classURL = `${basePath}${config.value.class_url}`;
+      }
+    } else {
+      classURL = defaultURL
+    }
     const getURL = url ? url : classURL
-
     if (getURL === classURL && !config.value.use_default_classes) {
       // console.log("getURL === classURL; returning")
       return

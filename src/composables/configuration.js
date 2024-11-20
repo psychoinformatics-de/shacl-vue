@@ -5,9 +5,11 @@
 
 
 import { ref, onMounted} from 'vue'
+const basePath = import.meta.env.BASE_URL || '/';
+
 export function useConfig() {
 
-  const configURL = new URL("@/assets/config.json", import.meta.url).href
+  const configURL = `${basePath}config.json`
   const config = ref(null);
   const configFetched = ref(false);
 
