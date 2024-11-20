@@ -156,7 +156,7 @@
     }
 
     function valueCombiner(values) {
-        // Determing internalValue (a URI) from subvalues/subcomponents
+        // Determine internalValue (a URI) from subvalues/subcomponents
 
         // if the switch is set to URI:
         // - return subValues.uri_text

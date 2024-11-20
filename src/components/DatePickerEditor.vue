@@ -1,10 +1,15 @@
 <template>
     <v-dialog max-width="500">
         <template v-slot:activator="{ props: activatorProps }">
-            <v-input :rules="rules" ref="fieldRef" :id="inputId">
+            <v-input
+                v-model="internalValue"
+                :rules="rules"
+                ref="fieldRef"
+                :id="inputId"
+            >
                 <v-btn
                     v-bind="activatorProps"
-                    :text="formData[props.node_uid].at(-1)[props.triple_uid].at(-1) ? formData[props.node_uid].at(-1)[props.triple_uid].at(-1).toISOString().split('T')[0] : 'Select a date'"
+                    :text="internalValue ? internalValue : 'Select a date'"
                 ></v-btn>
             </v-input>
         </template>
@@ -13,9 +18,8 @@
             <v-card title="Date">
                 <v-date-picker 
                     show-adjacent-months
-                    v-model="triple_object"
+                    v-model="subValues.picked_date"
                     validate-on="lazy input"
-                    :rules="rules"
                 ></v-date-picker>
                 <v-card-actions>
                     <v-spacer></v-spacer>
@@ -28,30 +32,38 @@
 </template>
 
 <script setup>
-    import {inject, computed} from 'vue'
     import { useRules } from '../composables/rules'
     import { useRegisterRef } from '../composables/refregister';
+    import { useBaseInput } from '@/composables/base';
 
     const props = defineProps({
+        modelValue: String,
         property_shape: Object,
         node_uid: String,
-        triple_uid: String
+        node_idx: String,
+        triple_uid: String,
+        triple_idx: Number
     })
-    const formData = inject('formData');
     const { rules } = useRules(props.property_shape)
     const inputId = `input-${Date.now()}`;
     const { fieldRef } = useRegisterRef(inputId, props);
+    const emit = defineEmits(['update:modelValue']);
+    const { subValues, internalValue } = useBaseInput(
+        props,
+        emit,
+        valueParser,
+        valueCombiner
+    );
 
-    const triple_object = computed({
-        get() {
-            return formData[props.node_uid].at(-1)[props.triple_uid].at(-1);
-        },
-        set(value) {
-            const node_idx = formData[props.node_uid].length - 1
-            const triple_idx = formData[props.node_uid][node_idx][props.triple_uid].length - 1
-            formData[props.node_uid][node_idx][props.triple_uid][triple_idx] = value;
-        }
-    });
+    function valueParser(value) {
+        // Parsing internalValue into ref values for separate subcomponent(s)
+        return {picked_date: value}
+    }
+
+    function valueCombiner(values) {
+        if (values.picked_date) return values.picked_date.toISOString().split('T')[0]
+        return null
+    }
 </script>
 
 <script>

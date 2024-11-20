@@ -11,7 +11,7 @@
 import formats from '@rdfjs/formats-common'
 import fetch from '@rdfjs/fetch-lite'
 
-export async function readRDF(file_url, headers = {}) {
+export async function readRDF(file_url, headers = { "Content-Type": "text/turtle" }) {
     var res = null
     res = await fetch(file_url,
         {
@@ -19,7 +19,7 @@ export async function readRDF(file_url, headers = {}) {
             headers: headers
         }
     )
-
+    console.log(res.headers)
     // Handle cases where the server returns generic 'text/plain' content type
     if (res.headers.get('content-type').indexOf('text/plain') >= 0) {
         // default to turtle

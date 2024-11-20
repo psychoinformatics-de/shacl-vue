@@ -9,9 +9,16 @@
       ></v-img>
     </template>
 
-    <v-app-bar-title>SHACL-Vue: Automatic generation of editors/viewers from SHACL</v-app-bar-title>
+    <v-app-bar-title> 
+      <code style="font-size: 1em;">shacl-vue</code>
+    </v-app-bar-title>
 
     <template v-slot:append>
+      <v-btn 
+        icon="mdi-text-box"
+        href="https://psychoinformatics-de.github.io/shacl-vue/docs/"
+        target="_blank"
+      ></v-btn>
       <v-btn 
         icon="mdi-github"
         href="https://github.com/psychoinformatics-de/shacl-vue"

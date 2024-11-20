@@ -59,9 +59,9 @@
     <v-row align="start" style="flex-wrap: nowrap" no-gutters>
         <!-- Display selected form -->
         <v-col cols="6">
-          <span v-if="selectedIRI && prefixes_ready">
+          <span v-if="selectedIRI && nodeSelected && prefixes_ready">
             <h3>Selected form</h3>
-            <FormEditor :key="selectedIRI" :shape_iri="selectedIRI"></FormEditor>
+            <FormEditor :key="selectedIRI" :shape_iri="selectedIRI" :node_idx="newNodeIdx"></FormEditor>
           </span>
         </v-col>
         <!-- Display entered form data -->
@@ -75,15 +75,17 @@
                 </span>
                 <br>
                 <span v-for="(item, index) in flatFormData">
-                  _b{{ index }} <br>
+                    <span v-if="item['@id']"> {{ item['@id'] }} </span>
+                    <span v-else>{{ item["instance_id"].substring(0,9) }} </span>
+                    <br>
                   &nbsp;&nbsp;&nbsp; a {{ toCURIE(item["node_iri"], shapePrefixes) }}
                   <!-- value is an array of objects -->
                   <span v-for="(prop_vals, prop_key, prop_idx) in item['triples']">
                     <span v-for="pval in prop_vals">
-                      <span v-if="pval">
-                          ; <br>
-                        &nbsp;&nbsp;&nbsp; {{ toCURIE(prop_key, shapePrefixes) }} &quot;{{  pval }}&quot;
-                      </span>
+                        <span v-if="pval && pval != item['@id']">
+                            ; <br>
+                            &nbsp;&nbsp;&nbsp; {{ toCURIE(prop_key, shapePrefixes) }} &quot;{{  pval }}&quot;
+                        </span>
                     </span>
                   </span> .
                   <br><br>
@@ -94,7 +96,14 @@
         </v-col>
     </v-row>
     <!-- <v-sheet class="pa-4" border rounded elevation="2">
-      <v-btn @click="testy">test</v-btn>
+      <code>
+        {{ flatFormData }}
+      </code>
+    </v-sheet>
+    <v-sheet class="pa-4" border rounded elevation="2">
+      <code>
+        {{ formData }}
+      </code>
     </v-sheet> -->
   </v-container>
 </template>
@@ -102,11 +111,8 @@
 
 <script setup>
   import { ref, onMounted, onBeforeMount, provide, inject, computed, reactive, watch} from 'vue'
-  import { useFormData } from '@/composables/formdata';
+  import { DLTHING } from '@/modules/namespaces';
   import { toCURIE } from '@/modules/utils';
-  import editorMatchers from '@/modules/editors';
-  import defaultEditor from '@/components/UnknownEditor.vue';
-
 
   // ----- //
   // Props //
@@ -120,6 +126,7 @@
   // Data //
   // ---- //
   
+  const ID_IRI = DLTHING.id.value // This is a stopgap and needs to be parameterized or made part of config somehow
   var selectedIRI = ref(null)
   var selectedShape = ref(null)
   var selectedFormItem = ref(null)
@@ -127,36 +134,17 @@
   var showPrefixForm = ref(false)
   var drawer = ref(false)
   var formValid = ref(false)
+  const newNodeIdx = ref(null)
   const rules = {
     required: value => !!value || 'This field is required',
   }
-  const {
-    formData,
-    add_empty_node,
-    remove_current_node,
-    clear_current_node,
-    add_empty_triple,
-    remove_triple,
-    save_node,
-  } = useFormData()
-  const defaultPropertyGroup = {}
-  defaultPropertyGroup.key = "https://concepts.datalad.org/DefaultPropertyGroup"
-  defaultPropertyGroup.value = {
-    "http://www.w3.org/2000/01/rdf-schema#comment": "",
-    "http://www.w3.org/2000/01/rdf-schema#label": "Default Properties",
-    "http://www.w3.org/ns/shacl#order": 100,
-  }
-  provide('defaultPropertyGroup', defaultPropertyGroup)
-  provide('formData', formData)
-  provide('add_empty_triple', add_empty_triple)
-  provide('add_empty_node', add_empty_node)
-  provide('remove_triple', remove_triple)
-  provide('remove_current_node', remove_current_node)
-  provide('clear_current_node', clear_current_node)
-  provide('save_node', save_node)
-  provide('editorMatchers', editorMatchers)
-  provide('defaultEditor', defaultEditor)
+  const defaultPropertyGroup = inject('defaultPropertyGroup')
+  const formData = inject('formData')
+  const add_empty_node = inject('add_empty_node')
+  const editorMatchers = inject('editorMatchers')
+  const defaultEditor = inject('defaultEditor')
   
+  const nodeSelected = ref(false);
   const shapePrefixes = inject('shapePrefixes')
   const nodeShapes = inject('nodeShapes')
   const nodeShapeNamesArray = inject('nodeShapeNamesArray')
@@ -174,11 +162,15 @@
   function cancelFormHandler() {
     selectedFormItem.value = null
     selectedIRI.value = null
+    newNodeIdx.value = null
+    nodeSelected.value = false
   }
   provide('cancelFormHandler', cancelFormHandler);
   const saveMainForm = () => {
     selectedFormItem.value = null
     selectedIRI.value = null
+    newNodeIdx.value = null
+    nodeSelected.value = false
   };
   provide('saveFormHandler', saveMainForm);
 
@@ -211,15 +203,21 @@
 
   const flatFormData = computed(() => {
     var ffdata = []
-    for (const [key, value] of Object.entries(formData)) {
-      for (const obj of value) {
-        ffdata.push(
-          {
-            "node_iri": key,
-            "triples": obj
-          }
-        )
-      }
+    for (const [node_iri, value] of Object.entries(formData)) {
+        // key is node iri
+        // value is object with node instance ids as keys
+        for (const [inst_id, inst_obj] of Object.entries(value)) {
+
+            var atID = Object.keys(inst_obj).indexOf(ID_IRI) >= 0 && inst_obj[ID_IRI] ? inst_obj[ID_IRI] : [null]
+            ffdata.push(
+                {
+                    "node_iri": node_iri,
+                    "instance_id": inst_id,
+                    "triples": inst_obj,
+                    "@id": atID[0]
+                }
+            )
+        }
     }
     return ffdata
   });
@@ -246,18 +244,21 @@
   // Functions //
   // --------- //
 
-  function selectIRI(IRI) { 
-      selectedIRI.value = IRI
-      selectedShape.value = nodeShapes.value[IRI]
-      add_empty_node(IRI)
-  }
+    function selectIRI(IRI) {
+        nodeSelected.value = false
+        selectedIRI.value = IRI
+        selectedShape.value = nodeShapes.value[IRI]
+        newNodeIdx.value = '_:' + crypto.randomUUID()
+        add_empty_node(IRI, newNodeIdx.value)
+        nodeSelected.value = true
+    }
 
-  function openDrawer() {
-    resetPrefixFields()
-    showPrefixForm.value = false
-    drawer.value = true;
+    function openDrawer() {
+        resetPrefixFields()
+        showPrefixForm.value = false
+        drawer.value = true;
 
-  }
+    }
 
   function togglePrefixFields() {
       showPrefixForm.value = !showPrefixForm.value

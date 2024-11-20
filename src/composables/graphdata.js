@@ -25,6 +25,7 @@ export function useGraphData(config) {
     // Get graph data from url, provided either as argument (highest priority),
     // via config (mid priority), or base default (lowest priority), or get no data
     // if specified via config
+    console.log(`URL argument: ${url}`)
     var getURL
     if (!url) {
       // If no url argument provided, check config
@@ -53,7 +54,8 @@ export function useGraphData(config) {
       getURL = url
     }
 
-    console.log(`data url is: ${getURL}`)
+    console.log(getURL)
+
     batchMode.value = true;
 		readRDF(getURL)
 		.then(quadStream => {
@@ -83,7 +85,6 @@ export function useGraphData(config) {
   }
 
   watch(graphData, async () => {
-    console.log("CHECK: graphdata from composable")
     await updateSerializedData();
     updateGraphTriples();
   }, { deep: true });
@@ -102,13 +103,12 @@ export function useGraphData(config) {
     const proxy = new Proxy(dataset, {
       get(target, prop, receiver) {
         const value = Reflect.get(target, prop, receiver);
-        if (typeof value === 'function' && ['add', 'delete'].includes(prop)) {
+        if (typeof value === 'function' && ['add', 'delete', 'deleteMatches', 'toCanonical', 'toStream', 'toString'].includes(prop)) {
           return function (...args) {
             const result = value.apply(target, args);
             if (!batchMode.value) {
               triggerReactivity(); // Trigger reactivity when dataset is mutated
             }
-            console.log("(Adding triple to reactive rdf.dataset)")
             return result;
           };
         }
@@ -190,6 +190,8 @@ export function useGraphData(config) {
       graphPrefixes,
       serializedGraphData,
       graphTriples,
-      serializeNodesToTSV
+      serializeNodesToTSV,
+      updateSerializedData,
+      triggerReactivity
     }
   }

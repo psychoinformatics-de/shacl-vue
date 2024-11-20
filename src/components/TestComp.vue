@@ -40,7 +40,6 @@
             </v-tabs-window-item>
 
             <v-tabs-window-item :key="3" :value="3">
-              <div ref="cyContainer" style="width: 100%; height: 500px;"></div>
             </v-tabs-window-item>
           </v-tabs-window>
       </v-card>
@@ -95,84 +94,60 @@
   watch(prefixes_ready, (newValue) => {
     console.log("CHECK: prefixesready")
     if (newValue) {
+      // Get all prefixes and derive context from it
       Object.assign(allPrefixes, shapePrefixes, graphPrefixes, classPrefixes)
+      const context = toRaw(allPrefixes)
+      // Map graph dataset to an array
       graphData.forEach(quad => {
         quadArray.value.push(quad)
       });
-      const context = toRaw(allPrefixes)
+      // Create new RdfObjectLoader with context, and load all quads into it as resources
       RDFOBLoader = new RdfObjectLoader({ context });
       RDFOBLoader.importArray(quadArray.value).then(() => {
-
-
-        // Get property values by shortcut
+        console.log("RDFOBLoader")
+        console.log(RDFOBLoader)
         myResources.value = RDFOBLoader.resources;
         myResourcesArray.value = Object.values(myResources.value);
-        // console.log(myResourcesArray.value[0].property[RDF.type])
         resources_loaded.value = true
       });
+      globalThis.RDFOBLoader = RDFOBLoader
     }
     }, { immediate: true });
 
+
   const selectedResources = computed(() => {
-
     if (!selectedIRI.value) return [];
-
+    // URIs of resources come in the form of literals and named nodes (not sure why yet...)
+    // this means we have to match to both to find all related resources
     var iriNode = rdf.namedNode(selectedIRI.value)
     var curieNode = rdf.literal(toCURIE(selectedIRI.value, allPrefixes), XSD.anyURI)
     var filteredResources = {}
     Object.values(RDFOBLoader.resources).forEach( (r) => {
-      // if (Object.hasOwn(r.property, RDF.type)) {
-      //   console.log(r.property[RDF.type])
-      // }
       const properties = toRaw(r.property);
       if (properties[RDF.type.value]) {
         var typeNode = rdf.namedNode(properties[RDF.type.value])
-        // console.log("RDF.type:", JSON.stringify(properties[RDF.type.value], null, 2));
-        // console.log(typeNode.value)
         if ([iriNode.value, curieNode.value].indexOf(typeNode.value) >= 0) {
           filteredResources[r.value] = r
-          // console.log("Found matching resource:")
-          // console.log(`\t${r.value}`)
-          // console.log(`\t${JSON.stringify(properties[RDF.type.value], null, 2)}`)
         }
       }
     })
-
     return filteredResources
-
-
-    // return myResourcesArray.value.filter((r) => {
-
-    //   r.property[RDF.type] ? r.property[RDF.type] == selectedIRI.value : false
-    // });
-    
   });
 
-  function selectIRI(IRI) { 
-    
+  function selectIRI(IRI) {
       selectedIRI.value = IRI
       selectedShape.value = nodeShapes.value[IRI]
       console.log(IRI)
       var iriNode = rdf.namedNode(IRI)
       var curieNode = rdf.literal(toCURIE(IRI, allPrefixes), XSD.anyURI)
-      console.log("iriNode")
-      console.log(iriNode.value)
-      console.log("curieNode")
-      console.log(curieNode.value)
-
       Object.values(RDFOBLoader.resources).forEach( (r) => {
-        // if (Object.hasOwn(r.property, RDF.type)) {
-        //   console.log(r.property[RDF.type])
-        // }
         const properties = toRaw(r.property);
         if (properties[RDF.type.value]) {
           var typeNode = rdf.namedNode(properties[RDF.type.value])
-          // console.log("RDF.type:", JSON.stringify(properties[RDF.type.value], null, 2));
-          // console.log(typeNode.value)
           if ([iriNode.value, curieNode.value].indexOf(typeNode.value) >= 0) {
-            console.log("Found matching resource:")
-            console.log(`\t${r.value}`)
-            console.log(`\t${JSON.stringify(properties[RDF.type.value], null, 2)}`)
+            // console.log("Found matching resource:")
+            // console.log(`\t${r.value}`)
+            // console.log(`\t${JSON.stringify(properties[RDF.type.value], null, 2)}`)
           }
         }
       })

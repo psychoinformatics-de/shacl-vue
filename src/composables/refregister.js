@@ -16,7 +16,7 @@ export function useRegisterRef(id, props) {
 
   onMounted(() => {
     if (registerRef && fieldRef.value) {
-        console.log("Registering ref from within refregister composable...")
+        // console.log("Registering ref from within refregister composable...")
         var fieldData = {
             ref: fieldRef,
             name: nameOrCURIE(props.property_shape, shapePrefixes)

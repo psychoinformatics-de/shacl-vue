@@ -1,40 +1,58 @@
 <template>
-    <v-textarea
-        v-model="triple_object"
-        variant="outlined"
-        label="add text"
+    <v-input
+        v-model="internalValue"
         :rules="rules"
         ref="fieldRef"
         :id="inputId"
+        hide-details="auto"
+        style="margin-bottom: 1em;"
     >
-    </v-textarea>
+        <v-textarea
+            v-model="subValues.text"
+            density="compact"
+            variant="outlined"
+            label="add text"
+            hide-details="auto"
+        >
+        </v-textarea>
+    </v-input>
 </template>
 
 <script setup>
-    import {inject, computed} from 'vue'
     import { useRules } from '../composables/rules'
     import { useRegisterRef } from '../composables/refregister';
+    import { useBaseInput } from '@/composables/base';
 
     const props = defineProps({
+        modelValue: String,
         property_shape: Object,
         node_uid: String,
-        triple_uid: String
+        node_idx: String,
+        triple_uid: String,
+        triple_idx: Number
     })
-    const formData = inject('formData');
     const { rules } = useRules(props.property_shape)
     const inputId = `input-${Date.now()}`;
     const { fieldRef } = useRegisterRef(inputId, props);
+    const emit = defineEmits(['update:modelValue']);
+    const { subValues, internalValue } = useBaseInput(
+        props,
+        emit,
+        valueParser,
+        valueCombiner
+    );
 
-    const triple_object = computed({
-        get() {
-            return formData[props.node_uid].at(-1)[props.triple_uid].at(-1);
-        },
-        set(value) {
-            const node_idx = formData[props.node_uid].length - 1
-            const triple_idx = formData[props.node_uid][node_idx][props.triple_uid].length - 1
-            formData[props.node_uid][node_idx][props.triple_uid][triple_idx] = value;
+    function valueParser(value) {
+        // Parsing internalValue into ref values for separate subcomponent(s)
+        return {
+            text: value,
         }
-    });
+    }
+
+    function valueCombiner(values) {
+        // Determing internalValue from subvalues/subcomponents
+        return values.text
+    }
 </script>
 
 <script>
