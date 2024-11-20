@@ -8,10 +8,6 @@ import ViteFonts from 'unplugin-fonts/vite'
 import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'node:url'
 
-// Polyfill stuff
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
-import path from 'path';
-
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -29,7 +25,6 @@ export default defineConfig({
         }],
       },
     }),
-    nodePolyfills(),
   ],
   define: {
     'process.env': {}, 
@@ -37,7 +32,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      'readable-stream': path.resolve(__dirname, 'node_modules/readable-stream'),
     },
     extensions: [
       '.js',
@@ -49,15 +43,7 @@ export default defineConfig({
       '.vue',
     ],
   },
-  optimizeDeps: {
-    include: ['rdf-object', 'readable-stream'],
-  },
   build: {
-    rollupOptions: {
-      plugins: [
-        nodePolyfills(),
-      ]
-    }
   },
   server: {
     port: 3000,
