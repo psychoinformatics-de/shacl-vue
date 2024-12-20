@@ -54,7 +54,7 @@
 
     const props = defineProps({
         shape_iri: String,
-        node_idx: Number,
+        node_idx: String,
     })
 
     // ---- //
@@ -166,6 +166,8 @@
             } else {
                 if (ignoredProperties.value.indexOf(p[SHACL.path]) < 0) {
                     used_prop_groups[defaultPropertyGroup.key]["own_properties"].push(p)
+                } else {
+                    console.log(`Not adding ignored property default group: ${p}`)
                 }
             }
         }

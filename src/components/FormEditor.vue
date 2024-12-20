@@ -73,7 +73,7 @@
 
   const props = defineProps({
       shape_iri: String,
-      node_idx: Number,
+      node_idx: String,
   })
 
   // ---- //

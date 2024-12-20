@@ -62,7 +62,7 @@
     const props = defineProps({
         property_shape: Object,
         node_uid: String,
-        node_idx: Number,
+        node_idx: String,
     })
 
     // ---- //
