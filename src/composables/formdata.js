@@ -13,7 +13,7 @@
 
 import { reactive, ref, computed, inject, toRaw} from 'vue'
 import rdf from 'rdf-ext';
-import { DLTHING, SHACL, RDF } from '@/modules/namespaces';
+import { SHACL, RDF } from '@/modules/namespaces';
 import { isEmptyObject, getSubjectTriples, getObjectTriples } from '@/modules/utils';
 import formatsPretty from '@rdfjs/formats/pretty.js'
 
@@ -21,11 +21,7 @@ export function useFormData() {
 
   const formData = reactive({})
   const rdfPretty = rdf.clone()
-  rdfPretty.formats.import(formatsPretty)
-  // This is a stopgap and needs to be parameterized or made part of config somehow
-  const ID_IRI = DLTHING.id.value
-  // const graphData = inject('graphData')
-  
+  rdfPretty.formats.import(formatsPretty)  
   
   function add_empty_node(nodeshape_iri, node_iri) {
     // if the node shape IRI does not exist in the formData lookup object yet, add it
@@ -114,7 +110,7 @@ export function useFormData() {
   }
 
 
-  function save_node(nodeshape_iri, node_iri, nodeShapes, graphData, editMode) {
+  function save_node(nodeshape_iri, node_iri, nodeShapes, graphData, editMode, id_iri) {
     // Check if the node exists beforehand
     console.log(`Saving node of shape: ${nodeshape_iri}`)
     var changeNodeIdx = false
@@ -137,9 +133,9 @@ export function useFormData() {
       // - named node if any of the properties is an ID (as defined by some IRI as constant or from config, see declarations above)
       // - blank node if no ID found
       var subject
-      if (Object.keys(formData[nodeshape_iri][node_iri]).indexOf(ID_IRI) >= 0) {
-        // console.log(`\t- node instance has ID field: ${formData[nodeshape_iri][node_iri][ID_IRI][0]}`)
-        subject_iri = formData[nodeshape_iri][node_iri][ID_IRI][0]
+      if (Object.keys(formData[nodeshape_iri][node_iri]).indexOf(id_iri) >= 0) {
+        // console.log(`\t- node instance has ID field: ${formData[nodeshape_iri][node_iri][id_iri][0]}`)
+        subject_iri = formData[nodeshape_iri][node_iri][id_iri][0]
         subject = rdf.namedNode(subject_iri)
         changeNodeIdx = true
       } else {
@@ -161,7 +157,7 @@ export function useFormData() {
           continue;
         }
         // Don't add ID quad:
-        if (pred == ID_IRI) {
+        if (pred == id_iri) {
           continue;
         }
         var predicate = rdf.namedNode(pred)
@@ -237,7 +233,7 @@ export function useFormData() {
   }
 
 
-  function quadsToFormData(nodeshape_iri, subject_term, graphData) {
+  function quadsToFormData(nodeshape_iri, subject_term, graphData, id_iri) {
     // Subject term should be namedNode or blankNode
     var node_iri = subject_term.value
     add_empty_node(nodeshape_iri, node_iri)
@@ -254,27 +250,27 @@ export function useFormData() {
 
     // Another TODO: the ID property of the node is not necessarily existing explicitly
     // as a triple in the graph. Refer to the `save_node` function above, where the quad
-    // with the ID_IRI as predicate is not added to the graph when formData is saved.
+    // with the id_iri as predicate is not added to the graph when formData is saved.
     // For the current `quadsToFormData` function, the reverse process is important
-    // to keep in mind, i.e. because the ID_IRI quad does not exist in the graph,
+    // to keep in mind, i.e. because the id_iri quad does not exist in the graph,
     // the corresponding field in formData has to be set explicitly from the subject_term,
     // because it won't be covered in the `quadArray.forEach` loop.
     var quadArray = getSubjectTriples(graphData, subject_term)
     var IdQuadExists = false
     quadArray.forEach((quad) => {
       var triple_uid = quad.predicate.value
-      if (triple_uid === ID_IRI) {
+      if (triple_uid === id_iri) {
         IdQuadExists = true
       }
       add_empty_triple(nodeshape_iri, node_iri, triple_uid)
       var length = formData[nodeshape_iri][node_iri][triple_uid].length
       formData[nodeshape_iri][node_iri][triple_uid][length-1] = quad.object.value
     });
-    // Here we deal with explicitly adding the ID_IRI quad, if necessary
+    // Here we deal with explicitly adding the id_iri quad, if necessary
     if (subject_term.termType === "NamedNode"  && !IdQuadExists) {
-      add_empty_triple(nodeshape_iri, node_iri, ID_IRI)
-      var l = formData[nodeshape_iri][node_iri][ID_IRI].length
-      formData[nodeshape_iri][node_iri][ID_IRI][l-1] = node_iri
+      add_empty_triple(nodeshape_iri, node_iri, id_iri)
+      var l = formData[nodeshape_iri][node_iri][id_iri].length
+      formData[nodeshape_iri][node_iri][id_iri][l-1] = node_iri
     }
   }
 

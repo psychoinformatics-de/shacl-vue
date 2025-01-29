@@ -63,14 +63,13 @@
 
     const localShapeIri = ref(props.shape_iri);
     const localNodeIdx = ref(props.node_idx);
-    const formData = inject('formData');
-    const defaultPropertyGroup = inject('defaultPropertyGroup');
+    const config = inject('config');
+    const defaultPropertyGroup = config.value.defaultPropertyGroup;
     const propertyGroups = inject('propertyGroups');
     const nodeShapes = inject('nodeShapes')
     const shape_obj = nodeShapes.value[localShapeIri.value]
     const ready = ref(false)
     var tab = ref(null)
-    const config = inject('config')
     const group_layout = ref('default') // ref('default') or ref('tabs')
     
     // ----------------- //

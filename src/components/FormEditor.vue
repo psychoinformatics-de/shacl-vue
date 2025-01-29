@@ -1,7 +1,7 @@
 <template>
-  <v-sheet class="pa-4" border rounded elevation="2">
+  <v-sheet class="pa-4 scaled-sheet" border rounded elevation="2">
     <div style="display: flex; position: relative; ">
-      <h2>{{ toCURIE(localShapeIri, shapePrefixes) }}</h2>
+      <h2>{{ toCURIE(localShapeIri, allPrefixes) }}</h2>
 
       <div style="margin-left: auto; " class="top-1">
         <v-switch
@@ -29,7 +29,7 @@
     </div>
     
     <br>
-    <p>{{ shape_obj ? shape_obj[SHACL.description] : '-' }}</p>
+    <p v-html="formattedDescription"></p>
     <br>
     <v-form ref="form" v-model="formValid" validate-on="lazy input" @submit.prevent="saveForm()" >
         <NodeShapeEditor :key="localShapeIri" :shape_iri="localShapeIri" :node_idx="localNodeIdx"/>
@@ -62,9 +62,9 @@
 
 
 <script setup>
-  import { ref, onMounted, onBeforeMount, onBeforeUnmount, provide, inject, reactive} from 'vue'
+  import { ref, onMounted, onBeforeMount, onBeforeUnmount, provide, inject, reactive, computed} from 'vue'
   import { SHACL } from '../modules/namespaces'
-  import { toCURIE } from '../modules/utils';
+  import { toCURIE, addCodeTagsToText } from '../modules/utils';
   const graphData = inject('graphData')
 
   // ----- //
@@ -82,10 +82,11 @@
   const localShapeIri = ref(props.shape_iri);
   const localNodeIdx = ref(props.node_idx);
   const show_all_fields = ref(false)
+  const ID_IRI = inject('ID_IRI')
   const save_node = inject('save_node')
   const clear_current_node = inject('clear_current_node')
   const remove_current_node = inject('remove_current_node')
-  const shapePrefixes = inject('shapePrefixes');
+  const allPrefixes = inject('allPrefixes');
   const nodeShapes = inject('nodeShapes')
   const cancelFormHandler = inject('cancelFormHandler')
   const saveFormHandler = inject('saveFormHandler')
@@ -129,6 +130,13 @@
   // Computed properties //
   // ------------------- //
 
+  const formattedDescription = computed(() => {
+    // For the class description, use a regular expression to replace text between backticks with <code> tags
+    if (shape_obj) {
+        return addCodeTagsToText(shape_obj[SHACL.description])
+    } else { return '-'}
+    })
+
 
 
   // --------- //
@@ -167,7 +175,7 @@
         // - find all triples with the node IRI as object -> oldTriples
         // - for each triple in oldTriples: create a new one with same subject and predicate
         //   and with new IRI as object, then delete the old triple
-        save_node(localShapeIri.value, localNodeIdx.value, nodeShapes.value, graphData, editMode.form || editMode.graph);
+        save_node(localShapeIri.value, localNodeIdx.value, nodeShapes.value, graphData, editMode.form || editMode.graph, ID_IRI.value);
         saveFormHandler()
       } else {
         console.log("Still some validation errors, bro");
@@ -225,3 +233,10 @@
 
 
 </script>
+
+<style scoped>
+    .scaled-sheet {
+        transform: scale(0.9);
+        transform-origin: top right;
+    }
+</style>

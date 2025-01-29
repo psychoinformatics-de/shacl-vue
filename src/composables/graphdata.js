@@ -26,7 +26,6 @@ export function useGraphData(config) {
     // Get graph data from url, provided either as argument (highest priority),
     // via config (mid priority), or base default (lowest priority), or get no data
     // if specified via config
-    console.log(`URL argument: ${url}`)
     var getURL
     if (!url) {
       // If no url argument provided, check config

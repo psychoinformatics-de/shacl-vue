@@ -3,6 +3,9 @@ import rdf from 'rdf-ext';
 
 
 export function toCURIE(IRI, prefixes, return_type) {
+	console.log("Inside toCURIE")
+	console.log(IRI)
+	console.log(prefixes)
   // prefixes is an object with prefix as keys and the resolved prefix IRI as the value
   if (!IRI) {
     return null
@@ -247,4 +250,9 @@ export function getObjectTriples(graphData, someTerm) {
   //     console.log(`\t${quad.subject.value} - ${quad.predicate.value} - ${quad.object.value}`)
   // })
   return Array.from(quads)
+}
+
+
+export function addCodeTagsToText(text) {
+	return text.replace(/`([^`]+)`/g, '<code class="code-style">$1</code>');
 }
