@@ -44,6 +44,11 @@ export default defineConfig({
     ],
   },
   build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    rollupOptions: {
+      input: 'index.html',
+    },
   },
   server: {
     port: 3000,
@@ -51,5 +56,5 @@ export default defineConfig({
       '.vue': 'application/javascript',
     },
   },
-  base: '/shacl-vue/',
+  base: './',
 })

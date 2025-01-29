@@ -3,7 +3,7 @@
         <v-col cols="4">
             <span>{{ nameOrCURIE(props.property_shape, shapePrefixes, SHACL) }}<span v-if="isRequired" style="color: red;"> *</span>:
                 <v-tooltip activator="parent" location="right" max-width="400px" max-height="400px">
-                    {{ props.property_shape[SHACL.description.value] }}
+                    <p v-html="addCodeTagsToText(props.property_shape[SHACL.description.value])"></p>
                 </v-tooltip>
             </span>
         </v-col>
@@ -53,7 +53,7 @@
     import { ref, onMounted, onBeforeMount, computed, inject, onBeforeUpdate} from 'vue'
     import { SHACL } from '../modules/namespaces'
     import { useRules } from '../composables/rules'
-    import { toCURIE, nameOrCURIE } from '../modules/utils';
+    import { toCURIE, nameOrCURIE, addCodeTagsToText} from '../modules/utils';
     
     // ----- //
     // Props //
@@ -183,3 +183,15 @@
 
 
 </script>
+
+
+<style>
+    .code-style {
+        color: red;
+        background-color: #f5f5f5;
+        padding: 0.1em 0.2em;
+        font-family: monospace;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+</style>

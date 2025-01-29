@@ -8,16 +8,16 @@
                         direction="vertical"
                         bg-color="#41b883"
                         color="deep-purple-accent-4">
-                        <v-tab :value="data1">Browse data</v-tab>    
-                        <v-tab :value="data2">View RDF</v-tab>
-                        <v-tab :value="data3" @click="selectViz">View Graph</v-tab>
-                        <v-tab :value="data4">Add data</v-tab>
+                        <v-tab :value="1">Browse data</v-tab>    
+                        <v-tab :value="2">View RDF</v-tab>
+                        <v-tab :value="3" @click="selectViz">View Graph</v-tab>
+                        <v-tab :value="4">Add data</v-tab>
 
                     </v-tabs>
                     <v-tabs-window v-model="datadatatab" style="width: 100%;">
                         
                         <!-- BROWSE DATA -->
-                        <v-tabs-window-item :key="data1" :value="data1">
+                        <v-tabs-window-item :key="1" :value="1">
                             <v-sheet d-flex d-flex-grow class="pa-4 ml-2" border rounded style="width: 100%;">
                                 <!-- <v-btn text="Download samples.tsv" @click="serializeNodesToTSV"></v-btn> -->
                                 <v-select v-model="selectedFormItem" v-if="prefixes_ready" :items="nodeShapeNamesArray" item-title="name" label="Select" density="compact" style="width: 100%;">
@@ -61,7 +61,7 @@
                         </v-tabs-window-item>
 
                         <!-- VIEW RDF -->
-                        <v-tabs-window-item :key="data2" :value="data2">
+                        <v-tabs-window-item :key="2" :value="2">
                             <v-sheet class="pa-4 ml-2" border rounded elevation="2">
                                 <v-row align="start" no-gutters>
                                     <v-btn text="Export to TTL" @click="exportGraphData()"></v-btn>
@@ -74,7 +74,7 @@
                         </v-tabs-window-item>
 
                         <!-- VIEW GRAPH -->
-                        <v-tabs-window-item :key="data3" :value="data3">
+                        <v-tabs-window-item :key="3" :value="3">
                             <v-sheet class="pa-4 ml-2" border rounded elevation="2">
                                 <div ref="cyContainer" style="width: 100%; height: 500px;"></div>
                             </v-sheet>
@@ -82,7 +82,7 @@
                         </v-tabs-window-item>
 
                         <!-- ADD DATA -->
-                        <v-tabs-window-item :key="data4" :value="data4">
+                        <v-tabs-window-item :key="4" :value="4">
                             <v-sheet class="pa-4 ml-2" border rounded elevation="2">
                             <h3>Add data</h3>
                             <v-row align="start" no-gutters>
@@ -159,9 +159,10 @@
     const public_url = ref('')
     const upload_url = ref(null)
     const datatab = ref(1)
-    const datadatatab = ref("data2")
+    const datadatatab = ref("2")
     const cyContainer = ref(null);
     const quadsToFormData = inject('quadsToFormData')
+    const ID_IRI = inject('ID_IRI')
 
     const shapePrefixes = inject('shapePrefixes')
     const nodeShapes = inject('nodeShapes')

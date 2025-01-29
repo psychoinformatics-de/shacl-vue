@@ -81,7 +81,7 @@
     const { fieldRef } = useRegisterRef(inputId, props);
     
     const allPrefixes = inject('allPrefixes');
-    const enterCURIE = ref(false)
+    const enterCURIE = ref(true)
 
     const emit = defineEmits(['update:modelValue']);
     const { subValues, internalValue } = useBaseInput(

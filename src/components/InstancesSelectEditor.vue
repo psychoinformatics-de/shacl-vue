@@ -39,10 +39,8 @@
                 <v-list-item @click="selectItem(data.item)">
                     <div style="display: flex;">
                         <div>
-                            <v-list-item-content>
-                                <v-list-item-title>{{ data.item.title }}</v-list-item-title>
-                                <v-list-item-subtitle>{{ data.item.props.subtitle }}</v-list-item-subtitle>
-                            </v-list-item-content>
+                            <v-list-item-title>{{ data.item.title }}</v-list-item-title>
+                            <v-list-item-subtitle>{{ data.item.props.subtitle }}</v-list-item-subtitle>
                         </div>
                         <div style="margin-left: auto;">
                             <v-tooltip location="end" min-width="480px">
@@ -86,7 +84,7 @@
     import { inject, watch, onBeforeMount, ref, provide, computed} from 'vue'
     import { useRules } from '../composables/rules'
     import rdf from 'rdf-ext'
-    import {SHACL, RDF, RDFS, DLTHING, XSD} from '@/modules/namespaces'
+    import {SHACL, RDF, RDFS } from '@/modules/namespaces'
     import { toCURIE, getLiteralAndNamedNodes, getSubjectTriples} from '../modules/utils';
     import { useRegisterRef } from '../composables/refregister';
 
@@ -95,6 +93,7 @@
     // ----- //
 
     const props = defineProps({
+        modelValue: String,
         property_shape: Object,
         node_uid: String,
         node_idx: String,

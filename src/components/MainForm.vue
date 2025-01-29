@@ -126,7 +126,8 @@
   // Data //
   // ---- //
   
-  const ID_IRI = DLTHING.id.value // This is a stopgap and needs to be parameterized or made part of config somehow
+  const config = inject('config')
+  const ID_IRI = config.value.id_iri ? config.value.id_iri : ""
   var selectedIRI = ref(null)
   var selectedShape = ref(null)
   var selectedFormItem = ref(null)
@@ -138,11 +139,8 @@
   const rules = {
     required: value => !!value || 'This field is required',
   }
-  const defaultPropertyGroup = inject('defaultPropertyGroup')
   const formData = inject('formData')
   const add_empty_node = inject('add_empty_node')
-  const editorMatchers = inject('editorMatchers')
-  const defaultEditor = inject('defaultEditor')
   
   const nodeSelected = ref(false);
   const shapePrefixes = inject('shapePrefixes')

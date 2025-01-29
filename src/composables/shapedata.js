@@ -138,8 +138,10 @@ export function useShapeData(config) {
                     });
                 }
 				updateSerializedData()
-				// console.log("All nodeshapes from shapes graph:")
-				// console.log(toRaw(nodeShapes.value))
+				console.log("All nodeshapes from shapes graph:")
+				console.log(toRaw(nodeShapes.value))
+				console.log(nodeShapeNamesArray.value)
+				console.log(nodeShapeIRIs.value)
                 page_ready.value = true
             });
 		})
