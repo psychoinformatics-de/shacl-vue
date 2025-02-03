@@ -44,7 +44,7 @@
 
 <script setup>
   import { ref } from 'vue'
-  const explore = ref(false)
+  const explore = ref(true)
   function startExploring() {
       explore.value = true;
   }
