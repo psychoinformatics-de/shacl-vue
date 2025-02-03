@@ -25,9 +25,11 @@ export function useBaseInput(props, emit, valueParser, valueCombiner) {
    */
   const internalValue = computed({
     get() {
+      // console.log("Calling base internalvalue getter")
       return valueCombiner(subValues.value);
     },
     set(value) {
+      // console.log("Calling base internalvalue SETTER")
       subValues.value = valueParser(value);
     }
   });
@@ -39,6 +41,7 @@ export function useBaseInput(props, emit, valueParser, valueCombiner) {
   watch(
     () => props.modelValue,
     (newValue) => {
+      // console.log("Base props.modelValue has updated")
       if (newValue !== internalValue.value) {
         internalValue.value = newValue;
       }

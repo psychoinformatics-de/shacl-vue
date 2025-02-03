@@ -13,10 +13,8 @@
                             <h3>{{ group[RDFS.label.value] }}</h3>
                             <p>{{ group[RDFS.comment.value] }}</p>
                             <br>
-                            <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)" :key="localShapeIri + '-' + String(Date.now()) + '-' + property[SHACL.path.value]">
-                                <keep-alive>
-                                    <PropertyShapeEditor :property_shape="property" :node_uid="localShapeIri" :node_idx="localNodeIdx"/>
-                                </keep-alive>
+                            <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)" :key="localShapeIri + '-' + localNodeIdx + '-' + property[SHACL.path.value]">
+                                <PropertyShapeEditor :property_shape="property" :node_uid="localShapeIri" :node_idx="localNodeIdx"/>
                             </span>
                             <br>
                         </v-tabs-window-item>
@@ -31,10 +29,8 @@
                 <h3>{{ group[RDFS.label.value] }}</h3>
                 <p><em>{{ group[RDFS.comment.value] }}</em></p>
                 <br>
-                <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)" :key="localShapeIri + '-' + String(Date.now()) + '-' + property[SHACL.path.value]">
-                    <keep-alive>
-                        <PropertyShapeEditor :property_shape="property" :node_uid="localShapeIri" :node_idx="localNodeIdx"/>
-                    </keep-alive>
+                <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)" :key="localShapeIri + '-' + localNodeIdx + '-' + property[SHACL.path.value]">
+                    <PropertyShapeEditor :property_shape="property" :node_uid="localShapeIri" :node_idx="localNodeIdx"/>
                 </span>
             </span>
             <br>
@@ -71,6 +67,10 @@
     const ready = ref(false)
     var tab = ref(null)
     const group_layout = ref('default') // ref('default') or ref('tabs')
+    const ignoredProperties = [
+        // RDF.type.value,
+        // DLTHING.meta_type.value,
+    ]
     
     // ----------------- //
     // Lifecycle methods //
@@ -78,22 +78,22 @@
 
     onMounted(() => {
         ready.value = true;
+        console.log("NodeShapeEditor is MOUNTED")
     })
 
     onBeforeMount(() => {
-        // console.log(`the NodeShapeEditor component is about to be mounted.`)
-        orderGroups()
+        console.log(`NodeShapeEditor is about to be mounted.`)
         if (config.value.hasOwnProperty("group_layout") && config.value.group_layout == "tabs") {
             group_layout.value = "tabs"
         }
     })
 
     onBeforeUpdate(() => {
-        // console.log(`the NodeShapeEditor component is about to be updated.`)
-        orderGroups()
+        console.log(`the NodeShapeEditor component is about to be updated.`)
     })
 
     onBeforeUnmount(() => {
+        console.log(`NodeShapeEditor is about to be UNMOUNTED.`)
         localShapeIri.value = null
         localNodeIdx.value = null
     });
@@ -101,42 +101,6 @@
     // ------------------- //
     // Computed properties //
     // ------------------- //
-
-    const shapeAttributes = computed(() => {
-        const ignore_properties = [
-            "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-            "properties",
-            "http://www.w3.org/ns/shacl#ignoredProperties"
-        ]
-        var new_obj = {}
-        for (const [key, value] of Object.entries(shape_obj)) {
-            if (ignore_properties.indexOf(key) < 0) {
-                new_obj[key] = value
-            }
-        }
-        return new_obj
-    })
-
-    const orderedProperties = computed(() => {
-        var order = SHACL.order.value
-        return shape_obj.properties.sort((a,b) => a[order] - b[order])
-    });
-
-    // const node_idx = computed(() => {
-    //     console.log("Inside computed in nodeshapeeditor. localShapeIri.value:")
-    //     console.log(localShapeIri.value)
-    //     return formData[localShapeIri.value].length - 0
-    // })
-
-    const ignoredProperties = computed(() => {
-        var ignored = [
-            RDF.type.value,
-            DLTHING.meta_type.value,
-        ]
-        // TODO: need to get actual ignored properties from shape_obj[SHACL.ignoredProperties.value]
-        // TODO: also load ignored properties from some user-defined default
-        return ignored
-    })
 
     const usedPropertyGroups = computed(() => {
         // first get a list of all the sh:PropertyGroup instances 
@@ -148,32 +112,36 @@
         group_instances = [...new Set(group_instances)].filter( Boolean )
         var used_prop_groups = {}
         for (var group_iri of group_instances) {
-            used_prop_groups[group_iri] = propertyGroups.value[group_iri]
+            // Here we also deal with the possibility that the property group
+            // provided for a property via `sh:group` was not declared as a
+            // propertyGroup (with e.g. name, description, order) and is therefore
+            // not part of the incoming SHACL, i.e. not in propertyGroups.value
+            if (propertyGroups.value[group_iri]) {
+                used_prop_groups[group_iri] = propertyGroups.value[group_iri]
+            } else {
+                used_prop_groups[group_iri] = {}
+            }
         }
         // add default property group
         used_prop_groups[defaultPropertyGroup.key] = defaultPropertyGroup.value
-
         // initialise 'own_properties' array
         for (var group_iri of Object.keys(used_prop_groups)) {
             used_prop_groups[group_iri]["own_properties"] = []
         }
-        
         // add shape properties to correct group
         for (var p of shape_obj.properties) {
             if (p.hasOwnProperty(SHACL.group.value)) {
                 used_prop_groups[p[SHACL.group.value]]["own_properties"].push(p)
             } else {
-                if (ignoredProperties.value.indexOf(p[SHACL.path]) < 0) {
+                if (ignoredProperties.indexOf(p[SHACL.path]) < 0) {
                     used_prop_groups[defaultPropertyGroup.key]["own_properties"].push(p)
                 } else {
-                    console.log(`Not adding ignored property default group: ${p}`)
+                    console.log(`Not adding ignored property default group:`)
+                    console.log(p)
                 }
             }
         }
-
         return used_prop_groups
-        // var order = SHACL.order.value
-        // return used_prop_groups.sort((a,b) => a[order] - b[order])
     });
 
     // --------- //

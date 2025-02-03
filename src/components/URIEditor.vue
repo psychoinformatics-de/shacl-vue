@@ -67,7 +67,6 @@
         triple_uid: String,
         triple_idx: Number
     })
-    const formData = inject('formData');
     const { rules } = useRules(props.property_shape)
     rules.value.push(
       value => {

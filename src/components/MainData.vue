@@ -266,7 +266,7 @@
             editDialog.value = true
         } else {
             // If not, we need to create the formData entries from quads in the dataset
-            quadsToFormData(editShapeIRI.value, subjectTerm, graphData)
+            quadsToFormData(editShapeIRI.value, subjectTerm, graphData, ID_IRI.value)
             editMode.form = false
             editMode.graph = true
             // open formEditor

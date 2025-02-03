@@ -1,7 +1,7 @@
 <template>
   <v-sheet class="pa-4 scaled-sheet" border rounded elevation="2">
     <div style="display: flex; position: relative; ">
-      <h2>{{ toCURIE(localShapeIri, allPrefixes) }}</h2>
+      <h3>{{ toCURIE(localShapeIri, allPrefixes) }}</h3>
 
       <div style="margin-left: auto; " class="top-1">
         <v-switch
@@ -29,34 +29,36 @@
     </div>
     
     <br>
-    <p v-html="formattedDescription"></p>
+    <p v-html="formattedDescription" class="quote-description"></p>
     <br>
-    <v-form ref="form" v-model="formValid" validate-on="lazy input" @submit.prevent="saveForm()" >
-        <NodeShapeEditor :key="localShapeIri" :shape_iri="localShapeIri" :node_idx="localNodeIdx"/>
-        <div style="display: flex;">
+    <span v-if="localNodeIdx && localShapeIri">
+      <v-form ref="form" v-model="formValid" validate-on="lazy input" @submit.prevent="saveForm()" >
+          <NodeShapeEditor :key="localShapeIri" :shape_iri="localShapeIri" :node_idx="localNodeIdx"/>
+          <div style="display: flex;">
 
-          <v-btn
-              class="mt-2"
-              text="Cancel"
-              @click="cancelForm()"
-              style="margin-left: auto; margin-right: 1em;"
-              prepend-icon="mdi-close-box"
-          ></v-btn>
-          <v-btn
-              class="mt-2"
-              text="Reset"
-              @click="resetForm()"
-              style="margin-right: 1em;"
-              prepend-icon="mdi-undo"
-          ></v-btn>
-          <v-btn
-              class="mt-2"
-              text="Save"
-              type="submit"
-              prepend-icon="mdi-content-save"
-          ></v-btn>
-        </div>
-    </v-form>
+            <v-btn
+                class="mt-2"
+                text="Cancel"
+                @click="cancelForm()"
+                style="margin-left: auto; margin-right: 1em;"
+                prepend-icon="mdi-close-box"
+            ></v-btn>
+            <v-btn
+                class="mt-2"
+                text="Reset"
+                @click="resetForm()"
+                style="margin-right: 1em;"
+                prepend-icon="mdi-undo"
+            ></v-btn>
+            <v-btn
+                class="mt-2"
+                text="Save"
+                type="submit"
+                prepend-icon="mdi-content-save"
+            ></v-btn>
+          </div>
+      </v-form>
+    </span>
   </v-sheet>
 </template>
 
@@ -81,7 +83,7 @@
   // ---- //
   const localShapeIri = ref(props.shape_iri);
   const localNodeIdx = ref(props.node_idx);
-  const show_all_fields = ref(false)
+  const show_all_fields = ref(true)
   const ID_IRI = inject('ID_IRI')
   const save_node = inject('save_node')
   const clear_current_node = inject('clear_current_node')
@@ -91,6 +93,8 @@
   const cancelFormHandler = inject('cancelFormHandler')
   const saveFormHandler = inject('saveFormHandler')
   const editMode = inject('editMode')
+  const add_empty_node = inject('add_empty_node')
+  const removeForm = inject('removeForm')
   const shape_obj = nodeShapes.value[localShapeIri.value]
   const form = ref(null)
   const formValid = ref(null)
@@ -113,17 +117,19 @@
   // ----------------- //
 
   onBeforeMount(() => {
-    // console.log(`the FormEditor component is about to be mounted.`)
+    console.log(`the FormEditor component is about to be mounted.`)
+    add_empty_node(localShapeIri.value, localNodeIdx.value)
   })
 
   onBeforeUnmount(() => {
-      // console.log("Running onBeforeUnmount for formeditor")
+      console.log("Running onBeforeUnmount for formeditor")
       localShapeIri.value = null
   });
 
   onMounted(() => {
-    // console.log(`the FormEditor component is now mounted.`)
+    console.log(`the FormEditor component is now mounted.`)
     // console.log(shape_obj)
+    
   })
 
   // ------------------- //
@@ -176,7 +182,10 @@
         // - for each triple in oldTriples: create a new one with same subject and predicate
         //   and with new IRI as object, then delete the old triple
         save_node(localShapeIri.value, localNodeIdx.value, nodeShapes.value, graphData, editMode.form || editMode.graph, ID_IRI.value);
-        saveFormHandler()
+        removeForm()
+        if (typeof saveFormHandler === 'function') {
+          saveFormHandler();
+        }
       } else {
         console.log("Still some validation errors, bro");
 
@@ -210,7 +219,10 @@
       console.log(`Removing current node: ${localShapeIri.value} - ${localNodeIdx.value}`)
       remove_current_node(localShapeIri.value, localNodeIdx.value)
     }
-    cancelFormHandler();
+    removeForm()
+    if (typeof cancelFormHandler === 'function') {
+      cancelFormHandler();
+    }
   }
 
   function goToError(e) {
@@ -238,5 +250,10 @@
     .scaled-sheet {
         transform: scale(0.9);
         transform-origin: top right;
+    }
+    .quote-description {
+      border-left: 3px solid rgb(154, 153, 153);
+      padding-left: 1em;
+      color: rgb(97, 97, 97);
     }
 </style>
