@@ -10,7 +10,7 @@ const basePath = import.meta.env.BASE_URL || '/';
 
 export function useGraphData(config) {
 
-  const defaultURL = `${basePath}distribution-penguins-mini.ttl`
+  const defaultURL = `${basePath}dlschemas_data.ttl`
   const graphData = createReactiveDataset();
   const serializedGraphData = ref('');
   const graphTriples = ref([]);

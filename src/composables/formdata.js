@@ -88,12 +88,20 @@ export function useFormData() {
       if (Object.keys(formData[nodeshape_iri][node_iri]).indexOf(triple_uid) < 0) {
         formData[nodeshape_iri][node_iri][triple_uid] = reactive([null])
       } else {
-        formData[nodeshape_iri][node_iri][triple_uid].push(null)
+        // 
       }
     } else {
       console.error(`Node shape and/or node IRI not in formData yet:\n${nodeshape_iri} - ${node_iri}\nCannot add triple to non-existing node.`)
     }
   }
+
+
+  function add_empty_triple_manual(nodeshape_iri, node_iri, triple_uid) {
+    formData[nodeshape_iri][node_iri][triple_uid].push(null)
+  }
+
+
+  
 
 
   function remove_triple(nodeshape_iri, node_iri, triple_uid, triple_idx) {
@@ -298,6 +306,7 @@ export function useFormData() {
     remove_current_node,
     clear_current_node,
     add_empty_triple,
+    add_empty_triple_manual,
     remove_triple,
     save_node,
     quadsToFormData,

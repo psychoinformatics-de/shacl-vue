@@ -10,7 +10,7 @@ import {SHACL, RDF} from '@/modules/namespaces';
 import formatsPretty from '@rdfjs/formats/pretty.js'
 import { resolveBlankNode } from '@/modules/utils';
 
-const baseURL = new URL(import.meta.env.BASE_URL || '/', import.meta.url).href;
+const basePath = import.meta.env.BASE_URL || '/';
 const rdfPretty = rdf.clone()
 rdfPretty.formats.import(formatsPretty)
 
@@ -19,7 +19,7 @@ export function useShapeData(config) {
     // ---- //
     // Data //
     // ---- //
-	const defaultURL = "/shapesgraph.ttl"
+	const defaultURL = `${basePath}dlschemas_shacl.ttl`;
 	var shapesDataset = reactive(rdf.dataset());
 	var nodeShapes = ref({});
 	var propertyGroups = ref({});
@@ -32,13 +32,9 @@ export function useShapeData(config) {
 	var page_ready = ref(false);
 	const serializedData = ref('');
 
-    // // ----------------- //
-    // // Lifecycle methods //
-    // // ----------------- //
-
-    // onBeforeMount(() => {
-    //     getSHACLschema(shapes_graph_url);
-    // })
+    // ----------------- //
+    // Lifecycle methods //
+    // ----------------- //
 
     // --------- //
     // Functions //

@@ -7,17 +7,17 @@
                     color="#41b883"
                     permanent
                 >
-                    <v-list nav :disabled="formOpen">
-                        <v-list-item prepend-icon="mdi-tag-multiple" title="Data Types" value="data"></v-list-item>
-                        <v-text-field variant="outlined" append-inner-icon="mdi-magnify" density="compact"></v-text-field>
+                    <v-list nav selectable :disabled="formOpen" v-model:selected="selectedItem">
+                        <v-list-item prepend-icon="mdi-tag-multiple" value="data"><h4>Data Types</h4></v-list-item>
+                        <!-- <v-text-field variant="outlined" append-inner-icon="mdi-magnify" density="compact"></v-text-field> -->
                         <v-list-item
-                            v-for="node in nodeShapeNamesArray"
+                            v-for="node in idFilteredNodeShapeNames"
                             :title="node"
                             @click="selectType(nodeShapeNames[node])">
                         </v-list-item>
                     </v-list>
                 </v-navigation-drawer>
-                <v-main style="min-height: 110vh">
+                <v-main style="min-height: 90vh">
                     <v-container fluid>
                         <v-row>
                             <v-col
@@ -31,9 +31,11 @@
                                         {{ toCURIE(selectedIRI, allPrefixes) }}
                                         &nbsp;&nbsp; <v-btn icon="mdi-plus" size="x-small" variant="tonal" @click="addInstanceItem()"></v-btn>
                                     </h2>
+
+                                    <p class="mx-4 mb-4" v-html="formattedDescription"></p>
                                     
                                     <div v-if="instanceItems.length">
-                                        <v-card v-for="r in instanceItems" class="mx-4 mb-4" variant="tonal">
+                                        <v-card v-for="r in instanceItems" class="mx-4 mb-4" :variant="r.title == queried_id ? 'outlined' : 'tonal'">
                                             <v-card-title class="text-h6">
                                                 {{ r.title }}
                                                 <v-btn
@@ -72,12 +74,19 @@
 
                             </v-col>
                             <v-col v-if="formOpen" cols="9">
-                                <span v-if="addItem" >
-                                    <FormEditor :key="selectedIRI" :shape_iri="selectedIRI" :node_idx="newItemIdx"></FormEditor>
-                                </span>
-                                <span v-if="editItem">
-                                    <FormEditor :key="editShapeIRI" :shape_iri="editShapeIRI" :node_idx="editItemIdx"></FormEditor>
-                                </span>
+                                <v-expansion-panels variant="accordion" v-model="currentOpenForm">
+                                    <v-expansion-panel
+                                        v-for="(f, i) in openForms"
+                                        :key="f.shapeIRI + '-'+ f.nodeIDX + '-expansionpanel'"
+                                        :value="'panel' + (i+1).toString()"
+                                        :disabled="f.disabled"
+                                    >
+                                        <v-expansion-panel-title> <h2><em>Editing: {{ toCURIE(f.shapeIRI, allPrefixes) }} </em></h2></v-expansion-panel-title>
+                                        <v-expansion-panel-text>
+                                            <FormEditor :key="f.shapeIRI + '-'+ f.nodeIDX + '-form-' + f.formType" :shape_iri="f.shapeIRI" :node_idx="f.nodeIDX"></FormEditor>
+                                        </v-expansion-panel-text>
+                                    </v-expansion-panel>
+                                </v-expansion-panels>
                             </v-col>
                         </v-row>
                     </v-container>
@@ -92,7 +101,7 @@
 
 
 <script setup>
-    import { ref, computed, provide, inject, watch, reactive, toRaw, nextTick, onBeforeUpdate } from 'vue'
+    import { ref, computed, provide, watch, reactive, onBeforeUpdate } from 'vue'
     import rdf from 'rdf-ext';
     import { useConfig } from '@/composables/configuration';
     import { useGraphData } from '@/composables/graphdata';
@@ -101,12 +110,23 @@
     import { useFormData } from '@/composables/formdata';
     import editorMatchers from '@/modules/editors';
     import defaultEditor from '@/components/UnknownEditor.vue';
-    import { toCURIE, getLiteralAndNamedNodes, getSubjectTriples, toIRI, dlTTL} from '../modules/utils';
+    import {
+        toCURIE,
+        getLiteralAndNamedNodes,
+        getSubjectTriples,
+        toIRI,
+        dlTTL,
+        addCodeTagsToText, 
+        findObjectByKey
+    } from '../modules/utils';
     import {SHACL, RDF, RDFS, DLTHINGS, XSD} from '@/modules/namespaces'
 
     const props = defineProps({
         configUrl: String
     })
+
+    const queried_id = ref(null)
+    const showShapesWoID = ref(true)
     const { config, configFetched, configError} = useConfig(props.configUrl);
     provide('config', config)
     provide('configFetched', configFetched)
@@ -149,6 +169,7 @@
         remove_current_node,
         clear_current_node,
         add_empty_triple,
+        add_empty_triple_manual,
         remove_triple,
         save_node,
         quadsToFormData,
@@ -161,6 +182,7 @@
     provide('editorMatchers', editorMatchers)
     provide('defaultEditor', defaultEditor)
     provide('add_empty_triple', add_empty_triple)
+    provide('add_empty_triple_manual', add_empty_triple_manual)
     provide('add_empty_node', add_empty_node)
     provide('remove_triple', remove_triple)
     provide('remove_current_node', remove_current_node)
@@ -194,6 +216,10 @@
                 ID_IRI.value = config.value.id_iri
                 console.log(`ID_IRI is: ${ID_IRI.value}`)
             }
+            
+            if (config.value.hasOwnProperty("show_shapes_wo_id")) {
+                showShapesWoID.value = config.value.show_shapes_wo_id
+            }
             await getGraphData()
             await getClassData()
             await getSHACLschema()
@@ -221,25 +247,6 @@
         graph: false,
     })
     provide('editMode', editMode)
-    
-
-
-    const quadArray = ref([])
-    
-
-    function cancelFormHandler() {
-        editItem.value = false
-        formOpen.value = false
-        editMode.form = editMode.graph = false
-    }
-    provide('cancelFormHandler', cancelFormHandler);
-    const saveMainForm = () => {
-        editItem.value = false
-        formOpen.value = false
-        editMode.form = editMode.graph = false
-        instanceItems.value = getInstanceItems()
-    };
-    provide('saveFormHandler', saveMainForm);
 
     onBeforeUpdate( () => {
         console.log("onBeforeUpdate ShaclVue")
@@ -250,7 +257,23 @@
         }
     })
 
-    
+    const idFilteredNodeShapeNames = computed(() =>{
+
+        if (showShapesWoID.value === true) {
+            return nodeShapeNamesArray.value
+        }
+        var shapeNames = []
+        for (var n of nodeShapeNamesArray.value) {
+            if ( findObjectByKey(
+                nodeShapes.value[nodeShapeNames.value[n]].properties,
+                SHACL.path.value,
+                ID_IRI.value)
+            ) {
+                shapeNames.push(n)
+            }
+        }
+        return shapeNames
+    })
 
 
     watch(prefixes_ready, (newValue) => {
@@ -258,22 +281,62 @@
         if (newValue) {
             // Get all prefixes and derive context from it
             Object.assign(allPrefixes, shapePrefixes, graphPrefixes, classPrefixes)
-            const context = toRaw(allPrefixes)
-            // Map graph dataset to an array
-            graphData.forEach(quad => {
-                quadArray.value.push(quad)
-            });
+            setViewFromQuery()
         }
     }, {immediate: true });
 
 
-
-
+    const formattedDescription = computed(() => {
+        // For the class description, use a regular expression to replace text between backticks with <code> tags
+        if (selectedShape.value) {
+            return addCodeTagsToText(selectedShape.value[SHACL.description])
+        } else { return '-'}
+    })
 
     function selectType(IRI) {
         selectedIRI.value = IRI
         selectedShape.value = nodeShapes.value[IRI]
         instanceItems.value = getInstanceItems()
+        updateURL(IRI)
+    }
+
+    function updateURL(IRI) {
+        var curie = toCURIE(IRI, allPrefixes)
+        var queryParams = `?${encodeURIComponent("sh:NodeShape")}=${encodeURIComponent(curie)}`
+        history.replaceState(null, '', window.location.pathname + queryParams)
+    }
+
+    function getQueryParams() {
+        const url = new URL(window.location)
+        return url.searchParams
+    }
+
+    function setViewFromQuery() {
+        const qparams = getQueryParams()
+        const nodeShape = qparams.get("sh:NodeShape")
+        const instance_id = qparams.get("id")
+
+        if (instance_id) {
+            console.log("Queried ID FOUND")
+            queried_id.value = instance_id
+            console.log(queried_id.value)
+        }
+
+        if (nodeShape) {
+            console.log("Queried nodeshape FOUND")
+            // this could be a curie or iri
+            // check if iri is in 
+            var nodeShapeIRI = toIRI(nodeShape, allPrefixes)
+            if (nodeShapes.value[nodeShapeIRI]) {
+                selectedIRI.value = nodeShapeIRI
+                selectedShape.value = nodeShapes.value[nodeShapeIRI]
+                instanceItems.value = getInstanceItems()
+            } else {
+                console.log("Queried nodeshape not found in shacl schema")
+            }
+        } else {
+            console.log("nodeshape not in query params")
+        }
     }
 
     function addInstanceItem() {
@@ -283,7 +346,7 @@
         // selectedIRI.value = IRI
         // selectedShape.value = nodeShapes.value[IRI]
         newItemIdx.value = '_:' + crypto.randomUUID()
-        add_empty_node(selectedIRI.value, newItemIdx.value)
+        addForm(selectedIRI.value, newItemIdx.value, 'new')
         addItem.value = true
         formOpen.value = true
     }
@@ -318,6 +381,7 @@
             editMode.graph = true
         }
         // open formEditor
+        addForm(editShapeIRI.value, editItemIdx.value, 'edit')
         editItem.value = true
         formOpen.value = true
     }
@@ -377,11 +441,53 @@
         return instanceItemsArr
     }
 
-    
+    const openForms = ref([])
+    const currentOpenForm = computed(() => {
+        if (openForms.value.length > 0) {
+            return 'panel' + openForms.value.length.toString();
+        }
+        return null;
+    })
 
+    function addForm(shapeIRI, nodeIDX, formType) {
+        for (var i=0;i<openForms.value.length;i++) {
+            openForms.value[i].disabled = true;
+        }
+        openForms.value.push({
+            "shapeIRI": shapeIRI,
+            "nodeIDX": nodeIDX,
+            "formType": formType,
+            "disabled": false
+        })
+    }
 
+    function removeForm() {
+        openForms.value.pop()
+        if (openForms.value.length > 0) {
+            openForms.value.at(-1).disabled = false
+        } else {
+            editItem.value = false
+            formOpen.value = false
+            editMode.form = editMode.graph = false
+            instanceItems.value = getInstanceItems()
+        }
+    }
+    provide('addForm', addForm)
+    provide('openForms', openForms)
+    provide('removeForm', removeForm)
 
 </script>
+
+<style>
+    .code-style {
+        color: red;
+        background-color: #f5f5f5;
+        padding: 0.1em 0.2em;
+        font-family: monospace;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+</style>
 
 <style scoped>
     .banner {

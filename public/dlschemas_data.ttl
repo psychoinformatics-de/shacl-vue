@@ -1,0 +1,621 @@
+@prefix ADMS: <http://www.w3.org/ns/adms#> .
+@prefix bibo: <http://purl.org/ontology/bibo/> .
+@prefix dlco: <https://concepts.datalad.org/> .
+@prefix dldist: <https://concepts.datalad.org/s/distribution/unreleased/> .
+@prefix dlidentifiers: <https://concepts.datalad.org/s/identifiers/unreleased/> .
+@prefix dlprops: <https://concepts.datalad.org/s/properties/unreleased/> .
+@prefix dlprov: <https://concepts.datalad.org/s/prov/unreleased/> .
+@prefix dlpubs: <https://concepts.datalad.org/s/publications/unreleased/> .
+@prefix dlres: <https://concepts.datalad.org/s/resources/unreleased/> .
+@prefix dlroles: <https://concepts.datalad.org/s/roles/unreleased/> .
+@prefix dlsocial: <https://concepts.datalad.org/s/social/unreleased/> .
+@prefix dltemporal: <https://concepts.datalad.org/s/agents/unreleased/> .
+@prefix dlthings: <https://concepts.datalad.org/s/things/v1/> .
+@prefix ex: <http://example.org/> .
+@prefix exthisns: <https://example.org/ns/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix gitsha: <https://concepts.datalad.org/ns/gitsha/> .
+@prefix licenses: <http://spdx.org/licenses/> .
+@prefix marcrel: <http://id.loc.gov/vocabulary/relators/> .
+@prefix obo: <http://purl.obolibrary.org/obo/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix w3ctr: <https://www.w3.org/TR/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://dbpedia.org/resource/Madrid> a dltemporal:Location .
+
+ex:day a dltemporal:InstantaneousEvent ;
+    dltemporal:at_time "1984-05-14"^^w3ctr:NOTE-datetime .
+
+ex:min a dltemporal:InstantaneousEvent ;
+    dltemporal:at_time "1984-05-14T15:32"^^w3ctr:NOTE-datetime .
+
+ex:month a dltemporal:InstantaneousEvent ;
+    dltemporal:at_time "1785-02"^^w3ctr:NOTE-datetime .
+
+<http://example.org/ns/people/jane> a dlprov:Agent,
+        dlsocial:Person ;
+    dlroles:qualified_relations [ a dlroles:Relationship ;
+            rdf:object "email:jane@example.org"^^xsd:anyURI ;
+            dlroles:roles <http://schema.org/email> ],
+        [ a dlroles:Relationship ;
+            rdf:object "geo:-19.738897,63.453072?z=19"^^xsd:anyURI ;
+            dlroles:roles obo:NCIT_C17556 ],
+        [ a dlroles:Relationship ;
+            rdf:object "geo:-19.738897,63.453072?z=19"^^xsd:anyURI ;
+            dlroles:roles obo:NCIT_C17556 ] .
+
+<http://example.org/ns/zorro> a dlsocial:Person ;
+    dlsocial:additional_names "Zorro" ;
+    dlsocial:family_name "de la Vega" ;
+    dlsocial:formatted_name "Don Diego Zorro de la Vega III" ;
+    dlsocial:given_name "Diego" ;
+    dlsocial:honorific_name_prefix "Don" ;
+    dlsocial:honorific_name_suffix "III" .
+
+<http://example.org/projects/p1a> a dlsocial:Project ;
+    dlprops:description "A project about approaching a new field, and not looking entirely incompetent after some time." ;
+    dlprops:short_name "BANG!" ;
+    dlprops:title "Impactful entry" ;
+    dlprov:associated_with <http://orcid.org/0000-0001-6398-6370> ;
+    dlroles:qualified_relations [ a dlroles:Relationship ;
+            rdf:object "http://orcid.org/0000-0001-6398-6370"^^xsd:anyURI ;
+            dlroles:roles marcrel:ctb ] ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate <http://example.org/ns/psych/self-esteem-boost-potential> ;
+            rdfs:range "linkml:int"^^xsd:anyURI ;
+            rdfs:value "100" ] ;
+    dlthings:characterized_by [ a dlthings:Statement ;
+            rdf:object "ex:projects/grand-plan"^^xsd:anyURI ;
+            rdf:predicate ex:isPartOf ] .
+
+ex:second a dltemporal:InstantaneousEvent ;
+    dltemporal:at_time "1982-01-59T15:32:44"^^w3ctr:NOTE-datetime .
+
+ex:subsecond-with-timezone a dltemporal:InstantaneousEvent ;
+    dltemporal:at_time "2021-01-31T01:22:33.4321+06:00"^^w3ctr:NOTE-datetime .
+
+ex:triassic a dltemporal:InstantaneousEvent ;
+    dltemporal:at_time "-201000000"^^w3ctr:NOTE-datetime .
+
+ex:year a dltemporal:InstantaneousEvent ;
+    dltemporal:at_time "1532"^^w3ctr:NOTE-datetime .
+
+marcrel:this a dlroles:Role .
+
+<http://orcid.org/0000-0001-7628-0801> a dlprov:Agent,
+        dlsocial:Person .
+
+<https://concepts.datalad.org/ns/annex-key/MD5E-s3214--ba1f2511fc30423bdbb183fe33f3dd0f.csv> a dldist:Distribution ;
+    dlco:qualified_access [ a dldist:QualifiedAccess ;
+            dldist:access_service <https://concepts.datalad.org/ns/annex-uuid/0a8713ca-ef42-11ee-a805-d3e9a774e795> ] ;
+    dldist:byte_size "3214"^^xsd:nonNegativeInteger ;
+    dldist:checksum [ a dlidentifiers:Checksum ;
+            dlidentifiers:creator "spdx:checksumAlgorithm_md5"^^xsd:anyURI ;
+            dlidentifiers:notation "ba1f2511fc30423bdbb183fe33f3dd0f"^^xsd:hexBinary ] ;
+    dldist:media_type "text/csv" .
+
+gitsha:9a48c2bf7e97a081f2b1ab68eb909bbfc86267be a dldist:Distribution ;
+    dldist:is_distribution_of gitsha:8d6f033bb2a6109b2c4d64d6f27b0feb181e4d0f ;
+    dldist:qualified_part [ a dldist:DistributionPart ;
+            rdf:object "https://concepts.datalad.org/ns/gitsha/e12e9505cff5417f594d719b99720b4c39d86434"^^xsd:anyURI ;
+            dlprops:name "index.html" ],
+        [ a dldist:DistributionPart ;
+            rdf:object "https://concepts.datalad.org/ns/annex-key/MD5E-s3214--ba1f2511fc30423bdbb183fe33f3dd0f.csv"^^xsd:anyURI ;
+            dlprops:name "table.csv" ] .
+
+gitsha:e12e9505cff5417f594d719b99720b4c39d86434 a dldist:Distribution ;
+    dldist:byte_size "63165"^^xsd:nonNegativeInteger ;
+    dldist:checksum [ a dlidentifiers:Checksum ;
+            dlidentifiers:creator "spdx:checksumAlgorithm_sha1"^^xsd:anyURI ;
+            dlidentifiers:notation "0410b851ebd2282ac37558885db16782f31626db"^^xsd:hexBinary ] ;
+    dldist:media_type "text/html" .
+
+<https://doi.org/10.1038/s41597-022-01163-2> a dlpubs:Publication,
+        dlthings:Thing ;
+    dlprops:about "https://www.nature.com/subjects/data-processing"^^xsd:anyURI,
+        "https://www.nature.com/subjects/data-publication-and-archiving"^^xsd:anyURI,
+        "https://www.nature.com/subjects/software"^^xsd:anyURI ;
+    dlprops:description "Large-scale datasets present unique opportunities to perform scientific investigations with unprecedented breadth. However, they also pose considerable challenges for the findability, accessibility, interoperability, and reusability (FAIR) of research outcomes due to infrastructure limitations, data usage constraints, or software license restrictions. Here we introduce a DataLad-based, domain-agnostic framework suitable for reproducible data processing in compliance with open science mandates. The framework attempts to minimize platform idiosyncrasies and performance-related complexities. It affords the capture of machine-actionable computational provenance records that can be used to retrace and verify the origins of research outcomes, as well as be re-executed independent of the original computing infrastructure. We demonstrate the framework’s performance using two showcases: one highlighting data sharing and transparency (using the studyforrest.org dataset) and another highlighting scalability (using the largest public brain imaging dataset available: the UK Biobank dataset)." ;
+    dlprops:title "FAIRly big: A framework for computationally reproducible processing of large-scale data" ;
+    skos:exactMatch "bibo:AcademicArticle"^^xsd:anyURI ;
+    dltemporal:date_modified "2022-02-11"^^w3ctr:NOTE-datetime ;
+    dltemporal:date_published "2022-03-11"^^w3ctr:NOTE-datetime ;
+    dlidentifiers:identifier [ a dlidentifiers:DOI ;
+            dlidentifiers:creator "https://doi.org"^^xsd:anyURI ;
+            dlidentifiers:notation "10.1038/s41597-022-01163-2" ;
+            dlidentifiers:schema_agency "DOI Foundation" ] ;
+    dlroles:qualified_relations [ a dlroles:Relationship ;
+            rdf:object "https://orcid.org/0000-0002-8402-6173"^^xsd:anyURI ;
+            dlroles:roles marcrel:aut ],
+        [ a dlroles:Relationship ;
+            rdf:object "https://orcid.org/0000-0001-7163-3110"^^xsd:anyURI ;
+            dlroles:roles marcrel:aut ],
+        [ a dlroles:Relationship ;
+            rdf:object "https://orcid.org/0000-0003-2213-7465"^^xsd:anyURI ;
+            dlroles:roles marcrel:aut,
+                obo:MS_1002034 ],
+        [ a dlroles:Relationship ;
+            rdf:object "https://orcid.org/0000-0001-6398-6370"^^xsd:anyURI ;
+            dlroles:roles marcrel:aut,
+                obo:MS_1002035 ],
+        [ a dlroles:Relationship ;
+            rdf:object "https://orcid.org/0000-0001-7628-0801"^^xsd:anyURI ;
+            dlroles:roles marcrel:aut ],
+        [ a dlroles:Relationship ;
+            rdf:object "https://portal.issn.org/resource/issn/2052-4463"^^xsd:anyURI ;
+            dlroles:roles marcrel:pup ],
+        [ a dlroles:Relationship ;
+            rdf:object "https://orcid.org/0000-0003-0820-2662"^^xsd:anyURI ;
+            dlroles:roles marcrel:aut,
+                obo:MS_1002034 ],
+        [ a dlroles:Relationship ;
+            rdf:object "https://orcid.org/0000-0003-2917-3450"^^xsd:anyURI ;
+            dlroles:roles marcrel:aut,
+                obo:MS_1002034,
+                obo:NCIT_C25461 ],
+        [ a dlroles:Relationship ;
+            rdf:object "https://orcid.org/0000-0001-6363-2759"^^xsd:anyURI ;
+            dlroles:roles marcrel:aut ] ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate bibo:number ;
+            rdfs:value "80" ;
+            dlthings:attributes [ a dlthings:AttributeSpecification ;
+                    rdf:predicate ex:title ;
+                    rdfs:value "Document number" ] ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:date ;
+            rdfs:range "xsd:date"^^xsd:anyURI ;
+            rdfs:value "2022-03-11" ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:bibliographicCitation ;
+            rdfs:value "Wagner, A.S., Waite, L.K., Wierzba, M. et al. FAIRly big: A framework for computationally reproducible processing of large-scale data. Sci Data 9, 80 (2022)." ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:title ;
+            rdfs:value "FAIRly big: A framework for computationally reproducible processing of large-scale data" ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:description ;
+            rdfs:value "Large-scale datasets present unique opportunities to perform scientific investigations with unprecedented breadth. However, they also pose considerable challenges for the findability, accessibility, interoperability, and reusability (FAIR) of research outcomes due to infrastructure limitations, data usage constraints, or software license restrictions. Here we introduce a DataLad-based, domain-agnostic framework suitable for reproducible data processing in compliance with open science mandates. The framework attempts to minimize platform idiosyncrasies and performance-related complexities. It affords the capture of machine-actionable computational provenance records that can be used to retrace and verify the origins of research outcomes, as well as be re-executed independent of the original computing infrastructure. We demonstrate the framework’s performance using two showcases: one highlighting data sharing and transparency (using the studyforrest.org dataset) and another highlighting scalability (using the largest public brain imaging dataset available: the UK Biobank dataset)." ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate bibo:numPages ;
+            rdfs:range "xsd:nonNegativeInteger"^^xsd:anyURI ;
+            rdfs:value "17" ;
+            dlthings:attributes [ a dlthings:AttributeSpecification ;
+                    rdf:predicate ex:title ;
+                    rdfs:value "Number of pages" ] ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate bibo:doi ;
+            rdfs:value "https://doi.org/10.1038/s41597-022-01163-2" ;
+            dlthings:attributes [ a dlthings:AttributeSpecification ;
+                    rdf:predicate ex:title ;
+                    rdfs:value "DOI" ] ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:identifier ;
+            skos:exactMatch "ADMS:Identifier"^^xsd:anyURI ;
+            dlthings:attributes [ a dlthings:AttributeSpecification ;
+                    rdf:predicate ADMS:schemaAgency ;
+                    rdfs:value "https://doi.org" ],
+                [ a dlthings:AttributeSpecification ;
+                    rdf:predicate skos:notation ;
+                    rdfs:value "10.1038/s41597-022-01163-2" ] ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:modified ;
+            rdfs:range "xsd:date"^^xsd:anyURI ;
+            rdfs:value "2022-02-11" ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate bibo:volume ;
+            rdfs:value "9" ;
+            dlthings:attributes [ a dlthings:AttributeSpecification ;
+                    rdf:predicate ex:title ;
+                    rdfs:value "Volume" ] ] ;
+    dlthings:characterized_by [ a dlthings:Statement ;
+            rdf:object "https://www.nature.com/subjects/software"^^xsd:anyURI ;
+            rdf:predicate ex:subject ],
+        [ a dlthings:Statement ;
+            rdf:object "https://www.nature.com/subjects/data-publication-and-archiving"^^xsd:anyURI ;
+            rdf:predicate ex:subject ],
+        [ a dlthings:Statement ;
+            rdf:object "https://portal.issn.org/resource/issn/2052-4463"^^xsd:anyURI ;
+            rdf:predicate ex:isPartOf ],
+        [ a dlthings:Statement ;
+            rdf:object "https://www.nature.com/subjects/data-processing"^^xsd:anyURI ;
+            rdf:predicate ex:subject ],
+        [ a dlthings:Statement ;
+            rdf:object "https://spdx.org/licenses/CC-BY-4.0"^^xsd:anyURI ;
+            rdf:predicate ex:license ],
+        [ a dlthings:Statement ;
+            rdf:object "https://www.nature.com/articles/s41597-022-01163-2"^^xsd:anyURI ;
+            rdf:predicate owl:sameAs ] ;
+    dlthings:relation <https://portal.issn.org/resource/issn/2052-4463> .
+
+<https://doi.org/10.21105/joss.03262> a dlthings:Thing ;
+    dlthings:characterized_by [ a dlthings:Statement ;
+            rdf:object "https://www.scicrunch.org/resolver/SCR_003931"^^xsd:anyURI ;
+            rdf:predicate ex:subject ] ;
+    dlthings:relation <https://portal.issn.org/resource/issn/2475-9066>,
+        <https://www.scicrunch.org/resolver/SCR_003931> .
+
+<https://en.wikipedia.org/wiki/Death_of_Freddie_Mercury> a dltemporal:InstantaneousEvent .
+
+<https://example.org/ns/datasetversion/.> a dldist:Distribution ;
+    dldist:has_part <https://example.org/ns/datasetversion/./dataset_description.json>,
+        <https://example.org/ns/datasetversion/./participants.tsv> ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:conformsTo ;
+            rdfs:range "uri"^^xsd:anyURI ;
+            rdfs:value "https://bids-specification.readthedocs.io/en/v1.4.0" ] .
+
+<https://example.org/ns/datasetversion/./archive.zip> a dldist:Distribution ;
+    dldist:has_part <https://example.org/ns/datasetversion/./archive.zip/subdir> ;
+    dldist:qualified_part [ a dldist:DistributionPart ;
+            rdf:object "exthisdsver:./archive.zip/subdir"^^xsd:anyURI ;
+            dlprops:name "subdir" ] .
+
+<https://example.org/ns/datasetversion/./file.jpeg> a dldist:Distribution ;
+    dlroles:qualified_relations [ a dlroles:Relationship ;
+            rdf:object "obo:NCIT_C95650"^^xsd:anyURI ;
+            dlroles:roles obo:NCIT_C42645 ] ;
+    dlthings:characterized_by [ a dlthings:Statement ;
+            rdf:object "obo:NCIT_C95650"^^xsd:anyURI ;
+            rdf:predicate obo:NCIT_C42645 ] .
+
+<https://example.org/ns/datasetversion/./some/name.ext> a dldist:Distribution ;
+    dltemporal:date_modified "2024-03-21"^^w3ctr:NOTE-datetime ;
+    dldist:byte_size "123456789"^^xsd:nonNegativeInteger ;
+    dldist:checksum [ a dlidentifiers:Checksum ;
+            dlidentifiers:creator "spdx:checksumAlgorithm_sha1"^^xsd:anyURI ;
+            dlidentifiers:notation "c7dbac946b9860cf05a7d696b9e9591c60083859"^^xsd:hexBinary ],
+        [ a dlidentifiers:Checksum ;
+            dlidentifiers:creator "spdx:checksumAlgorithm_md5"^^xsd:anyURI ;
+            dlidentifiers:notation "32a617360d10e3dcbfdd0885e8d64ab8"^^xsd:hexBinary ] ;
+    dldist:license licenses:CC0-1.0 ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate foaf:name ;
+            rdfs:value "name.ext" ] .
+
+<https://example.org/ns/datasetversion/./some/path.ext> a dldist:Distribution ;
+    dlco:qualified_access [ a dldist:QualifiedAccess ;
+            dldist:access_service <https://coscine.example.org> ] ;
+    dldist:access_service <https://coscine.example.org> ;
+    dldist:access_url "https://coscine.example.org/coscine"^^xsd:anyURI ;
+    dldist:download_url "https://coscine.example.org/coscine/api/v2/projects/p123/resources/r456/blobs/k789"^^xsd:anyURI,
+        "https://www.example.org/path.ext"^^xsd:anyURI ;
+    dldist:is_distribution_of <https://example.org/ns/datasetversion/#some/path> ;
+    dldist:license <https://example.org/ns/dataset/#customlicense> ;
+    dlthings:relation <https://coscine.example.org>,
+        <https://example.org/ns/dataset/#>,
+        <https://example.org/ns/dataset/#customlicense>,
+        <https://example.org/ns/datasetversion/#>,
+        <https://example.org/ns/datasetversion/#some/path> .
+
+exthisns:measurement853 a dlthings:ValueSpecification ;
+    rdfs:range "xsd:decimal"^^xsd:anyURI ;
+    rdfs:value "145.3",
+        "special" ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:title ;
+            rdfs:value "measured mass (kg)" ] ;
+    dlthings:characterized_by [ a dlthings:Statement ;
+            rdf:object "obo:IAO_0000109"^^xsd:anyURI ;
+            rdf:predicate ex:subject ],
+        [ a dlthings:Statement ;
+            rdf:object "obo:PATO_0000125"^^xsd:anyURI ;
+            rdf:predicate ex:subject ],
+        [ a dlthings:Statement ;
+            rdf:object "obo:UO_0000009"^^xsd:anyURI ;
+            rdf:predicate obo:UO_0000000 ] .
+
+exthisns:mything a dlthings:Thing .
+
+<https://gepris.dfg.de/gepris/projekt/546006540> a dlres:Grant ;
+    dlres:sponsor <https://ror.org/018mejw64> .
+
+<https://orcid.org/0000-0001-6398-6370> a dlprov:Agent,
+        dlsocial:Person ;
+    dlprov:acted_on_behalf_of <https://ror.org/02nv7yv05> ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate foaf:name ;
+            rdfs:value "Michael Hanke" ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate <http://www.bioassayontology.org/bao#BAO_0002826> ;
+            rdfs:value "1" ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate <http://www.bioassayontology.org/bao#BAO_0002826> ;
+            rdfs:value "1" ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate foaf:name ;
+            rdfs:value "Michael Hanke" ] .
+
+<https://trr379.de> a dlsocial:Organization ;
+    dlroles:qualified_relations [ a dlroles:Relationship ;
+            rdf:object "https://ror.org/018mejw64"^^xsd:anyURI ;
+            dlroles:roles marcrel:fnd ] .
+
+ex:modified a dlthings:Property ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:description ;
+            rdfs:value "Date on which the resource was changed." ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:title ;
+            rdfs:value "modified" ] .
+
+<https://concepts.datalad.org/ns/annex-uuid/0a8713ca-ef42-11ee-a805-d3e9a774e795> a dldist:DataService ;
+    skos:exactMatch "https://git-annex.branchable.com/special_remotes"^^xsd:anyURI ;
+    dldist:endpoint_description "https://git-annex.branchable.com/special_remotes/webdav/"^^xsd:anyURI ;
+    dldist:endpoint_url "https://dav.box.com/dav/git-annex"^^xsd:anyURI ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:identifier ;
+            skos:exactMatch "ADMS:Identifier"^^xsd:anyURI ;
+            dlthings:attributes [ a dlthings:AttributeSpecification ;
+                    rdf:predicate skos:notation ;
+                    rdfs:value "0a8713ca-ef42-11ee-a805-d3e9a774e795" ],
+                [ a dlthings:AttributeSpecification ;
+                    rdf:predicate ADMS:schemaAgency ;
+                    rdfs:value "https://git-annex.branchable.com" ] ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate foaf:name ;
+            rdfs:value "box.com" ] .
+
+<https://concepts.datalad.org/ns/dataset-uuid/cec1da92-0dbd-4df3-8602-7c72b2d12854> a dldist:Resource ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:identifier ;
+            skos:exactMatch "ADMS:Identifier"^^xsd:anyURI ;
+            dlthings:attributes [ a dlthings:AttributeSpecification ;
+                    rdf:predicate skos:notation ;
+                    rdfs:value "cec1da92-0dbd-4df3-8602-7c72b2d12854" ],
+                [ a dlthings:AttributeSpecification ;
+                    rdf:predicate ADMS:schemaAgency ;
+                    rdfs:value "https://datalad.org" ] ] .
+
+gitsha:8d6f033bb2a6109b2c4d64d6f27b0feb181e4d0f a dldist:Resource ;
+    dldist:is_version_of <https://concepts.datalad.org/ns/dataset-uuid/cec1da92-0dbd-4df3-8602-7c72b2d12854> ;
+    dldist:version "8d6f033bb2a6109b2c4d64d6f27b0feb181e4d0f" ;
+    dlprov:derived_from gitsha:a52963ce19a3e3628e9976555ffc8c422b29f054 ;
+    dlprov:generated_by <https://concepts.datalad.org/ns/gitsha/8d6f033bb2a6109b2c4d64d6f27b0feb181e4d0f#committing> ;
+    dlroles:qualified_relations [ a dlroles:Relationship ;
+            rdf:object "gitsha:a52963ce19a3e3628e9976555ffc8c422b29f054"^^xsd:anyURI ;
+            dlroles:roles owl:priorVersion ] ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:identifier ;
+            rdfs:value "latest" ;
+            dlthings:attributes [ a dlthings:AttributeSpecification ;
+                    rdf:predicate ADMS:schemaAgency ;
+                    rdfs:value "exthisds:#" ] ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:description ;
+            rdfs:value """This message describes the changes done for this particular Dataset version.
+""" ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:identifier ;
+            rdfs:value "final2" ;
+            dlthings:attributes [ a dlthings:AttributeSpecification ;
+                    rdf:predicate ADMS:schemaAgency ;
+                    rdfs:value "exthisds:#" ] ] ;
+    dlthings:relation <https://concepts.datalad.org/ns/gitsha/8d6f033bb2a6109b2c4d64d6f27b0feb181e4d0f#authoring>,
+        <https://concepts.datalad.org/ns/gitsha/8d6f033bb2a6109b2c4d64d6f27b0feb181e4d0f#committing> .
+
+<https://example.org/ns/dataset/#s001> a dlprov:Agent ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate foaf:name ;
+            rdfs:value "s001" ] ;
+    dlthings:characterized_by [ a dlthings:Statement ;
+            rdf:object "obo:PATO_0002204"^^xsd:anyURI ;
+            rdf:predicate obo:PATO_0002201 ] .
+
+<https://example.org/ns/dataset/#s002> a dlprov:Agent ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate foaf:name ;
+            rdfs:value "s002" ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate obo:NCIT_C37908 ;
+            rdfs:value "36" ;
+            dlthings:attributes [ a dlthings:AttributeSpecification ;
+                    rdf:predicate foaf:name ;
+                    rdfs:value "age (years)" ] ;
+            dlthings:characterized_by [ a dlthings:Statement ;
+                    rdf:object "obo:UO_0000036"^^xsd:anyURI ;
+                    rdf:predicate obo:UO_0000000 ] ] ;
+    dlthings:characterized_by [ a dlthings:Statement ;
+            rdf:object "obo:PATO_0000384"^^xsd:anyURI ;
+            rdf:predicate obo:PATO_0000047 ] .
+
+<https://example.org/ns/datasetversion/./archive.zip/subdir> a dldist:Distribution ;
+    dldist:has_part <https://example.org/ns/datasetversion/./archive.zip/subdir/file.txt> ;
+    dldist:qualified_part [ a dldist:DistributionPart ;
+            rdf:object "exthisdsver:./archive.zip/subdir/file.txt"^^xsd:anyURI ;
+            dlprops:name "file.txt" ] ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:description ;
+            rdfs:value "A subdirectory" ] .
+
+<https://example.org/ns/datasetversion/./archive.zip/subdir/file.txt> a dldist:Distribution ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:description ;
+            rdfs:value "A file" ] .
+
+<https://example.org/ns/datasetversion/./dataset_description.json> a dldist:Distribution ;
+    dldist:media_type "application/json" .
+
+<https://example.org/ns/datasetversion/./participants.tsv> a dldist:Distribution ;
+    dldist:format "http://edamontology.org/format_3475"^^xsd:anyURI .
+
+<https://portal.issn.org/resource/issn/2052-4463> a dlthings:Thing ;
+    skos:exactMatch "bibo:Journal"^^xsd:anyURI ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:title ;
+            rdfs:value "Scientific Data" ] .
+
+<https://portal.issn.org/resource/issn/2475-9066> a dlthings:Thing ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:title ;
+            rdfs:value "Journal of Open Source Software" ] .
+
+<https://ror.org/018mejw64> a dlsocial:Organization ;
+    dltemporal:at_location <https://geonames.org/2946447> ;
+    dlidentifiers:identifier [ a dlidentifiers:Identifier ;
+            dlidentifiers:creator "https://wikidata.org"^^xsd:anyURI ;
+            dlidentifiers:notation "Q707283" ],
+        [ a dlidentifiers:Identifier ;
+            dlidentifiers:creator "https://crossref.org"^^xsd:anyURI ;
+            dlidentifiers:notation "501100001659" ] ;
+    dlprops:name "Deutsche Forschungsgemeinschaft" ;
+    dlprops:short_name "DFG" .
+
+<https://ror.org/02nv7yv05> a dlthings:Thing ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:identifier ;
+            skos:exactMatch "ADMS:Identifier"^^xsd:anyURI ;
+            dlthings:attributes [ a dlthings:AttributeSpecification ;
+                    rdf:predicate ADMS:schemaAgency ;
+                    rdfs:value "https://d-nb.info" ],
+                [ a dlthings:AttributeSpecification ;
+                    rdf:predicate skos:notation ;
+                    rdfs:value "5008462-8" ] ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:identifier ;
+            rdfs:value "02nv7yv05" ;
+            dlthings:attributes [ a dlthings:AttributeSpecification ;
+                    rdf:predicate ADMS:schemaAgency ;
+                    rdfs:range "uri"^^xsd:anyURI ;
+                    rdfs:value "https://ror.org" ] ] ;
+    dlthings:characterized_by [ a dlthings:Statement ;
+            rdf:object "https://www.wikidata.org/wiki/Q697111"^^xsd:anyURI ;
+            rdf:predicate owl:sameAs ],
+        [ a dlthings:Statement ;
+            rdf:object "https://en.wikipedia.org/wiki/Forschungszentrum_J%C3%BClich"^^xsd:anyURI ;
+            rdf:predicate owl:sameAs ] .
+
+<https://www.scicrunch.org/resolver/SCR_003931> a dlthings:Thing .
+
+<https://concepts.datalad.org/ns/gitsha/8d6f033bb2a6109b2c4d64d6f27b0feb181e4d0f#authoring> a dlprov:Activity ;
+    skos:exactMatch "obo:NCIT_C25625"^^xsd:anyURI ;
+    dltemporal:ended_at "2001-02-28T18:27:04+02:00"^^w3ctr:NOTE-datetime ;
+    dlroles:qualified_relations [ a dlroles:Relationship ;
+            rdf:object "exthisds:#gituser_doe@example.org"^^xsd:anyURI ;
+            dlroles:roles marcrel:aut ] .
+
+<https://concepts.datalad.org/ns/gitsha/8d6f033bb2a6109b2c4d64d6f27b0feb181e4d0f#committing> a dlprov:Activity ;
+    skos:exactMatch "obo:NCIT_C42882"^^xsd:anyURI ;
+    dltemporal:ended_at "2002-05-30T09:30:10+06:00"^^w3ctr:NOTE-datetime ;
+    dlprov:informed_by <https://concepts.datalad.org/ns/gitsha/8d6f033bb2a6109b2c4d64d6f27b0feb181e4d0f#authoring> ;
+    dlroles:qualified_relations [ a dlroles:Relationship ;
+            rdf:object "exthisds:#gituser_doe@example.org"^^xsd:anyURI ;
+            dlroles:roles marcrel:cre ] .
+
+<https://example.org/ns/dataset/#> a dldist:Resource ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:description ;
+            rdfs:value "A collection of some data" ] .
+
+<https://example.org/ns/dataset/#customlicense> a dldist:LicenseDocument ;
+    dldist:license_text "Highly custom terms, never seen before." .
+
+<https://example.org/ns/dataset/#study_2005-004406-93> a dlprov:Activity ;
+    skos:exactMatch "obo:NCIT_C71104"^^xsd:anyURI ;
+    dlroles:qualified_relations [ a dlroles:Relationship ;
+            rdf:object "exthisds:#s002"^^xsd:anyURI ;
+            dlroles:roles obo:NCIT_C142710,
+                obo:NCIT_C173188 ],
+        [ a dlroles:Relationship ;
+            rdf:object "exthisds:#s001"^^xsd:anyURI ;
+            dlroles:roles obo:NCIT_C142710,
+                obo:NCIT_C94342 ] ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:title ;
+            rdfs:value "Study about the effectiveness of a disease treatment" ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate ADMS:identifier ;
+            dlthings:attributes [ a dlthings:AttributeSpecification ;
+                    rdf:predicate skos:notation ;
+                    rdfs:value "2005-004406-93" ],
+                [ a dlthings:AttributeSpecification ;
+                    rdf:predicate ADMS:schema_agency ;
+                    rdfs:value "https://eudract.ema.europa.eu" ] ] .
+
+<https://example.org/ns/datasetversion/#> a dldist:Resource ;
+    dldist:is_version_of <https://example.org/ns/dataset/#> ;
+    dlprov:generated_by <https://example.org/ns/dataset/#study_2005-004406-93> ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:description ;
+            rdfs:value "A version of a collection of some data\"" ] ;
+    dlthings:relation <https://example.org/ns/dataset/#s001>,
+        <https://example.org/ns/dataset/#s002>,
+        <https://example.org/ns/dataset/#study_2005-004406-93> .
+
+<https://example.org/ns/datasetversion/#some/path> a dldist:Resource ;
+    dldist:is_part_of <https://example.org/ns/datasetversion/#> ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:description ;
+            rdfs:value "Some tabular data" ] .
+
+<https://coscine.example.org> a dldist:DataService ;
+    skos:exactMatch "https://coscine.rwth-aachen.de"^^xsd:anyURI ;
+    dldist:contact_point exthisns:coscine-admin ;
+    dldist:download_url_template "https://coscine.example.org/coscine/api/v2/projects/{projectId}/resources/{resourceId}/blobs/{key}" ;
+    dldist:endpoint_description "https://coscine.rwth-aachen.de/coscine/api/swagger/v2/swagger.json"^^xsd:anyURI ;
+    dldist:endpoint_url "https://coscine.example.org/coscine"^^xsd:anyURI ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ex:description ;
+            rdfs:value "Central RDM service at example.org" ] .
+
+ex:title a dlthings:Property .
+
+[] a dlroles:Relationship ;
+    rdf:object "https://orcid.org/0000-0001-6398-6370"^^xsd:anyURI ;
+    dlroles:roles marcrel:aut,
+        marcrel:sad .
+
+[] a dlroles:Relationship ;
+    rdf:object "https://en.wikipedia.org/wiki/Vulcan_(Star_Trek)#Mind_melds"^^xsd:anyURI ;
+    dlroles:roles obo:topic_0003 .
+
+[] a dlidentifiers:Identifier ;
+    dlidentifiers:creator "https://orcid.org"^^xsd:anyURI ;
+    dlidentifiers:notation "0000-0001-6398-6370" .
+
+[] a dlidentifiers:Checksum ;
+    dlidentifiers:creator "spdx:checksumAlgorithm_md5"^^xsd:anyURI ;
+    dlidentifiers:notation "be32eeadb443c00c3e6ca43f2295e2ee"^^xsd:hexBinary .
+
+[] a dlthings:AttributeSpecification ;
+    rdf:predicate ex:identifier ;
+    skos:exactMatch "ADMS:Identifier"^^xsd:anyURI ;
+    dlthings:attributes [ a dlthings:AttributeSpecification ;
+            rdf:predicate ADMS:schemaAgency ;
+            rdfs:value "https://d-nb.info" ],
+        [ a dlthings:AttributeSpecification ;
+            rdf:predicate skos:notation ;
+            rdfs:value "5008462-8" ] .
+
+[] a dlthings:Statement ;
+    rdf:object "https://helmholtz.de"^^xsd:anyURI ;
+    rdf:predicate ex:subject .
+
+[] a dlthings:AttributeSpecification ;
+    rdf:predicate ex:title ;
+    rdfs:value "My attribute" .
+
+[] a dlidentifiers:IssuedIdentifier ;
+    dlidentifiers:notation "0000-0001-6398-6370" .
+
+[] a dlidentifiers:DOI ;
+    dlidentifiers:creator "https://op.europa.eu"^^xsd:anyURI ;
+    dlidentifiers:notation "10.2760/271009" ;
+    dlidentifiers:schema_agency "Publications Office of the European Union" .
+
+[] a dlidentifiers:IssuedIdentifier ;
+    dlidentifiers:creator "https://orcid.org"^^xsd:anyURI ;
+    dlidentifiers:notation "0000-0001-6398-6370" ;
+    dlidentifiers:schema_agency "ORCID" .
+
+[] a dlidentifiers:DOI ;
+    dlidentifiers:creator "https://doi.org"^^xsd:anyURI ;
+    dlidentifiers:notation "10.1038/s41597-022-01163-2" ;
+    dlidentifiers:schema_agency "DOI Foundation" .
+
+[] a dlidentifiers:Identifier ;
+    dlidentifiers:notation "0000-0001-6398-6370" .
+

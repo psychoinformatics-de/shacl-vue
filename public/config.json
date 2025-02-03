@@ -1,9 +1,9 @@
 {
-    "shapes_url": "shapesgraph.ttl",
+    "shapes_url": "dlschemas_shacl.ttl",
     "use_default_shapes": false,
-    "data_url": "distribution-penguins.ttl",
+    "data_url": "dlschemas_data.ttl",
     "use_default_data": false,
-    "class_url": "linkml_owl.ttl",
+    "class_url": "dlschemas_owl.ttl",
     "use_default_classes": false,
     "group_layout": "",
     "defaultPropertyGroup": {
@@ -14,5 +14,6 @@
             "http://www.w3.org/ns/shacl#order": 100
         }
     },
-    "id_iri": "https://concepts.datalad.org/s/thing/unreleased/id"
+    "id_iri": "https://concepts.datalad.org/s/things/v1/id",
+    "show_shapes_wo_id": false
 }
