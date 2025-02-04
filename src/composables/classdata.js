@@ -19,15 +19,19 @@ export function useClassData(config) {
 
     async function getClassData(url) {
         var getURL
+        console.log("getURL for classes:")
         if (!url) {
             // If no url argument provided, check config
             // Config priority is:
             // - if the class_url is provided, use it and ignore use_default_classes
             // - if the class_url is NOT provided, use default if use_default_classes==true, else nothing
             if (config.value.class_url) {
-                if (config.value.class_url.indexOf('http')) {
+                console.log("- specified via config")
+                if (config.value.class_url.indexOf('http') >= 0) {
+                    console.log("- contains http")
                     getURL = config.value.class_url
                 } else {
+                    console.log("- does not contain http")
                     getURL = `${basePath}${config.value.class_url}`;
                 }
             } else {
@@ -41,6 +45,7 @@ export function useClassData(config) {
         } else {
             getURL = url
         }
+        console.log(getURL)
 
         // console.log(`class url is: ${getURL}`)
         readRDF(getURL)
