@@ -249,7 +249,7 @@
 <style scoped>
     .scaled-sheet {
         transform: scale(0.9);
-        transform-origin: top right;
+        /* transform-origin: top right; */
     }
     .quote-description {
       border-left: 3px solid rgb(154, 153, 153);
