@@ -24,7 +24,7 @@
         </v-card>
     </span>
     <span v-else>
-        <span v-for="group in orderArrayOfObjects(Object.values(usedPropertyGroups), SHACL.order.value) ">
+        <span v-for="group in orderArrayOfObjects([...Object.values(usedPropertyGroups)], SHACL.order.value) ">
             <span v-if="group['own_properties'].length">
                 <h3>{{ group[RDFS.label.value] }}</h3>
                 <p><em>{{ group[RDFS.comment.value] }}</em></p>
@@ -40,7 +40,7 @@
 
 
 <script setup>
-    import { ref, onBeforeUpdate, onBeforeMount, onBeforeUnmount, onMounted, computed, inject} from 'vue'
+    import { ref, onBeforeUpdate, onBeforeMount, onBeforeUnmount, onMounted, inject, shallowRef} from 'vue'
     import {SHACL, RDF, RDFS, DLTHING} from '../modules/namespaces'
     import { orderArrayOfObjects } from '../modules/utils';
 
@@ -76,7 +76,11 @@
     // Lifecycle methods //
     // ----------------- //
 
+    const usedPropertyGroups = shallowRef({});
+
     onMounted(() => {
+
+        usedPropertyGroups.value = computeUsedPropertyGroups();
         ready.value = true;
         console.log("NodeShapeEditor is MOUNTED")
     })
@@ -102,7 +106,10 @@
     // Computed properties //
     // ------------------- //
 
-    const usedPropertyGroups = computed(() => {
+    
+
+    function computeUsedPropertyGroups() {
+        console.log("usedPropertyGroups recomputed");
         // first get a list of all the sh:PropertyGroup instances 
         // that are provided for any property via sh:group
         var group_instances = shape_obj.properties.map(function(shape_prop) {
@@ -141,21 +148,21 @@
                 }
             }
         }
-        return used_prop_groups
-    });
+        return used_prop_groups;
+    }
 
     // --------- //
     // Functions //
     // --------- //
 
-    function orderGroups() {
-        // first get a list of all the sh:PropertyGroup instances 
-        // that are provided for any property via sh:group
-        var group_instances = shape_obj.properties.map(function(shape_prop) {
-            return shape_prop[SHACL.group.value];
-        });
-        // make list unique and remove falsy values
-        group_instances = [...new Set(group_instances)].filter( Boolean )
-    }
+    // function orderGroups() {
+    //     // first get a list of all the sh:PropertyGroup instances 
+    //     // that are provided for any property via sh:group
+    //     var group_instances = shape_obj.properties.map(function(shape_prop) {
+    //         return shape_prop[SHACL.group.value];
+    //     });
+    //     // make list unique and remove falsy values
+    //     group_instances = [...new Set(group_instances)].filter( Boolean )
+    // }
 
 </script>
