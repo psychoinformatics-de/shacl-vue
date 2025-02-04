@@ -67,7 +67,7 @@ export function nameOrCURIE(shape, prefixes) {
 
 export function orderArrayOfObjects(array, key) {
   // Returns an array of objects ordered by the value of a specific key 
-  return array.sort((a,b) => a[key] - b[key])
+  return [...array].sort((a,b) => a[key] - b[key])
 }
 
 

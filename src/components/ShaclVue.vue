@@ -74,7 +74,7 @@
 
                             </v-col>
                             <v-col v-if="formOpen" cols="9">
-                                <v-expansion-panels variant="accordion" v-model="currentOpenForm">
+                                <v-expansion-panels variant="accordion" v-model="currentOpenForm" class="custompanels">
                                     <v-expansion-panel
                                         v-for="(f, i) in openForms"
                                         :key="f.shapeIRI + '-'+ f.nodeIDX + '-expansionpanel'"
@@ -82,7 +82,7 @@
                                         :disabled="f.disabled"
                                     >
                                         <v-expansion-panel-title> <h2><em>Editing: {{ toCURIE(f.shapeIRI, allPrefixes) }} </em></h2></v-expansion-panel-title>
-                                        <v-expansion-panel-text>
+                                        <v-expansion-panel-text density="compact">
                                             <FormEditor :key="f.shapeIRI + '-'+ f.nodeIDX + '-form-' + f.formType" :shape_iri="f.shapeIRI" :node_idx="f.nodeIDX"></FormEditor>
                                         </v-expansion-panel-text>
                                     </v-expansion-panel>
@@ -520,5 +520,15 @@
     }
     .opacity-column {
         opacity: 0.5; /* Set opacity value between 0 (fully transparent) and 1 (fully opaque) */
+    }
+    .custompanels {
+        border: 1px solid #ccc !important; /* Change to your preferred color */
+        box-shadow: none !important; /* Remove elevation */
+        border-radius: 8px; /* Optional: Adjust border rounding */
+    }
+    .custompanels .v-expansion-panel {
+        border-bottom: 1px solid #ddd !important; /* Adds a subtle divider between panels */
+        box-shadow: none !important;
+        border-radius: 8px; /* Optional: Adjust border rounding */
     }
 </style>

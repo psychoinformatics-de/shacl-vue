@@ -33,7 +33,7 @@ export function useGraphData(config) {
       // - if the data_url is provided, use it and ignore use_default_data
       // - if the data_url is NOT provided, use default if use_default_data==true, else nothing
       if (config.value.data_url) {
-        if (config.value.data_url.indexOf('http')) {
+        if (config.value.data_url.indexOf('http')>=0) {
           getURL = config.value.data_url
         } else {
           getURL = `${basePath}${config.value.data_url}`;
