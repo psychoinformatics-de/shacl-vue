@@ -19,7 +19,6 @@
                         <!-- BROWSE DATA -->
                         <v-tabs-window-item :key="1" :value="1">
                             <v-sheet d-flex d-flex-grow class="pa-4 ml-2" border rounded style="width: 100%;">
-                                <!-- <v-btn text="Download samples.tsv" @click="serializeNodesToTSV"></v-btn> -->
                                 <v-select v-model="selectedFormItem" v-if="prefixes_ready" :items="nodeShapeNamesArray" item-title="name" label="Select" density="compact" style="width: 100%;">
                                     <template v-slot:item="{ props, item }">
                                     <v-list-item v-bind="props" :title="toCURIE(nodeShapeNames[item.raw], shapePrefixes)" @click="selectIRI(nodeShapeNames[item.raw])"></v-list-item>
@@ -155,7 +154,6 @@
     const formData = inject('formData');
     const classData = inject('classData');
     const serializedGraphData = inject('serializedGraphData');
-    const serializeNodesToTSV = inject('serializeNodesToTSV')
     const public_url = ref('')
     const upload_url = ref(null)
     const datatab = ref(1)
