@@ -3,16 +3,26 @@
     <div style="display: flex; position: relative; ">
       <h3>{{ toCURIE(localShapeIri, allPrefixes) }}</h3>
 
-      <div style="margin-left: auto; " class="top-1">
-        <v-switch
-          v-model="show_all_fields"
-          :label="`All fields`"
-          hide-details
-          color="primary"
-        ></v-switch>
-      </div>
-
-      
+      <div style="display: flex; margin-left: auto;">
+            <v-btn
+                text="Cancel"
+                @click="cancelForm()"
+                style="margin-left: auto; margin-right: 1em;"
+                prepend-icon="mdi-close-box"
+            ></v-btn>
+            <v-btn
+                text="Reset"
+                @click="resetForm()"
+                style="margin-right: 1em;"
+                prepend-icon="mdi-undo"
+            ></v-btn>
+            <v-btn
+                text="Save"
+                type="submit"
+                prepend-icon="mdi-content-save"
+            ></v-btn>
+          </div>
+     
       <div v-if="validationErrors.length" class="position-sticky top-4" style="margin-left: 1em;">
         <v-menu location="end">
             <template v-slot:activator="{ props }">
@@ -27,36 +37,23 @@
         </v-menu>
       </div>
     </div>
-    
-    <br>
-    <p v-html="formattedDescription" class="quote-description"></p>
-    <br>
-    <span v-if="localNodeIdx && localShapeIri">
-      <v-form ref="form" v-model="formValid" validate-on="lazy input" @submit.prevent="saveForm()" >
-          <NodeShapeEditor :key="localShapeIri" :shape_iri="localShapeIri" :node_idx="localNodeIdx"/>
-          <div style="display: flex;">
 
-            <v-btn
-                class="mt-2"
-                text="Cancel"
-                @click="cancelForm()"
-                style="margin-left: auto; margin-right: 1em;"
-                prepend-icon="mdi-close-box"
-            ></v-btn>
-            <v-btn
-                class="mt-2"
-                text="Reset"
-                @click="resetForm()"
-                style="margin-right: 1em;"
-                prepend-icon="mdi-undo"
-            ></v-btn>
-            <v-btn
-                class="mt-2"
-                text="Save"
-                type="submit"
-                prepend-icon="mdi-content-save"
-            ></v-btn>
+    <span v-if="localNodeIdx && localShapeIri" style="display: flex; position: relative; ">
+      <v-form ref="form" v-model="formValid" validate-on="lazy input" @submit.prevent="saveForm()" >
+          
+          
+          <br>
+          <p v-html="formattedDescription" class="quote-description"></p>
+          <br>
+          <div style="margin-left: auto; " class="top-1">
+            <v-switch
+              v-model="show_all_fields"
+              :label="`All fields`"
+              hide-details
+              color="primary"
+            ></v-switch>
           </div>
+          <NodeShapeEditor :key="localShapeIri" :shape_iri="localShapeIri" :node_idx="localNodeIdx"/>
       </v-form>
     </span>
   </v-sheet>
