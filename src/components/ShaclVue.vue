@@ -229,6 +229,17 @@ import SubmitComp from './SubmitComp.vue';
     const submitDialog = ref(false)
     provide('submitDialog', submitDialog)
     const configPrefixes = ref({})
+    // These handlers aren't necessary for a first-level form
+    // (i.e. add or edit from main view) but they are provided
+    // here in order to prevent a vue warning.
+    // TODO: rework the cancel/save handlers, or rip it out if
+    // they aren't necessary at all.
+    const cancelForm = () => {
+    };
+    provide('cancelFormHandler', cancelForm);
+    const saveForm = () => {
+    };
+    provide('saveFormHandler', saveForm);
 
     // When user clicks the submit button
     watch(submitButtonPressed, (newValue) => {
