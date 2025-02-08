@@ -13,7 +13,7 @@
                         <v-list-item
                             v-for="node in idFilteredNodeShapeNames"
                             :title="node"
-                            @click="selectType(nodeShapeNames[node])">
+                            @click="selectType(nodeShapeNames[node], true)">
                         </v-list-item>
                     </v-list>
                 </v-navigation-drawer>
@@ -34,39 +34,44 @@
 
                                     <p class="mx-4 mb-4" v-html="formattedDescription"></p>
                                     
-                                    <div v-if="instanceItems.length">
-                                        <v-card v-for="r in instanceItems" class="mx-4 mb-4" :variant="r.title == queried_id ? 'outlined' : 'tonal'">
-                                            <v-card-title class="text-h6">
-                                                {{ r.title }}
-                                                <v-btn
-                                                    icon="mdi-pencil"
-                                                    variant="tonal"
-                                                    size="x-small"
-                                                    class="rounded-lg"
-                                                    @click="editInstanceItem(r)"
-                                                ></v-btn>
-                                            </v-card-title>
-                                            <v-card-subtitle>{{ toCURIE(r.props.subtitle, allPrefixes) }}</v-card-subtitle>
-                                            <v-card-text v-if="!formOpen">
-                                            <strong>Properties</strong><br>
-                                            <span v-for="(v, k, index) in r.props">
-                                                <span v-if="k == 'subtitle' || k == 'quad'"></span>
-                                                <span v-else-if="v.length == 1">
-                                                    &nbsp;&nbsp; <em>{{ toCURIE(k, allPrefixes) }}</em>: {{ v[0] }} <br>
-                                                </span>
-                                                <span v-else>
-                                                    &nbsp;&nbsp; <em>{{ toCURIE(k, allPrefixes) }}</em>: <br>
-                                                    <span v-for="el in v">
-                                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{ el }} <br>
+                                    <span v-if="classRecordsLoading">
+                                        <v-skeleton-loader type="list-item-avatar"></v-skeleton-loader>
+                                    </span>
+                                    <span v-else>
+                                        <div v-if="instanceItems.length">
+                                            <v-card v-for="r in instanceItems" class="mx-4 mb-4" :variant="r.title == queried_id ? 'outlined' : 'tonal'">
+                                                <v-card-title class="text-h6">
+                                                    {{ r.title }}
+                                                    <v-btn
+                                                        icon="mdi-pencil"
+                                                        variant="tonal"
+                                                        size="x-small"
+                                                        class="rounded-lg"
+                                                        @click="editInstanceItem(r)"
+                                                    ></v-btn>
+                                                </v-card-title>
+                                                <v-card-subtitle>{{ toCURIE(r.props.subtitle, allPrefixes) }}</v-card-subtitle>
+                                                <v-card-text v-if="!formOpen">
+                                                <strong>Properties</strong><br>
+                                                <span v-for="(v, k, index) in r.props">
+                                                    <span v-if="k == 'subtitle' || k == 'quad'"></span>
+                                                    <span v-else-if="v.length == 1">
+                                                        &nbsp;&nbsp; <em>{{ toCURIE(k, allPrefixes) }}</em>: {{ v[0] }} <br>
+                                                    </span>
+                                                    <span v-else>
+                                                        &nbsp;&nbsp; <em>{{ toCURIE(k, allPrefixes) }}</em>: <br>
+                                                        <span v-for="el in v">
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{ el }} <br>
+                                                        </span>
                                                     </span>
                                                 </span>
-                                            </span>
-                                            </v-card-text>
-                                        </v-card>
-                                    </div>
-                                    <div v-else style="margin-top: 1em; margin-left: 1em;">
-                                        <em>No items</em>
-                                    </div>
+                                                </v-card-text>
+                                            </v-card>
+                                        </div>
+                                        <div v-else style="margin-top: 1em; margin-left: 1em;">
+                                            <em>No items</em>
+                                        </div>
+                                    </span>
                                 </span>
                                 <span v-else style="margin-top: 1em; margin-left: 1em;">
                                     <em>Select a data type</em>
@@ -83,7 +88,12 @@
                                     >
                                         <v-expansion-panel-title> <h2><em>Editing: {{ toCURIE(f.shapeIRI, allPrefixes) }} </em></h2></v-expansion-panel-title>
                                         <v-expansion-panel-text density="compact">
-                                            <FormEditor :key="f.shapeIRI + '-'+ f.nodeIDX + '-form-' + f.formType" :shape_iri="f.shapeIRI" :node_idx="f.nodeIDX"></FormEditor>
+                                            <span v-if="idRecordLoading">
+                                                <v-skeleton-loader type="list-item-avatar"></v-skeleton-loader>
+                                            </span>
+                                            <span v-else>
+                                                <FormEditor :key="f.shapeIRI + '-'+ f.nodeIDX + '-form-' + f.formType" :shape_iri="f.shapeIRI" :node_idx="f.nodeIDX"></FormEditor>
+                                            </span>
                                         </v-expansion-panel-text>
                                     </v-expansion-panel>
                                 </v-expansion-panels>
@@ -93,6 +103,9 @@
                 </v-main>
             </v-layout>
         </v-card>
+        <v-dialog v-model="submitDialog" max-width="700">
+            <SubmitComp></SubmitComp>
+        </v-dialog>
     </span>
     <span v-else>
         <v-skeleton-loader type="article"></v-skeleton-loader>
@@ -101,7 +114,7 @@
 
 
 <script setup>
-    import { ref, computed, provide, watch, reactive, onBeforeUpdate } from 'vue'
+    import { ref, computed, provide, watch, reactive, onBeforeUpdate, nextTick, inject, toRaw} from 'vue'
     import rdf from 'rdf-ext';
     import { useConfig } from '@/composables/configuration';
     import { useGraphData } from '@/composables/graphdata';
@@ -115,11 +128,11 @@
         getLiteralAndNamedNodes,
         getSubjectTriples,
         toIRI,
-        dlTTL,
         addCodeTagsToText, 
         findObjectByKey
     } from '../modules/utils';
     import {SHACL, RDF, RDFS, DLTHINGS, XSD} from '@/modules/namespaces'
+import SubmitComp from './SubmitComp.vue';
 
     const props = defineProps({
         configUrl: String
@@ -128,6 +141,8 @@
     const queried_id = ref(null)
     const showShapesWoID = ref(true)
     const { config, configFetched, configError} = useConfig(props.configUrl);
+    const classRecordsLoading = ref(false)
+    const idRecordLoading = ref(false)
     provide('config', config)
     provide('configFetched', configFetched)
     provide('configError', configError)
@@ -140,9 +155,9 @@
         graphPrefixes,
         serializedGraphData,
         graphTriples,
-        serializeNodesToTSV,
         updateSerializedData,
-        triggerReactivity
+        triggerReactivity,
+        fetchFromService
     } = useGraphData(config)
     const {
         classData,
@@ -174,6 +189,7 @@
         save_node,
         quadsToFormData,
     } = useFormData()
+    provide('fetchFromService', fetchFromService)
     provide('formData', formData)
     provide('batchMode', batchMode)
     provide('updateSerializedData', updateSerializedData)
@@ -193,7 +209,6 @@
     provide('serializedGraphData', serializedGraphData)
     provide('graphTriples', graphTriples)
     provide('graphPrefixes', graphPrefixes)
-    provide('serializeNodesToTSV', serializeNodesToTSV)
     provide('serializedClassData', serializedClassData)
     provide('classData', classData)
     provide('classPrefixes', classPrefixes)
@@ -209,6 +224,18 @@
     provide('page_ready', page_ready)
     const allPrefixes = reactive({});
     provide('allPrefixes', allPrefixes)
+    const submitButtonPressed = inject('submitButtonPressed')
+    const canSubmit = inject('canSubmit')
+    const submitDialog = ref(false)
+    provide('submitDialog', submitDialog)
+    const configPrefixes = ref({})
+
+    // When user clicks the submit button
+    watch(submitButtonPressed, (newValue) => {
+        if (newValue) {
+            submitDialog.value = true            
+        }
+    }, { immediate: true });
 
     watch(configFetched, async (newValue) => {
         if (newValue) {
@@ -216,10 +243,13 @@
                 ID_IRI.value = config.value.id_iri
                 console.log(`ID_IRI is: ${ID_IRI.value}`)
             }
-            
             if (config.value.hasOwnProperty("show_shapes_wo_id")) {
                 showShapesWoID.value = config.value.show_shapes_wo_id
             }
+            if (config.value.hasOwnProperty("prefixes")) {
+                configPrefixes.value = config.value.prefixes
+            }
+
             await getGraphData()
             await getClassData()
             await getSHACLschema()
@@ -281,6 +311,14 @@
         if (newValue) {
             // Get all prefixes and derive context from it
             Object.assign(allPrefixes, shapePrefixes, graphPrefixes, classPrefixes)
+            var allPrefixKeys = Object.keys(allPrefixes)
+            Object.keys(configPrefixes.value).forEach(p => {
+                if (allPrefixKeys.indexOf(p) < 0) {
+                    allPrefixes[p] = configPrefixes.value[p]
+                }
+            });
+            console.log("ALL PREFIXES READY")
+            console.log(toRaw(allPrefixes))
             setViewFromQuery()
         }
     }, {immediate: true });
@@ -293,11 +331,20 @@
         } else { return '-'}
     })
 
-    function selectType(IRI) {
+    async function selectType(IRI, fromUser) {
         selectedIRI.value = IRI
         selectedShape.value = nodeShapes.value[IRI]
+
+        if (config.value.use_service) {
+            classRecordsLoading.value = true
+            // First fetch rdf data from configured service
+            await fetchFromService('get-records', IRI, allPrefixes)
+            classRecordsLoading.value = false
+            // Then continue with the rest
+            await nextTick();
+        }
         instanceItems.value = getInstanceItems()
-        updateURL(IRI)
+        if (fromUser) updateURL(IRI)
     }
 
     function updateURL(IRI) {
@@ -311,7 +358,7 @@
         return url.searchParams
     }
 
-    function setViewFromQuery() {
+    async function setViewFromQuery() {
         const qparams = getQueryParams()
         const nodeShape = qparams.get("sh:NodeShape")
         const instance_id = qparams.get("id")
@@ -328,9 +375,7 @@
             // check if iri is in 
             var nodeShapeIRI = toIRI(nodeShape, allPrefixes)
             if (nodeShapes.value[nodeShapeIRI]) {
-                selectedIRI.value = nodeShapeIRI
-                selectedShape.value = nodeShapes.value[nodeShapeIRI]
-                instanceItems.value = getInstanceItems()
+                await selectType(nodeShapeIRI)
             } else {
                 console.log("Queried nodeshape not found in shacl schema")
             }
@@ -349,9 +394,10 @@
         addForm(selectedIRI.value, newItemIdx.value, 'new')
         addItem.value = true
         formOpen.value = true
+        canSubmit.value = false
     }
 
-    function editInstanceItem(instance) {
+    async function editInstanceItem(instance) {
         // When user selects to edit, it will be either a namedNode or blankNode
         // and the related information would already be in the graph as triples
         // Also, related information might already be in formData if the user
@@ -367,16 +413,26 @@
         } else {
             editShapeIRI.value = toIRI(objectTerm.value, allPrefixes)
         }
-        editItemIdx.value = instance.value
+        editItemIdx.value = instance.value // this is the id
         console.log(editShapeIRI.value)
         console.log(editItemIdx.value)
+
+        if (config.value.use_service) {
+            idRecordLoading.value = true
+            // First fetch rdf data from configured service
+            await fetchFromService('get-record', editItemIdx.value, allPrefixes)
+            idRecordLoading.value = false
+            // Then continue with the rest
+            await nextTick();
+        }
+
         // if the node is already in the formData, edit that
         if (formData[editShapeIRI.value]?.[editItemIdx.value]) {
             editMode.form = true
             editMode.graph = false
         } else {
             // If not, we need to create the formData entries from quads in the dataset
-            quadsToFormData(editShapeIRI.value, subjectTerm, graphData, ID_IRI.value)
+            quadsToFormData(editShapeIRI.value, subjectTerm, graphData, ID_IRI.value, allPrefixes)
             editMode.form = false
             editMode.graph = true
         }
@@ -384,6 +440,8 @@
         addForm(editShapeIRI.value, editItemIdx.value, 'edit')
         editItem.value = true
         formOpen.value = true
+        canSubmit.value = false
+        window.scrollTo(0,0);
     }
 
 
@@ -468,6 +526,7 @@
         } else {
             editItem.value = false
             formOpen.value = false
+            canSubmit.value = true
             editMode.form = editMode.graph = false
             instanceItems.value = getInstanceItems()
         }
@@ -486,6 +545,15 @@
         font-family: monospace;
         border-radius: 4px;
         border: 1px solid #ddd;
+    }
+    .v-expansion-panel-text {
+        display: unset !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .v-expansion-panel-text__wrapper {
+        margin: 0 !important;
+        padding: 0 !important;
     }
 </style>
 

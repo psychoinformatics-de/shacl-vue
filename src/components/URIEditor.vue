@@ -145,6 +145,7 @@
             } else {
                 URIprefix = null;
                 URIpath = '';
+                enterCURIE.value = false
             }
         }
         return {

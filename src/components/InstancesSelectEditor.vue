@@ -80,7 +80,7 @@
 </template>
 
 <script setup>
-    import { inject, watch, onBeforeMount, ref, provide, computed, nextTick} from 'vue'
+    import { inject, watch, onBeforeMount, onMounted, ref, provide, computed, nextTick} from 'vue'
     import { useRules } from '../composables/rules'
     import rdf from 'rdf-ext'
     import {SHACL, RDF, RDFS } from '@/modules/namespaces'
@@ -109,9 +109,15 @@
     const graphData = inject('graphData');
     const allPrefixes = inject('allPrefixes');
     const classData = inject('classData');
+    const config = inject('config');
+    const fetchFromService = inject('fetchFromService');
     const localPropertyShape = ref(props.property_shape)
     const propClass = ref(null)
     propClass.value = localPropertyShape.value[SHACL.class.value] ?? false
+    if (config.value.use_service) {
+        const allclass_array = getAllClasses(propClass.value)
+        await getAllRecordsFromService(allclass_array)
+    }
     getItemsToList()
     const editorComp = ref(null)
     const { rules } = useRules(localPropertyShape.value)
@@ -144,7 +150,7 @@
         removeForm()
     };
     provide('saveFormHandler', saveDialogForm);
-    
+
     // ------------------- //
     // Computed properties //
     // ------------------- //
@@ -178,14 +184,14 @@
         return items
     })
 
+    
+
     // --------- //
     // Functions //
     // --------- //
 
     function valueParser(value) {
         // Parsing internalValue into ref values for separate subcomponent(s)
-        console.log("ValueParser")
-        console.log(value)
         if (!itemsToList.value) return { selectedInstance: null };
         var inst = findObjectByKey(itemsToList.value, "value", value)
         return { selectedInstance: inst ?? null }
@@ -193,8 +199,6 @@
 
     function valueCombiner(values) {
         // Determing internalValue from subvalues/subcomponents
-        console.log("ValueCombiner")
-        console.log(values.selectedInstance)
         return values.selectedInstance ? values.selectedInstance.value : null
     }
 
@@ -212,6 +216,30 @@
         console.log(newNodeIdx.value)
         menu.value = false;
         addForm(selectedAddItemShapeIRI.value, newNodeIdx.value, 'new')
+    }
+
+    function getAllClasses(main_class) {
+        return [main_class].concat(getSubClasses(main_class))
+    }
+
+
+    function getSubClasses(main_class) {
+        // Find quads in the subclass datasetnodes with predicate rdfs:subClassOf
+        // object main_class, and return as an array of terms
+        const subClasses = rdf.grapoi({ dataset: classData })
+            .hasOut(rdf.namedNode(RDFS.subClassOf.value), rdf.namedNode(main_class))
+            .quads();
+        var myArr = []
+        Array.from(subClasses).forEach(quad => {
+            myArr.push(quad.subject.value)
+        });
+        return myArr
+    }
+
+    async function getAllRecordsFromService(iri_array) {
+        for (const iri of iri_array) {
+            const result = await fetchFromService('get-records', iri, allPrefixes)
+        }
     }
 
     function getItemsToList() {

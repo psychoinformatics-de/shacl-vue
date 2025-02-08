@@ -12,16 +12,18 @@
             <span v-if="formData[localNodeUid][localNodeIdx]">
                 <v-row no-gutters v-for="(triple, triple_idx) in formData[localNodeUid][localNodeIdx][my_uid]" :key="localNodeUid + '-' + my_uid + '-' + triple_idx">
                     <v-col cols="9">
-                        <component
-                            v-model="formData[localNodeUid][localNodeIdx][my_uid][triple_idx]"
-                            :is="matchedComponent"
-                            :property_shape="localPropertyShape"
-                            :node_uid="localNodeUid"
-                            :node_idx="localNodeIdx"
-                            :triple_uid="my_uid"
-                            :triple_idx="triple_idx"
-                            >
-                        </component>
+                        <Suspense>
+                            <component
+                                v-model="formData[localNodeUid][localNodeIdx][my_uid][triple_idx]"
+                                :is="matchedComponent"
+                                :property_shape="localPropertyShape"
+                                :node_uid="localNodeUid"
+                                :node_idx="localNodeIdx"
+                                :triple_uid="my_uid"
+                                :triple_idx="triple_idx"
+                                >
+                            </component>
+                        </Suspense>
                     </v-col>
                     <v-col>
                             &nbsp;

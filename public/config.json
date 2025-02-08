@@ -15,5 +15,12 @@
         }
     },
     "id_iri": "https://concepts.datalad.org/s/things/v1/id",
-    "show_shapes_wo_id": false
+    "show_shapes_wo_id": false,
+    "use_service": false,
+    "service_base_url": "",
+    "service_endpoints":  {
+        "post-record": "record/{name}&format=ttl",
+        "get-record": "record?id={curie}&format=ttl",
+        "get-records": "records/{name}?format=ttl"
+    }
 }
