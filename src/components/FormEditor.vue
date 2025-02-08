@@ -54,6 +54,9 @@
             ></v-switch>
           </div>
           <NodeShapeEditor :key="localShapeIri" :shape_iri="localShapeIri" :node_idx="localNodeIdx"/>
+          <div style="display:flex; ">
+            <v-btn icon="mdi-arrow-up-bold" @click="scrollToTop()" style="margin-left: auto;"></v-btn>
+          </div>
       </v-form>
     </span>
   </v-sheet>
@@ -220,6 +223,10 @@
     if (typeof cancelFormHandler === 'function') {
       cancelFormHandler();
     }
+  }
+
+  function scrollToTop() {
+    window.scrollTo(0,0);
   }
 
   function goToError(e) {
