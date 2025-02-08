@@ -14,8 +14,11 @@
 import { reactive, ref, computed, inject, toRaw} from 'vue'
 import rdf from 'rdf-ext';
 import { SHACL, RDF } from '@/modules/namespaces';
-import { isEmptyObject, getSubjectTriples, getObjectTriples } from '@/modules/utils';
+import { isEmptyObject, getSubjectTriples, getObjectTriples, toIRI} from '@/modules/utils';
 import formatsPretty from '@rdfjs/formats/pretty.js'
+import { postRDF } from '@/modules/io'
+import { useGraphData } from '@/composables/graphdata'
+const { fetchFromService } = useGraphData()
 
 export function useFormData() {
 
@@ -135,8 +138,11 @@ export function useFormData() {
             }
 
             var shape = nodeShapes[nodeshape_iri]
-            // console.log(`Node shape: ${shape}`)
+            // console.log(`Node shape:`)
+            // console.log(shape)
             var properties = shape.properties
+            // console.log(`Node shape properties:`)
+            // console.log(properties)
             // Subject should either be a named node or blank node
             // - named node if any of the properties is an ID (as defined by some IRI as constant or from config, see declarations above)
             // - blank node if no ID found
@@ -152,11 +158,11 @@ export function useFormData() {
             }
             // Add the first quad, specifying rdf-type of the node
             let firstQuad = rdf.quad(subject, rdf.namedNode(RDF.type.value), rdf.namedNode(nodeshape_iri))
-            console.log(`Adding quad to data graph:\n${firstQuad.toString()}`)
+            // console.log(`Adding first quad (rdftype of node) to data graph:\n${firstQuad.toString()}`)
             graphData.add(firstQuad)
             // Now: loop through all keys, i.e. properties of shape, i.e. triple predicates
             for (var pred of Object.keys(formData[nodeshape_iri][node_iri])) {
-                // console.log(`\t- processing predicate: ${pred}`)
+                console.log(`\t- processing predicate: ${pred}`)
                 // Only process entered values
                 if (Array.isArray(formData[nodeshape_iri][node_iri][pred]) &&
                     formData[nodeshape_iri][node_iri][pred].length == 1 &&
@@ -234,14 +240,146 @@ export function useFormData() {
                 formData[nodeshape_iri][subject_iri] = reactive(structuredClone(toRaw(formData[nodeshape_iri][node_iri])))
                 delete formData[nodeshape_iri][node_iri]
             }
-            // at the end, what to do with current data in formdata? delete node element?
+            // at the end, what to do with current data in formdata?
+            // we keep it there because this keeps track of changes during
+            // the session, so that we know what to submit back to the service.
         } else {
             console.error(`\t- Node ${nodeshape_iri} does not exist`)
         }
+
+        console.log("formData saved to graph. Current formData:")
+        console.log(toRaw(formData))
+    }
+
+    function submitFormData(nodeShapes, id_iri) {
+        // Send a POST to a service for every record in formData
+        for (var class_uri of Object.keys(formData)) {
+            // class_uri: all classes that were edited
+            // Get shapes for reference
+            var nodeShape = nodeShapes[class_uri]
+            var propertyShapes = nodeShape.properties
+            for (var record_id of Object.keys(formData[class_uri])) {
+                // Turn the record/node into quads
+                var quads = formNodeToQuads(class_uri, record_id, nodeShapes, propertyShapes, id_iri)
+                // Create an rdf dataset per record
+                var ds = rdf.dataset()
+                quads.forEach(quad => {
+                    ds.add(quad)
+                });
+                // A POST should happen per record
+                postRDF(endpoint, ds)
+            }
+        }
+    }
+
+    function formNodeToQuads(class_uri, record_id, nodeShapes, propertyShapes, id_iri) {
+        // Node = record_id = a specific identifiable object that was edited
+        // Empty array to store quads
+        var quadArray = []
+        // Identify the record's subject (named or blank node)
+        subject = getRecordSubjectTerm(record_id, formData[class_uri][record_id])
+        // Add the triple stating the subject is of type class
+        let firstQuad = rdf.quad(subject, rdf.namedNode(RDF.type.value), rdf.namedNode(class_uri))
+        quadArray.push(firstQuad)
+
+        // Now we need to add all triples relating to the properties of the record.
+        for (var triple_predicate of Object.keys(formData[class_uri][record_id])) {
+            // triple_predicate: all properties of an identifiable object
+            // Only process entered values, i.e. ignore property if it has value: [null]
+            if (Array.isArray(formData[class_uri][record_id][triple_predicate]) &&
+                formData[class_uri][record_id][triple_predicate].length == 1 &&
+                formData[class_uri][record_id][triple_predicate][0] === null) {
+                continue;
+            }
+            // Don't add id_iri triple, since it would have been added already if it exists
+            if (triple_predicate == id_iri) {
+                continue;
+            }
+            // now set the predicate as a named node
+            var predicate = rdf.namedNode(triple_predicate)
+            // In order to set the node type of the object, we first need to figure it out
+            var [nodeFunc, dt] = getPropertyNodeKind(property_iri, propertyShapes)
+            // Now we can create the object nodes for each property
+            for (var val of formData[class_uri][record_id][triple_predicate]) {
+                // val: all values of a given property of an identifiable object
+                let triple_object
+                if (dt) {
+                    triple_object = nodeFunc(String(val), dt)
+                } else {
+                    triple_object = nodeFunc(val)
+                }
+                // and finally we can add the quads to the store
+                let quad = rdf.quad(subject, predicate, triple_object)
+                quadArray.push(quad)
+            }
+        }
+        // TODO: see the following in saveNode function:
+        // If this was in editmode and the node IRI has been altered,
+        // i.e. node_iri is not the same as the new value in formData,
+        // then we need to RE-reference existing triples in the graph that has the current node_iri as object.
+        // This is only necessary for namedNodes where the IRI changed. The process is:
+        // - only do the following if the node is a namedNode and if the IRI changed during editing
+        // - find all triples with the node IRI as object -> oldTriples
+        // - for each triple in oldTriples: create a new one with same subject and predicate
+        //   and with new IRI as object, then delete the old triple
+
+        // For now we ignore this ^^, i.e. we just add formData to new rdf datasets
+        // and nothing more. This is to be tested to see the implications. TODO
+    }
+
+    function getRecordSubjectTerm(record_id, record) {
+        // A record is an object with property IRIs as keys and arrays as values
+        // If the configured id_iri is a property of the record, this means that
+        // property's value is the subject, which should be a named node.
+        // If the configured id_iri is NOT a property of the record, it means
+        // the record_id itself is the subject, which is a blank node.
+        var subject
+        if (Object.keys(node).indexOf(id_iri) >= 0) {
+            subject_iri = record[id_iri][0]
+            subject = rdf.namedNode(subject_iri)
+        } else {
+            subject = rdf.blankNode(record_id)
+        }
+        return subject
+    }
+
+    function getPropertyNodeKind(property_iri, propertyShapes) {
+        // Find associated property shape, for information about nodekind
+        var propertyShape = propertyShapes.find((prop) => prop[SHACL.path.value] == property_iri)
+        var nodeFunc = null
+        var dt = null
+        if (propertyShape.hasOwnProperty(SHACL.nodeKind.value)) {
+            // possible options = sh:BlankNode, sh:IRI, sh:Literal, sh:BlankNodeOrIRI, sh:BlankNodeOrLiteral, sh:IRIOrLiteral
+            // if sh:nodeKind == sh:Literal
+            if (propertyShape[SHACL.nodeKind.value] == SHACL.Literal.value) {
+                nodeFunc = rdf.literal
+                // if sh:datatype exists
+                if (propertyShape.hasOwnProperty(SHACL.datatype.value)) {
+                    dt = propertyShape[SHACL.datatype.value]
+                }
+            // if sh:nodeKind == sh:IRI or sh:BlankNodeOrIRI
+            } else if ([SHACL.IRI.value, SHACL.BlankNodeOrIRI.value].includes(propertyShape[SHACL.nodeKind.value])) {
+                nodeFunc = rdf.namedNode
+            } else {
+                console.error(`\t- NodeKind not supported: ${propertyShape[SHACL.nodeKind.value]}\n\t\tAdding triple with literal object to graphData`)
+                nodeFunc = rdf.literal
+            }
+        } else if (propertyShape.hasOwnProperty(SHACL.in.value)) {
+            // This is a temporary workaround; should definitely not be permanent
+            // Assume Literal nodekind for any arrays
+            console.log(`\t- NodeKind not found for property shape: ${property_iri}; found 'sh:in'. Setting to default literal`)
+            nodeFunc = rdf.literal
+        }
+        else {
+            console.log(`\t- NodeKind not found for property shape: ${property_iri}. Setting to default literal`)
+            nodeFunc = rdf.literal
+        }
+        return [nodeFunc, dt]
     }
 
 
-    function quadsToFormData(nodeshape_iri, subject_term, graphData, id_iri) {
+    function quadsToFormData(nodeshape_iri, subject_term, graphData, id_iri, prefixes) {
+        console.log("Adding quads to formdata...")
         // Subject term should be namedNode or blankNode
         var node_iri = subject_term.value
         add_empty_node(nodeshape_iri, node_iri)
@@ -266,7 +404,7 @@ export function useFormData() {
         var quadArray = getSubjectTriples(graphData, subject_term)
         var IdQuadExists = false
         quadArray.forEach((quad) => {
-            var triple_uid = quad.predicate.value
+            var triple_uid = toIRI(quad.predicate.value, prefixes)
             if (triple_uid === id_iri) {
                 IdQuadExists = true
             }
@@ -281,7 +419,6 @@ export function useFormData() {
             formData[nodeshape_iri][node_iri][id_iri][l-1] = node_iri
         }
     }
-
 
     function clearObjectKeys(obj) {
         for (var key in obj) {
@@ -310,5 +447,6 @@ export function useFormData() {
         remove_triple,
         save_node,
         quadsToFormData,
+        submitFormData,
     }
 }
