@@ -43,11 +43,19 @@
 
 
 <script setup>
-  import { ref } from 'vue'
+  import { ref, provide } from 'vue'
   const explore = ref(true)
   function startExploring() {
       explore.value = true;
   }
+  const canSubmit = ref(true)
+  const submitButtonPressed = ref(false)
+  function submitFn() {
+      submitButtonPressed.value = true
+  }
+  provide('submitButtonPressed', submitButtonPressed)
+  provide('submitFn', submitFn)
+  provide('canSubmit', canSubmit)
 
 </script>
 
