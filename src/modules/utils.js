@@ -49,7 +49,6 @@ export function toIRI(CURIE, prefixes) {
   var pref = parts[0]
   var prop = parts[1]
   if (Object.keys(prefixes).indexOf(pref) < 0) {
-    console.log("unknown prefix in curie, returning")
     return CURIE
   }
   return prefixes[pref] + prop
