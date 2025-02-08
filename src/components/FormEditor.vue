@@ -38,14 +38,14 @@
       </div>
     </div>
 
-    <span v-if="localNodeIdx && localShapeIri" style="display: flex; position: relative; ">
+    <span v-if="localNodeIdx && localShapeIri">
       <v-form ref="form" v-model="formValid" validate-on="lazy input" @submit.prevent="saveForm()" >
           
           
           <br>
           <p v-html="formattedDescription" class="quote-description"></p>
           <br>
-          <div style="margin-left: auto; " class="top-1">
+          <div class="top-1">
             <v-switch
               v-model="show_all_fields"
               :label="`All fields`"
