@@ -4,7 +4,8 @@ import { readRDF } from '@/modules/io'
 import rdf from 'rdf-ext';
 import { SHACL , RDF} from '../modules/namespaces'
 import formatsPretty from '@rdfjs/formats/pretty.js'
-import { downloadTSV, toCURIE, toIRI } from '@/modules/utils';
+import { downloadTSV, toCURIE, toIRI, replaceServiceIdentifier} from '@/modules/utils';
+import { useToken } from '@/composables/tokens'
 
 const basePath = import.meta.env.BASE_URL || '/';
 
@@ -21,6 +22,7 @@ export function useGraphData(config) {
     rdfPretty.formats.import(formatsPretty)
     const batchMode = ref(false);
     const fetchedRequests = new Set()
+    const { token } = useToken();
 
     async function getGraphData(url) {
         return new Promise((resolve, reject) => {
@@ -54,7 +56,11 @@ export function useGraphData(config) {
                 getURL = url
             }
             batchMode.value = true;
-            readRDF(getURL)
+            var headers = { "Content-Type": "text/turtle" }
+            if (token.value !== null && token.value !== "null") {
+                headers['X-DumpThings-Token'] = token.value;
+            }
+            readRDF(getURL, headers)
                 .then(quadStream => {
                     // Load prefixes
                     quadStream.on('prefix', (prefix, ns) => {
@@ -130,6 +136,8 @@ export function useGraphData(config) {
 
 
     async function fetchFromService(endpoint, arg, prefixes) {
+        // endpoint: the name of the endpoint defined in the config
+        // arg: the URI of the parameter to be formatted and made part of the query string
         const serviceBaseURL = config.value.service_base_url
         const serviceEndpoints = config.value.service_endpoints
         if (!(serviceBaseURL || serviceEndpoints)) {
@@ -162,28 +170,6 @@ export function useGraphData(config) {
                     reject(error);
                 });
         });
-    }
-
-    function replaceServiceIdentifier(id, arg_string, prefixes) {
-        // e.g.: "record?id={curie}&format=ttl";
-
-        // First extract the part inside the curly brackets
-        const id_type = arg_string.match(/{(.*?)}/)[1];
-        var replacement_id
-        console.log(`id_type = ${id_type}`)
-
-        if (id_type == "curie") {
-            replacement_id = toCURIE(id, prefixes)
-        } else if (id_type == "name") {
-            replacement_id = toCURIE(id, prefixes, "parts").property
-        } else if (id_type == "uri") {
-            replacement_id = id
-        } else {
-            replacement_id = id
-        }
-        console.log(replacement_id)
-        // Replace curly brackets and everything in between
-        return arg_string.replace(/{.*?}/, encodeURIComponent(replacement_id));
     }
 
     // expose managed state as return value

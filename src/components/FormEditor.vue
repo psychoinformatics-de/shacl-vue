@@ -19,6 +19,7 @@
             <v-btn
                 text="Save"
                 type="submit"
+                @click="saveForm()"
                 prepend-icon="mdi-content-save"
             ></v-btn>
           </div>
@@ -181,14 +182,14 @@
         // - find all triples with the node IRI as object -> oldTriples
         // - for each triple in oldTriples: create a new one with same subject and predicate
         //   and with new IRI as object, then delete the old triple
-        save_node(localShapeIri.value, localNodeIdx.value, nodeShapes.value, graphData, editMode.form || editMode.graph, ID_IRI.value);
+        console.log("going to save form now")
+        save_node(localShapeIri.value, localNodeIdx.value, nodeShapes.value, graphData, editMode.form || editMode.graph, ID_IRI.value, allPrefixes);
         removeForm()
         if (typeof saveFormHandler === 'function') {
           saveFormHandler();
         }
       } else {
         console.log("Still some validation errors, bro");
-
         validationResult.errors.forEach(error => {
           const id = error.id;
           const fieldData = fieldMap[id];
