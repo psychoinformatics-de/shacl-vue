@@ -103,10 +103,10 @@
                 </v-main>
             </v-layout>
         </v-card>
-        <v-dialog v-model="submitDialog" max-width="700">
+        <v-dialog v-model="submitDialog" max-width="500">
             <SubmitComp></SubmitComp>
         </v-dialog>
-        <v-dialog v-model="noSubmitDialog" max-width="700" @click:outside="noSubmitDialog = false">
+        <v-dialog v-model="noSubmitDialog" max-width="500" @click:outside="noSubmitDialog = false">
             <v-card>
                 <v-card-title>Nothing to submit</v-card-title>
                 <v-card-text>You have no changes to submit</v-card-text>

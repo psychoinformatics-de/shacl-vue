@@ -2,23 +2,37 @@
     <v-card>
         <v-card-title>Submit metadata</v-card-title>
         <v-card-text>
-            <span v-if="tokenExists">
-                Are you sure you want to continue?
+            <v-skeleton-loader
+                :loading="awaitingResponse"
+                type="paragraph"
+            >
+                <span v-if="!responseReceived">
+                    <span v-if="tokenExists">
+                        Are you sure you want to continue?
+                    </span>
+                    <span v-else>
+                        Please add a valid token before submitting your changes.
+                        <v-form ref="submitForm">
+                            <v-text-field
+                                v-model="tokenval"
+                                label="Token"
+                                :rules="rules"
+                            ></v-text-field>
+                        </v-form>
+                    </span>
+                </span>
+            </v-skeleton-loader>
+            <span v-if="responseReceived">
+                <v-icon v-if="responseSuccess" style="color:green">mdi-check-circle</v-icon>
+                <v-icon v-if="responseFailure" style="color:red">mdi-alert-circle</v-icon>
+                {{ responseText }}
             </span>
-            <span v-else>
-                Please add a valid token before submitting your changes.
-                <v-form ref="submitForm">
-                    <v-text-field
-                        v-model="tokenval"
-                        label="Token"
-                        :rules="rules"
-                    ></v-text-field>
-                </v-form>
-            </span>
+
         </v-card-text>
         <v-card-actions>
-            <v-btn @click="cancelSubmit()"><v-icon>mdi-cancel</v-icon> Cancel</v-btn>
-            <v-btn type="submit" @click="submit()"><v-icon>mdi-check-circle-outline</v-icon> Submit</v-btn>
+            <v-btn v-if="!responseReceived" @click="cancelSubmit()"><v-icon>mdi-cancel</v-icon> Cancel</v-btn>
+            <v-btn v-if="!responseReceived"type="submit" @click="submit()"><v-icon>mdi-check-circle-outline</v-icon> Submit</v-btn>
+            <v-btn v-if="responseReceived" @click="cancelSubmit()"><v-icon>mdi-check-circle-outline</v-icon> OK</v-btn>
         </v-card-actions>
     </v-card>
 </template>
@@ -43,6 +57,11 @@
     const ID_IRI = inject('ID_IRI')
     const config = inject('config')
     const allPrefixes = inject('allPrefixes');
+    const awaitingResponse = ref(false)
+    const responseReceived = ref(false)
+    const responseSuccess = ref(false)
+    const responseFailure = ref(false)
+    const responseText = ref("")
 
     const rules = [
         value => {
@@ -61,7 +80,22 @@
             }
             setToken(tokenval.value)
         }
+        awaitingResponse.value = true
         var submit_result = await submitFormData(nodeShapes.value, ID_IRI.value, allPrefixes, config)
+        console.log("submit_result")
+        console.log(submit_result)
+
+        if (submit_result.ok) {
+            responseSuccess.value = true;
+            responseFailure.value = false;
+            responseText.value = "Your metadata submission was successful!"
+        } else {
+            responseSuccess.value = false;
+            responseFailure.value = true;
+            responseText.value = "There was an error during metadata submission, please try again or report this to your administrator if the problem persists."
+        }
+        responseReceived.value = true
+        awaitingResponse.value = false
     }
 
     function cancelSubmit() {

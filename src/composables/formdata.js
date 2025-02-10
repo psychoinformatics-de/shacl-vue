@@ -127,145 +127,33 @@ export function useFormData() {
 
     function save_node(nodeshape_iri, node_iri, nodeShapes, graphData, editMode, id_iri, prefixes) {
 
-        // Check if the node exists beforehand
         console.log(`Saving node of shape: ${nodeshape_iri}`)
         var changeNodeIdx = false
-        var rereferenceTriples = false
         var subject_iri = null
+        // Check if the node exists beforehand
         if (formData[nodeshape_iri]) {
-            // console.log("Node has entry in formData")
-            // console.log(`Current node value: ${formData[nodeshape_iri].at(-1)}`)
-
             // If we are in edit more, the first step is to delete existing quads from graphData
             if (editMode) {
                 console.log("saving while in edit mode -> delete preexisting quads from dataset")
                 graphData.deleteMatches(rdf.namedNode(node_iri), null, null, null)
             }
 
-            var shape = nodeShapes[nodeshape_iri]
-            // console.log(`Node shape:`)
-            // console.log(shape)
-            var properties = shape.properties
-            // console.log(`Node shape properties:`)
-            // console.log(properties)
-            // Subject should either be a named node or blank node
-            // - named node if any of the properties is an ID (as defined by some IRI as constant or from config, see declarations above)
-            // - blank node if no ID found
-            var subject
-            if (Object.keys(formData[nodeshape_iri][node_iri]).indexOf(id_iri) >= 0) {
-                // console.log(`\t- node instance has ID field: ${formData[nodeshape_iri][node_iri][id_iri][0]}`)
-                subject_iri = formData[nodeshape_iri][node_iri][id_iri][0]
-                subject = rdf.namedNode(subject_iri)
+            // Then we generate the quads
+            var nodeShape = nodeShapes[nodeshape_iri]
+            var propertyShapes = nodeShape.properties
+            var quads = formNodeToQuads(nodeshape_iri, node_iri, nodeShapes, propertyShapes, id_iri, prefixes)
+            // and add them to the dataset
+            quads.forEach(quad => {
+                graphData.add(quad)
+            });
+
+            // Some next steps depend on the type of the record's subject
+            var subject = quads[0].subject
+            if (subject.termType === "NamedNode") {
                 changeNodeIdx = true
-            } else {
-                // console.log(`\t- node instance DOES NOT have ID field`)
-                subject = rdf.blankNode(node_iri) // node_iri is created with crypto.randomUUID(), so it is unique
+                subject_iri = subject.value
             }
-            // Add the first quad, specifying rdf-type of the node
-            console.log("Adding rdftype quad")
-            let firstQuad = rdf.quad(subject, rdf.namedNode(RDF.type.value), rdf.namedNode(nodeshape_iri))
-            console.log(`object:${firstQuad.object.value}\nobject datatype:${firstQuad.object.datatype?.value}\nobject language:${firstQuad.object.language}`);
-            graphData.add(firstQuad)
 
-            // console.log(`Adding first quad (rdftype of node) to data graph:\n${firstQuad.toString()}`)
-            
-            // Now: loop through all keys, i.e. properties of shape, i.e. triple predicates
-            for (var pred of Object.keys(formData[nodeshape_iri][node_iri])) {
-                console.log(`\t- processing predicate: ${pred}`)
-                // Only process entered values
-                if (Array.isArray(formData[nodeshape_iri][node_iri][pred]) &&
-                    formData[nodeshape_iri][node_iri][pred].length == 1 &&
-                    formData[nodeshape_iri][node_iri][pred][0] === null) {
-                    // console.log("Node predicate has no value, skipping")
-                    continue;
-                }
-                // Don't add ID quad:
-                if (pred == id_iri) {
-                    continue;
-                }
-                // Don't add properties that should be ignored
-                if (ignoredProperties.indexOf(pred) >= 0) {
-                    console.log(`Not saving predicate: ${pred}`)
-                    continue
-                }
-                var predicate = rdf.namedNode(pred)
-                // Find associated property shape, for information about nodekind
-                var property_shape = properties.find((prop) => prop[SHACL.path.value] == pred)
-                var nodeFunc = null
-                var dt = null
-                if (property_shape.hasOwnProperty(SHACL.nodeKind.value)) {
-                    // options = sh:BlankNode, sh:IRI, sh:Literal, sh:BlankNodeOrIRI, sh:BlankNodeOrLiteral, sh:IRIOrLiteral
-                    if (property_shape[SHACL.nodeKind.value] == SHACL.Literal.value) {
-                        // sh:nodeKind == sh:Literal
-                        nodeFunc = rdf.literal
-                        // sh:datatype exists
-                        if (property_shape.hasOwnProperty(SHACL.datatype.value)) {
-                            dt = property_shape[SHACL.datatype.value]
-                        }
-                    } else if (property_shape[SHACL.nodeKind.value] == SHACL.IRI.value) {
-                        // sh:nodeKind == sh:IRI
-                        nodeFunc = rdf.namedNode
-                    } else if (property_shape[SHACL.nodeKind.value] == SHACL.BlankNode.value) {
-                        // sh:nodeKind == sh:BlankNode
-                        nodeFunc = rdf.blankNode
-                    } else if (property_shape[SHACL.nodeKind.value] == SHACL.BlankNodeOrIRI.value) {
-                        // sh:nodeKind == sh:BlankNodeOrIRI
-                        // If the same property shape has a sh:class field, and if that class
-                        // has a related property shape which has the sh:path field value as 
-                        // the id_iri, then it means the range of the property is a named node,
-                        // otherwise it's a blank node (because the object does not have a
-                        // configured identifier).
-                        // If there's no class field, I am not exactly sure if it should be
-                        // blank node or named node. Defaulting to named node for now.
-                        if (property_shape.hasOwnProperty(SHACL.class.value)) {
-                            var shClass = property_shape[SHACL.class.value];
-                            // this now assumes that the class is part of the driving shacl shapes graph
-                            var associatedNodeShape = nodeShapes[toIRI(shClass, prefixes)]
-                            var hasIdField = associatedNodeShape.properties.find((prop) => prop[SHACL.path.value] == id_iri)
-                            if (hasIdField) {
-                                nodeFunc = rdf.namedNode
-                            } else {
-                                nodeFunc = rdf.blankNode
-                            }
-                        } else {
-                            nodeFunc = rdf.namedNode
-                        }
-                    } else {
-                        console.error(`\t- NodeKind not supported: ${property_shape[SHACL.nodeKind.value]}\n\t\tAdding triple with literal object to graphData`)
-                        nodeFunc = rdf.literal
-                    }
-                } else if (property_shape.hasOwnProperty(SHACL.in.value)) {
-                    // TODO: This is a temporary workaround; should definitely not be permanent
-                    // Assume Literal nodekind for any arrays
-                    nodeFunc = rdf.literal
-                }
-                else {
-                    console.error(`\t- NodeKind not found for property shape: ${pred}\n\tCannot add triple to graphData. Here's the full property shape:`)
-                    console.error(property_shape)
-                }
-
-                console.log("Determined nodeFunc:")
-                console.log(nodeFunc)
-
-                // Loop through all elements of the array with triple objects
-                for (var obj of formData[nodeshape_iri][node_iri][pred]) {
-                    let triple_object
-                    if (dt) {
-                        console.log("datatype exists:")
-                        console.log(dt)
-                        triple_object = nodeFunc(obj, rdf.namedNode(dt))
-                        console.log("triple_object.datatype")
-                        console.log(triple_object.datatype)
-                        console.log("triple_object.language")
-                        console.log(triple_object.language)
-                    } else {
-                        triple_object = nodeFunc(obj)
-                    }
-                    let quad = rdf.quad(subject, predicate, triple_object)
-                    console.log(`Adding quad to data graph:\n${quad.toString()}`)
-                    graphData.add(quad)
-                }
-            }
             // If this was in editmode and the node IRI has been altered,
             // i.e. node_iri is not the same as the new value in formData,
             // then we need to RE-reference existing triples in the graph that has the current node_iri as object.
@@ -294,7 +182,6 @@ export function useFormData() {
         } else {
             console.error(`\t- Node ${nodeshape_iri} does not exist`)
         }
-
         console.log("formData saved to graph. Current formData:")
         console.log(toRaw(formData))
     }
@@ -319,31 +206,60 @@ export function useFormData() {
         }
         const { token } = useToken();
         // Send a POST to a service for every record in formData
+        // Some exploration:
+        // - we need to send a POST request for every NAMED NODE record,
+        //   with blank nodes resolved
         var headers = {}
         if (token.value !== null && token.value !== "null") {
             headers['X-DumpThings-Token'] = token.value;
         }
-        for (var class_uri of Object.keys(formData)) {
-            // class_uri: all classes that were edited
-            // Get shapes for reference
-            var nodeShape = nodeShapes[class_uri]
-            var propertyShapes = nodeShape.properties
-            for (var record_id of Object.keys(formData[class_uri])) {
-                // Turn the record/node into quads
-                // 
-                var quads = formNodeToQuads(class_uri, record_id, nodeShapes, propertyShapes, id_iri, prefixes)
-                // Create an rdf dataset per record
-                var ds = rdf.dataset()
-                quads.forEach(quad => {
-                    ds.add(quad)
-                });
-                // A POST should happen per record
-                const query_string = replaceServiceIdentifier(class_uri, serviceEndpoints[endpoint], prefixes)
-                var postURL = `${serviceBaseURL}${query_string}`
-                console.log("POSTing to the following URL:")
-                console.log(postURL)
-                await postRDF(postURL, ds,'text/turtle', headers, prefixes) 
+
+
+        try {
+            // collect all POST requests as Promises
+            let postPromises = [];
+            for (var class_uri of Object.keys(formData)) {
+                // class_uri: all classes that were edited
+                // Get shapes for reference
+                var nodeShape = nodeShapes[class_uri]
+                var propertyShapes = nodeShape.properties
+                for (var record_id of Object.keys(formData[class_uri])) {
+                    // Turn the record/node into quads
+                    // 
+                    var quads = formNodeToQuads(class_uri, record_id, nodeShapes, propertyShapes, id_iri, prefixes)
+                    // Create an rdf dataset per record
+                    var ds = rdf.dataset()
+                    quads.forEach(quad => {
+                        ds.add(quad)
+                    });
+                    // A POST should happen per record
+                    const query_string = replaceServiceIdentifier(class_uri, serviceEndpoints[endpoint], prefixes)
+                    var postURL = `${serviceBaseURL}${query_string}`
+                    console.log("POSTing to the following URL:")
+                    console.log(postURL)
+                    postPromises.push(postRDF(postURL, ds, 'text/turtle', headers, prefixes));
+                    // await postRDF(postURL, ds,'text/turtle', headers, prefixes)
+                }
             }
+             // wait until all POST requests settle.
+            const results = await Promise.allSettled(postPromises);
+            const failed = results.filter(result => result.status === "rejected");
+            if (failed.length > 0) {
+                console.error("Some POST requests failed:", failed);
+                return {
+                    ok: false,
+                    error: "One or more POST requests failed."
+                };
+            } else {
+                return {
+                    ok: true,
+                };
+            }
+        } catch (error) {
+            console.error("submitFormData error:", error);
+            return {
+                ok: false,
+                error: error.message };
         }
     }
 
