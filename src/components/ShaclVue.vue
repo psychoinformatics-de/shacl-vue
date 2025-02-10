@@ -106,6 +106,15 @@
         <v-dialog v-model="submitDialog" max-width="700">
             <SubmitComp></SubmitComp>
         </v-dialog>
+        <v-dialog v-model="noSubmitDialog" max-width="700" @click:outside="noSubmitDialog = false">
+            <v-card>
+                <v-card-title>Nothing to submit</v-card-title>
+                <v-card-text>You have no changes to submit</v-card-text>
+                <v-card-actions>
+                    <v-btn @click="noSubmitDialog = false">Close</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </span>
     <span v-else>
         <v-skeleton-loader type="article"></v-skeleton-loader>
@@ -188,7 +197,9 @@ import SubmitComp from './SubmitComp.vue';
         remove_triple,
         save_node,
         quadsToFormData,
+        submitFormData,
     } = useFormData()
+    provide('submitFormData', submitFormData)
     provide('fetchFromService', fetchFromService)
     provide('formData', formData)
     provide('batchMode', batchMode)
@@ -226,6 +237,7 @@ import SubmitComp from './SubmitComp.vue';
     provide('allPrefixes', allPrefixes)
     const submitButtonPressed = inject('submitButtonPressed')
     const canSubmit = inject('canSubmit')
+    const noSubmitDialog = ref(false)
     const submitDialog = ref(false)
     provide('submitDialog', submitDialog)
     const configPrefixes = ref({})
@@ -233,7 +245,14 @@ import SubmitComp from './SubmitComp.vue';
     // When user clicks the submit button
     watch(submitButtonPressed, (newValue) => {
         if (newValue) {
-            submitDialog.value = true            
+            if (Object.keys(formData).length == 0) {
+                noSubmitDialog.value = true;
+                submitDialog.value = false;
+            } else {
+                submitDialog.value = true;
+                noSubmitDialog.value = false;
+            }
+            submitButtonPressed.value = false;
         }
     }, { immediate: true });
 

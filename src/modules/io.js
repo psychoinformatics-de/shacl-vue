@@ -12,7 +12,9 @@ import formats from '@rdfjs/formats-common'
 import fetch from '@rdfjs/fetch-lite'
 import formatsPretty from '@rdfjs/formats/pretty.js'
 import rdf from 'rdf-ext'
-import { useToken } from '@/composables/tokens'
+import N3 from 'n3';
+
+import { toRaw } from 'vue';
 
 // clone the default environment
 const rdfPretty = rdf.clone()
@@ -22,10 +24,6 @@ rdfPretty.formats.import(formatsPretty)
 export async function readRDF(file_url, headers = { "Content-Type": "text/turtle" }) {
 
     try {
-        const { token } = useToken();
-        if (token.value) {
-            headers['X-DumpThings-Token'] = token.value;
-        }
         var res = null
         res = await fetch(file_url,
             {
@@ -77,23 +75,40 @@ export async function readRDF(file_url, headers = { "Content-Type": "text/turtle
 }
 
 
-export async function postRDF(endpoint, dataset, format = 'text/turtle', headers = {}) {
+export async function postRDF(endpoint, dataset, format = 'text/turtle', headers = {}, prefixes) {
     try {
-        const { token } = useToken();
-        if (token.value) {
-            headers['X-DumpThings-Token'] = token.value;
-        }
-
         // Ensure we have the correct content-type
         headers['Content-Type'] = format;
 
+        var N3body
+        // console.log("Quads in dataset")
+        const writer = new N3.Writer({ prefixes: toRaw(prefixes) }); // Create a writer which uses `c` as a prefix for the namespace `http://example.org/cartoons#`
+        dataset.forEach(quad => {
+            // console.log(`${quad.subject.value} - ${quad.predicate.value} - ${quad.object.value}`) 
+            // console.log(`object:${quad.object.value}\nobject datatype:${quad.object.datatype?.value}\nobject language:${quad.object.language}`);
+            writer.addQuad(quad)
+        });
+        writer.end((error, result) => {
+            // console.log("N3 writer result")
+            // console.log(result)
+            N3body = result
+        });
+
         // Serialize the dataset to the desired format
         const body = await rdfPretty.io.dataset.toText('text/turtle', dataset)
+        // console.log("Dataset canonical")
+        // console.log(dataset.toCanonical())
+        // console.log("N3 Body of POST:")
+        // console.log(N3body)
+        // console.log("rdfPretty Body of POST:")
+        // console.log(body)
 
         const response = await fetch(endpoint, {
             method: 'POST',
+            formats, 
             headers,
             body,
+            prefixes,
         });
 
         if (!response.ok) {

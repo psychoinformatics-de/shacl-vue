@@ -259,3 +259,26 @@ export function addCodeTagsToText(text) {
 export function findObjectByKey(array, key, value) {
     return array.find(obj => obj[key] === value);
 }
+
+export function replaceServiceIdentifier(id, arg_string, prefixes) {
+  // id: The URI parameter to be formatter
+  // arg_string: The formatting instruction "record?id={curie}&format=ttl";
+
+  // First extract the part inside the curly brackets
+  const id_type = arg_string.match(/{(.*?)}/)[1];
+  var replacement_id
+  console.log(`id_type = ${id_type}`)
+
+  if (id_type == "curie") {
+      replacement_id = toCURIE(id, prefixes)
+  } else if (id_type == "name") {
+      replacement_id = toCURIE(id, prefixes, "parts").property
+  } else if (id_type == "uri") {
+      replacement_id = id
+  } else {
+      replacement_id = id
+  }
+  console.log(replacement_id)
+  // Replace curly brackets and everything in between
+  return arg_string.replace(/{.*?}/, encodeURIComponent(replacement_id));
+}

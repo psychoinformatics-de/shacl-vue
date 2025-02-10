@@ -68,7 +68,7 @@
     var tab = ref(null)
     const group_layout = ref('default') // ref('default') or ref('tabs')
     const ignoredProperties = [
-        // RDF.type.value,
+        RDF.type.value,
         // DLTHING.meta_type.value,
     ]
     

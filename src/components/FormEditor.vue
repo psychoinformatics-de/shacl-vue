@@ -3,16 +3,27 @@
     <div style="display: flex; position: relative; ">
       <h3>{{ toCURIE(localShapeIri, allPrefixes) }}</h3>
 
-      <div style="margin-left: auto; " class="top-1">
-        <v-switch
-          v-model="show_all_fields"
-          :label="`All fields`"
-          hide-details
-          color="primary"
-        ></v-switch>
-      </div>
-
-      
+      <div style="display: flex; margin-left: auto;">
+            <v-btn
+                text="Cancel"
+                @click="cancelForm()"
+                style="margin-left: auto; margin-right: 1em;"
+                prepend-icon="mdi-close-box"
+            ></v-btn>
+            <v-btn
+                text="Reset"
+                @click="resetForm()"
+                style="margin-right: 1em;"
+                prepend-icon="mdi-undo"
+            ></v-btn>
+            <v-btn
+                text="Save"
+                type="submit"
+                @click="saveForm()"
+                prepend-icon="mdi-content-save"
+            ></v-btn>
+          </div>
+     
       <div v-if="validationErrors.length" class="position-sticky top-4" style="margin-left: 1em;">
         <v-menu location="end">
             <template v-slot:activator="{ props }">
@@ -27,35 +38,25 @@
         </v-menu>
       </div>
     </div>
-    
-    <br>
-    <p v-html="formattedDescription" class="quote-description"></p>
-    <br>
+
     <span v-if="localNodeIdx && localShapeIri">
       <v-form ref="form" v-model="formValid" validate-on="lazy input" @submit.prevent="saveForm()" >
+          
+          
+          <br>
+          <p v-html="formattedDescription" class="quote-description"></p>
+          <br>
+          <div class="top-1">
+            <v-switch
+              v-model="show_all_fields"
+              :label="`All fields`"
+              hide-details
+              color="primary"
+            ></v-switch>
+          </div>
           <NodeShapeEditor :key="localShapeIri" :shape_iri="localShapeIri" :node_idx="localNodeIdx"/>
-          <div style="display: flex;">
-
-            <v-btn
-                class="mt-2"
-                text="Cancel"
-                @click="cancelForm()"
-                style="margin-left: auto; margin-right: 1em;"
-                prepend-icon="mdi-close-box"
-            ></v-btn>
-            <v-btn
-                class="mt-2"
-                text="Reset"
-                @click="resetForm()"
-                style="margin-right: 1em;"
-                prepend-icon="mdi-undo"
-            ></v-btn>
-            <v-btn
-                class="mt-2"
-                text="Save"
-                type="submit"
-                prepend-icon="mdi-content-save"
-            ></v-btn>
+          <div style="display:flex; ">
+            <v-btn icon="mdi-arrow-up-bold" @click="scrollToTop()" style="margin-left: auto;"></v-btn>
           </div>
       </v-form>
     </span>
@@ -181,14 +182,14 @@
         // - find all triples with the node IRI as object -> oldTriples
         // - for each triple in oldTriples: create a new one with same subject and predicate
         //   and with new IRI as object, then delete the old triple
-        save_node(localShapeIri.value, localNodeIdx.value, nodeShapes.value, graphData, editMode.form || editMode.graph, ID_IRI.value);
+        console.log("going to save form now")
+        save_node(localShapeIri.value, localNodeIdx.value, nodeShapes.value, graphData, editMode.form || editMode.graph, ID_IRI.value, allPrefixes);
         removeForm()
         if (typeof saveFormHandler === 'function') {
           saveFormHandler();
         }
       } else {
         console.log("Still some validation errors, bro");
-
         validationResult.errors.forEach(error => {
           const id = error.id;
           const fieldData = fieldMap[id];
@@ -223,6 +224,10 @@
     if (typeof cancelFormHandler === 'function') {
       cancelFormHandler();
     }
+  }
+
+  function scrollToTop() {
+    window.scrollTo(0,0);
   }
 
   function goToError(e) {
