@@ -32,6 +32,7 @@
                     href="https://psychoinformatics-de.github.io/shacl-vue/docs/"
                     target="_blank"
                     v-bind="props"
+                    class="header-button"
                     ></v-btn>
                 </template>
             </v-tooltip>
@@ -42,6 +43,7 @@
                     href="https://github.com/psychoinformatics-de/shacl-vue"
                     target="_blank"
                     v-bind="props"
+                    class="header-button"
                     ></v-btn>
                 </template>
             </v-tooltip>
@@ -53,3 +55,14 @@
     const submitFn = inject('submitFn')
     const canSubmit = inject('canSubmit')
 </script>
+
+<style scoped>
+
+    .header-button {
+        color: black;
+    }
+    .header-button:hover {
+        text-decoration: none;
+    }
+
+</style>

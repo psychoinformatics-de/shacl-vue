@@ -84,3 +84,23 @@
       margin-top: 1em;
   }
 </style>
+
+<style>
+    a {
+        color: #41b883;
+        text-decoration: none;
+    }
+
+    a:hover {
+        color: #1565C0;
+        text-decoration: underline;
+    }
+
+    a:visited {
+        color: #42be86;
+    }
+
+    a:active {
+        color: #D32F2F;
+    }
+</style>
