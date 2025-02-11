@@ -2,7 +2,7 @@
     <v-card class="mx-4 mb-4" :variant="props.variant">
         <v-card-title class="text-h6">
             <v-icon>{{ getClassIcon(classIRI) }}</v-icon>&nbsp;
-            <TextOrLinkViewer :textVal="props.record.title"></TextOrLinkViewer>&nbsp;
+            <TextOrLinkViewer :textVal="props.record.title" :prefLabel="prefLabel"></TextOrLinkViewer>&nbsp;
             <v-btn
                 icon="mdi-pencil"
                 variant="tonal"
@@ -13,7 +13,7 @@
         </v-card-title>
         <v-card-subtitle>{{ toCURIE(props.record.props.subtitle, allPrefixes) }}</v-card-subtitle>
         <v-card-text v-if="!formOpen">
-
+            <!-- named or literal nodes -->
             <span v-for="(v, k, index) in textProperties">
                 <strong>{{ makeReadable(toCURIE(k, allPrefixes, "parts").property) }}</strong>:
                 <span v-for="(el, i) in v">
@@ -22,6 +22,7 @@
                 </span>
                 <br>
             </span>
+            <!-- Blank nodes -->
             <span v-for="(v, k, index) in objectProperties">
                 <strong>{{ makeReadable(toCURIE(k, allPrefixes, "parts").property) }}</strong>:
                 <br>
@@ -51,8 +52,8 @@
 
 <script setup>
     import { inject, onBeforeMount, ref} from 'vue';
-    import { toCURIE, makeReadable, isObject} from '@/modules/utils';
-    import { RDF } from '@/modules/namespaces';
+    import { toCURIE, makeReadable, isObject, toIRI} from '@/modules/utils';
+    import { RDF, DLTHINGS } from '@/modules/namespaces';
     import TextOrLinkViewer from './TextOrLinkViewer.vue';
 
     const props = defineProps({
@@ -67,8 +68,11 @@
     const getClassIcon = inject('getClassIcon')
     const textProperties = ref({})
     const objectProperties = ref({})
+    const prefLabel = ref("")
 
     onBeforeMount(()=>{
+        console.log("props.record.props")
+        console.log(props.record.props)
         const keys = Object.keys(props.record.props)
         for (var k of keys) {
             if (['subtitle', 'quad', RDF.type.value].indexOf(k) >= 0) {
@@ -81,5 +85,21 @@
                 textProperties.value[k] = v;
             }
         }
+        prefLabel.value = getPrefLabel()
     })
+
+    function getPrefLabel() {
+        if ( props.record.props.hasOwnProperty(DLTHINGS.annotations.value) ) {
+            for(var i=0; i<props.record.props[DLTHINGS.annotations.value].length; i++) {
+                var obj = props.record.props[DLTHINGS.annotations.value][i]
+                if (obj.hasOwnProperty(DLTHINGS.annotation_tag.value) &&
+                    (obj[DLTHINGS.annotation_tag.value] == "skos:prefLabel" ||
+                     obj[DLTHINGS.annotation_tag.value] == toIRI("skos:prefLabel", allPrefixes))) {
+                    return obj[DLTHINGS.annotation_value.value]
+                }
+            }
+        }
+        return ""
+    }
+
 </script>

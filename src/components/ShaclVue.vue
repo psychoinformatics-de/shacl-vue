@@ -41,7 +41,7 @@
                                     <span v-else>
                                         <div v-if="instanceItems.length">
                                             <span v-for="r in instanceItems">
-                                                <RecordViewer :classIRI="selectedIRI" :record="r" :formOpen="formOpen" :variant="r.title == queried_id ? 'outlined' : 'tonal'"></RecordViewer>
+                                                <RecordViewer :classIRI="selectedIRI" :record="r" :key="selectedIRI + '-' + r.title" :formOpen="formOpen" :variant="r.title == queried_id ? 'outlined' : 'tonal'"></RecordViewer>
                                             </span>
                                         </div>
                                         <div v-else style="margin-top: 1em; margin-left: 1em;">
@@ -331,6 +331,7 @@ import SubmitComp from './SubmitComp.vue';
     })
 
     async function selectType(IRI, fromUser) {
+        instanceItems.value = []
         selectedIRI.value = IRI
         selectedShape.value = nodeShapes.value[IRI]
 

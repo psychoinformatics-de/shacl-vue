@@ -15,8 +15,14 @@
                         <v-form ref="submitForm">
                             <v-text-field
                                 v-model="tokenval"
-                                label="Token"
                                 :rules="rules"
+                                :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
+                                :type="visible ? 'text' : 'password'"
+                                density="compact"
+                                placeholder="token"
+                                prepend-inner-icon="mdi-lock-outline"
+                                variant="outlined"
+                                @click:append-inner="visible = !visible"
                             ></v-text-field>
                         </v-form>
                     </span>
@@ -48,6 +54,7 @@
 
     const submitForm = ref(null)
     const tokenval = ref(null)
+    const visible = ref(false)
     const { token, setToken, clearToken } = useToken()
     const submitFormData = inject('submitFormData')
     const submitButtonPressed = inject('submitButtonPressed')
