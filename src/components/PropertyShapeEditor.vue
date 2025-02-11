@@ -1,7 +1,7 @@
 <template>
     <v-row align="start" no-gutters v-if="formData[localNodeUid] && show_field">
         <v-col cols="4">
-            <span>{{ nameOrCURIE(localPropertyShape, shapePrefixes, SHACL) }}<span v-if="isRequired" style="color: red;"> *</span>:
+            <span>{{ nameOrCURIE(localPropertyShape, shapePrefixes, true) }}<span v-if="isRequired" style="color: red;"> *</span>:
                 <v-tooltip activator="parent" location="right" max-width="400px" max-height="400px">
                     <p v-html="addCodeTagsToText(localPropertyShape[SHACL.description.value])"></p>
                 </v-tooltip>

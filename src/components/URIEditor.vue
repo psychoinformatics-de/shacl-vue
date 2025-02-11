@@ -47,7 +47,7 @@
                 </span>
             </v-col>
             <v-col>
-                <v-checkbox v-model="enterCURIE" density="compact" label="CURIE" hide-details="true" style="margin-top:0; margin-left: 0.5em; padding-top:0;"></v-checkbox>
+                <v-checkbox v-model="enterCURIE" density="compact" label="CURIE" hide-details="true" class="scaled-comp"></v-checkbox>
             </v-col>
         </v-row>
     </v-input>
@@ -196,3 +196,15 @@
         return false
     };
 </script>
+
+<style scoped>
+
+    .scaled-comp {
+        margin-top:0;
+        margin-left: 0.5em;
+        padding-top:0;
+        transform: scale(0.85);
+        transform-origin: center;
+    }
+
+</style>

@@ -18,7 +18,9 @@
     "show_shapes_wo_id": false,
     "use_service": false,
     "use_token": false,
+    "token_info": false,
     "service_base_url": "",
     "service_endpoints":  {},
-    "prefixes": {}
+    "prefixes": {},
+    "class_icons": {}
 }

@@ -8,10 +8,11 @@
                     permanent
                 >
                     <v-list nav selectable :disabled="formOpen" v-model:selected="selectedItem">
-                        <v-list-item prepend-icon="mdi-tag-multiple" value="data"><h4>Data Types</h4></v-list-item>
+                        <v-list-item  value="data"><h4>Data Types</h4></v-list-item>
                         <!-- <v-text-field variant="outlined" append-inner-icon="mdi-magnify" density="compact"></v-text-field> -->
                         <v-list-item
                             v-for="node in idFilteredNodeShapeNames"
+                            :prepend-icon="getClassIcon(nodeShapeNames[node])"
                             :title="node"
                             @click="selectType(nodeShapeNames[node], true)">
                         </v-list-item>
@@ -39,34 +40,9 @@
                                     </span>
                                     <span v-else>
                                         <div v-if="instanceItems.length">
-                                            <v-card v-for="r in instanceItems" class="mx-4 mb-4" :variant="r.title == queried_id ? 'outlined' : 'tonal'">
-                                                <v-card-title class="text-h6">
-                                                    {{ r.title }}
-                                                    <v-btn
-                                                        icon="mdi-pencil"
-                                                        variant="tonal"
-                                                        size="x-small"
-                                                        class="rounded-lg"
-                                                        @click="editInstanceItem(r)"
-                                                    ></v-btn>
-                                                </v-card-title>
-                                                <v-card-subtitle>{{ toCURIE(r.props.subtitle, allPrefixes) }}</v-card-subtitle>
-                                                <v-card-text v-if="!formOpen">
-                                                <strong>Properties</strong><br>
-                                                <span v-for="(v, k, index) in r.props">
-                                                    <span v-if="k == 'subtitle' || k == 'quad'"></span>
-                                                    <span v-else-if="v.length == 1">
-                                                        &nbsp;&nbsp; <em>{{ toCURIE(k, allPrefixes) }}</em>: {{ v[0] }} <br>
-                                                    </span>
-                                                    <span v-else>
-                                                        &nbsp;&nbsp; <em>{{ toCURIE(k, allPrefixes) }}</em>: <br>
-                                                        <span v-for="el in v">
-                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{ el }} <br>
-                                                        </span>
-                                                    </span>
-                                                </span>
-                                                </v-card-text>
-                                            </v-card>
+                                            <span v-for="r in instanceItems">
+                                                <RecordViewer :classIRI="selectedIRI" :record="r" :formOpen="formOpen" :variant="r.title == queried_id ? 'outlined' : 'tonal'"></RecordViewer>
+                                            </span>
                                         </div>
                                         <div v-else style="margin-top: 1em; margin-left: 1em;">
                                             <em>No items</em>
@@ -241,6 +217,7 @@ import SubmitComp from './SubmitComp.vue';
     const submitDialog = ref(false)
     provide('submitDialog', submitDialog)
     const configPrefixes = ref({})
+    const configClassIcons = ref({})
 
     // When user clicks the submit button
     watch(submitButtonPressed, (newValue) => {
@@ -267,6 +244,9 @@ import SubmitComp from './SubmitComp.vue';
             }
             if (config.value.hasOwnProperty("prefixes")) {
                 configPrefixes.value = config.value.prefixes
+            }
+            if (config.value.hasOwnProperty("class_icons")) {
+                configClassIcons.value = config.value.class_icons
             }
 
             await getGraphData()
@@ -403,6 +383,16 @@ import SubmitComp from './SubmitComp.vue';
         }
     }
 
+    function getClassIcon(class_iri) {
+        if (configClassIcons.value) {
+            if (configClassIcons.value[class_iri] ) {
+                return configClassIcons.value[class_iri]
+            }
+        }
+        return "mdi-circle-outline"
+    }
+    provide('getClassIcon', getClassIcon)
+
     function addInstanceItem() {
         newItemIdx.value = null
         editItem.value = false
@@ -462,41 +452,23 @@ import SubmitComp from './SubmitComp.vue';
         canSubmit.value = false
         window.scrollTo(0,0);
     }
+    provide('editInstanceItem', editInstanceItem)
 
 
     function getInstanceItems() {
         // ---
         // The goal of this method is to populate the list of data objects of the selected type
         // ---
-        // find nodes with predicate rdf:type and object being selected class
+        // find nodes with triple predicate == rdf:type, and triple object == the selected class
         var quads = getLiteralAndNamedNodes(
             graphData,
             rdf.namedNode(RDF.type),
             selectedIRI.value,
             allPrefixes
         )
-        // then find nodes with predicate rdfs:subClassOf and object being the property class
-        // TODO: here we are only using a named node for the object because this is how the
-        // tools/gen_owl_minimal.py script outputs the triples in the ttl file. This should be
-        // generalised
-        const subClasses = rdf.grapoi({ dataset: classData })
-            .hasOut(rdf.namedNode(RDFS.subClassOf.value), rdf.namedNode(selectedIRI.value))
-            .quads();
-        // For each subclass, find the quads in graphData that has the class name as object
-        // and RDF.type as predicate
-        var myArr = []
-        Array.from(subClasses).forEach(quad => {
-            const cl = quad.subject.value
-            // console.log(`\t - getting quads with class: ${cl}`)
-            // console.log(`\t - (size of data graph: ${graphData.size})`)
-            myArr = myArr.concat(getLiteralAndNamedNodes(graphData, rdf.namedNode(RDF.type), cl, allPrefixes))
-        });
-        // Then combine all quad arrays
-        // const combinedQuads = quads.concat(savedQuads).concat(myArr);
-        const combinedQuads = quads.concat(myArr);
-        // Finally, create list items from quads
+        // Create list items from quads
         var instanceItemsArr = []
-        combinedQuads.forEach(quad => {
+        quads.forEach(quad => {
             var extra = ''
             if (quad.subject.termType === 'BlankNode') {
                 extra = ' (BlankNode)'
@@ -511,7 +483,16 @@ import SubmitComp from './SubmitComp.vue';
                 if (!Object.hasOwn(item.props, quad.predicate.value)) {
                     item.props[quad.predicate.value] = []
                 }
-                item.props[quad.predicate.value].push(quad.object.value)
+                if (quad.object.termType === "BlankNode") {
+                    var bnItem = {}
+                    var blankNodeTrips = getSubjectTriples(graphData, quad.object)
+                    blankNodeTrips.forEach(bnquad => {
+                        bnItem[bnquad.predicate.value] = bnquad.object.value
+                    })
+                    item.props[quad.predicate.value].push(bnItem)
+                } else {
+                    item.props[quad.predicate.value].push(quad.object.value)
+                }
             })
             instanceItemsArr.push(item)
         });

@@ -55,11 +55,14 @@ export function toIRI(CURIE, prefixes) {
 }
 
 
-export function nameOrCURIE(shape, prefixes) {
+export function nameOrCURIE(shape, prefixes, readable=false) {
   if (shape.hasOwnProperty(SHACL.name.value)) {
       return shape[SHACL.name.value]
   } else {
-      return toCURIE(shape[SHACL.path.value], prefixes)   
+      if (readable) {
+        return makeReadable(toCURIE(shape[SHACL.path.value], prefixes, "parts").property)
+      }
+      return toCURIE(shape[SHACL.path.value], prefixes)
   }
 }
 
@@ -281,4 +284,13 @@ export function replaceServiceIdentifier(id, arg_string, prefixes) {
   console.log(replacement_id)
   // Replace curly brackets and everything in between
   return arg_string.replace(/{.*?}/, encodeURIComponent(replacement_id));
+}
+
+export function makeReadable(input) {
+  // capitalize first letter
+  var output = input.charAt(0).toUpperCase() + input.slice(1)
+  // Replace underscores and dashes with space
+  output = output.replace(/_/g,' ');
+  output = output.replace(/-/g,' ');
+  return output
 }

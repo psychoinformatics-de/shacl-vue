@@ -9,7 +9,6 @@
     >
         <v-autocomplete
             v-model="subValues.selectedInstance"
-            density="compact"
             variant="outlined"
             hide-details="auto"
             label="select an item"
@@ -19,7 +18,18 @@
             item-title="title"
             return-object
             ref="editorComp"
+            lines="two"
         >
+
+        <template v-slot:selection="data">
+            <div style="transform: scale(0.6); margin: 0; padding: 0;">
+                <span v-for="(value, key, index) in data.item.props">
+                    <span v-if="['title', 'subtitle', 'name', 'value', RDF.type.value, toCURIE(RDF.type.value, allPrefixes)].indexOf(key) < 0">
+                        {{ key }}: {{ value }} <br>
+                    </span>
+                </span>
+            </div>
+        </template>
 
             <template v-slot:item="data">
                 <!-- Show the "Add Item" button first -->
@@ -43,36 +53,19 @@
                 </div>
                 <!-- Then show all other items -->
                 <div v-else>
-                    <v-list-item @click.stop="selectItem(data.item)">
-                        <div style="display: flex;">
-                            <div>
-                                <v-list-item-title>{{ data.item.title }}</v-list-item-title>
-                                <v-list-item-subtitle>{{ data.item.props.subtitle }}</v-list-item-subtitle>
-                            </div>
-                            <div style="margin-left: auto;">
-                                <v-tooltip location="end" min-width="480px">
-                                    <template v-slot:activator="{ props }">
-                                        <v-icon
-                                            v-bind="props"
-                                            small
-                                            class="ml-2 info-tooltip"
-                                            color="primary"
-                                        >
-                                            mdi-information-outline
-                                        </v-icon>
-                                    </template>
-                                    <v-container>
-                                        <span v-for="(value, key, index) in data.item.props">
-                                            <v-row v-if="['title', 'subtitle', 'name', 'value'].indexOf(key) < 0">
-                                                <v-col cols="5">{{ key }}</v-col>
-                                                <v-col>{{ value }}</v-col>
-                                            </v-row>
-                                        </span>
-                                    </v-container>
-                                </v-tooltip>
-                            </div>
-                        </div>
+                    <v-list-item @click.stop="selectItem(data.item)" rounded>
+                        <template v-slot:prepend>
+                            <v-icon>{{ getClassIcon(toIRI(data.item.props[toCURIE(RDF.type.value, allPrefixes)], allPrefixes)) }}</v-icon>
+                        </template>
+                        <span v-for="(value, key, index) in data.item.props">
+                            <v-row no-gutters v-if="['title', 'subtitle', 'name', 'value', RDF.type.value, toCURIE(RDF.type.value, allPrefixes)].indexOf(key) < 0">
+                                <v-col cols="6"><small>{{ key }}</small></v-col>
+                                <v-col><small>{{ value }}</small></v-col>
+                            </v-row>
+                        </span>
                     </v-list-item>
+                    <v-divider></v-divider>
+                    <v-divider></v-divider>
                 </div>
             </template>
         </v-autocomplete>
@@ -84,7 +77,7 @@
     import { useRules } from '../composables/rules'
     import rdf from 'rdf-ext'
     import {SHACL, RDF, RDFS } from '@/modules/namespaces'
-    import { toCURIE, getLiteralAndNamedNodes, getSubjectTriples, findObjectByKey } from '../modules/utils';
+    import { toCURIE, getLiteralAndNamedNodes, getSubjectTriples, findObjectByKey, makeReadable, toIRI} from '../modules/utils';
     import { useRegisterRef } from '../composables/refregister';
     import { useBaseInput } from '@/composables/base';
 
@@ -137,6 +130,7 @@
     const selectedAddItemShapeIRI = ref(null)
     const addForm = inject('addForm');
     const removeForm = inject('removeForm');
+    const getClassIcon = inject('getClassIcon')
 
     const cancelDialogForm = () => {
         // console.log("Canceling from form in dialog")
