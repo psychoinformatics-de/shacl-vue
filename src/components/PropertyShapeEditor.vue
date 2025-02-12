@@ -95,25 +95,23 @@
     // ----------------- //
 
     onMounted(() => {
-        console.log(`PropertyShapeEditor is MOUNTED.`)
+        console.log(`PropertyShapeEditor is MOUNTED:`)
         if ((editMode.graph || editMode.form) && openForms.value.length == 1) {
             // if we're busy editing the FIRST form, and if the triple already has a value,
             // don't add another empty element
-            if (formData[localNodeUid.value][localNodeIdx.value][my_uid.value]) return;
+            if (formData[localNodeUid.value][localNodeIdx.value][my_uid.value]) {
+                return;
+            }
         }
-        add_empty_triple(localNodeUid.value, localNodeIdx.value, my_uid.value)
+        add_empty_triple(localNodeUid.value, localNodeIdx.value, my_uid.value, "propertyShapeEditor onMounted")
     })
 
 
     onBeforeMount(() => {
-        console.log(`PropertyShapeEditor is about to be MOUNTED.`)
         my_uid.value = localPropertyShape.value[SHACL.path.value]
-
-
     })
 
     onBeforeUnmount(() => {
-        console.log(`PropertyShapeEditor is about to be UNMOUNTED.`)
     })
     
     // ------------------- //

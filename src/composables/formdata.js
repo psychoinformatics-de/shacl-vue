@@ -5,6 +5,7 @@
 //   "https://concepts.datalad.org/s/distribution/unreleased/Person": {          // RDF type of a subject
 //     "https://example.org/ns/dataset/#ahorst": {                               // A subject: named or blank node
 //       "https://concepts.datalad.org/s/distribution/unreleased/email":  []     // A predicate: named node
+//       "shaclvue:termType": "NamedNode"                                        // the nodetype of te subject: NamedNode or BlankNode
 //     }
 //   },
 //   "https://concepts.datalad.org/s/prov/unreleased/Attribution": { // type
@@ -85,8 +86,8 @@ export function useFormData() {
     }
 
 
-    function add_empty_triple(nodeshape_iri, node_iri, triple_uid) {
-        // console.log(`Adding empty triple:\nnodeshape_iri: ${nodeshape_iri}\nnode_iri: ${node_iri}\ntriple_uid: ${triple_uid}`)
+    function add_empty_triple(nodeshape_iri, node_iri, triple_uid, source) {
+        console.log(`Adding empty triple from '${source}':\n\tnodeshape_iri: ${nodeshape_iri}\n\tnode_iri: ${node_iri}\n\ttriple_uid: ${triple_uid}`)
         // if the node shape+iri exist and the triple uid (predicate) does not exist, add it
         // if the node shape+iri exist and the triple uid already exists, add empty value to array
         // if the node shape+iri do not exist, print console error because this should not be possible
@@ -429,17 +430,18 @@ export function useFormData() {
         var quadArray = getSubjectTriples(graphData, subject_term)
         var IdQuadExists = false
         quadArray.forEach((quad) => {
+            // console.log(`-- adding: ${quad.subject.value} - ${quad.predicate.value} - ${quad.object.value}`)
             var triple_uid = toIRI(quad.predicate.value, prefixes)
             if (triple_uid === id_iri) {
                 IdQuadExists = true
             }
-            add_empty_triple(nodeshape_iri, node_iri, triple_uid)
+            add_empty_triple(nodeshape_iri, node_iri, triple_uid, "quadsToFormData quad")
             var length = formData[nodeshape_iri][node_iri][triple_uid].length
             formData[nodeshape_iri][node_iri][triple_uid][length-1] = quad.object.value
         });
         // Here we deal with explicitly adding the id_iri quad, if necessary
         if (subject_term.termType === "NamedNode"  && !IdQuadExists) {
-            add_empty_triple(nodeshape_iri, node_iri, id_iri)
+            add_empty_triple(nodeshape_iri, node_iri, id_iri, "quadsToFormData ID_IRI")
             var l = formData[nodeshape_iri][node_iri][id_iri].length
             formData[nodeshape_iri][node_iri][id_iri][l-1] = node_iri
         }

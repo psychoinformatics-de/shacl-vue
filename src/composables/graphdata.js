@@ -71,6 +71,11 @@ export function useGraphData(config) {
                     })
                     // Load data
                     quadStream.on('data', quad => {
+                        // the following line was an attempt to solve https://hub.datalad.org/datalink/annotate-trr379-demo/issues/32
+                        // but it was a faulty attempt, since the object was different. but leaving it here since deleting matches
+                        // would prospectively solve the duplication of named node or literal objects
+                        graphData.deleteMatches(quad.subject, quad.predicate, quad.object, null)
+                        // add quad to store
                         graphData.add(quad)
                     }).on('end', () => {
                         updateSerializedData();

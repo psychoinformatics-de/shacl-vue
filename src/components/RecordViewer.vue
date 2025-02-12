@@ -51,7 +51,7 @@
 </template>
 
 <script setup>
-    import { inject, onBeforeMount, ref} from 'vue';
+    import { inject, onBeforeMount, onUpdated, ref} from 'vue';
     import { toCURIE, makeReadable, isObject, toIRI} from '@/modules/utils';
     import { RDF, DLTHINGS } from '@/modules/namespaces';
     import TextOrLinkViewer from './TextOrLinkViewer.vue';
@@ -71,8 +71,6 @@
     const prefLabel = ref("")
 
     onBeforeMount(()=>{
-        console.log("props.record.props")
-        console.log(props.record.props)
         const keys = Object.keys(props.record.props)
         for (var k of keys) {
             if (['subtitle', 'quad', RDF.type.value].indexOf(k) >= 0) {

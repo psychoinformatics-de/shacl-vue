@@ -42,7 +42,7 @@ export function toIRI(CURIE, prefixes) {
     return null
   }
   if (CURIE.indexOf(':') < 0) {
-    console.log("not a valid curie, returning")
+    // console.log("not a valid curie, returning")
     return CURIE
   }
   var parts = CURIE.split(':')
@@ -270,7 +270,7 @@ export function replaceServiceIdentifier(id, arg_string, prefixes) {
   // First extract the part inside the curly brackets
   const id_type = arg_string.match(/{(.*?)}/)[1];
   var replacement_id
-  console.log(`id_type = ${id_type}`)
+  // console.log(`id_type = ${id_type}`)
 
   if (id_type == "curie") {
       replacement_id = toCURIE(id, prefixes)
@@ -281,7 +281,7 @@ export function replaceServiceIdentifier(id, arg_string, prefixes) {
   } else {
       replacement_id = id
   }
-  console.log(replacement_id)
+  // console.log(replacement_id)
   // Replace curly brackets and everything in between
   return arg_string.replace(/{.*?}/, encodeURIComponent(replacement_id));
 }

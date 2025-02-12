@@ -39,9 +39,9 @@
                                         <v-skeleton-loader type="list-item-avatar"></v-skeleton-loader>
                                     </span>
                                     <span v-else>
-                                        <div v-if="instanceItems.length">
-                                            <span v-for="r in instanceItems">
-                                                <RecordViewer :classIRI="selectedIRI" :record="r" :key="selectedIRI + '-' + r.title" :formOpen="formOpen" :variant="r.title == queried_id ? 'outlined' : 'tonal'"></RecordViewer>
+                                        <div v-if="instanceItemsComp.length">
+                                            <span v-for="r in instanceItemsComp">
+                                                <RecordViewer :classIRI="selectedIRI" :record="r" :key="selectedIRI + '-' + r.title + '-' + itemsTrigger" :formOpen="formOpen" :variant="r.title == queried_id ? 'outlined' : 'tonal'"></RecordViewer>
                                             </span>
                                         </div>
                                         <div v-else style="margin-top: 1em; margin-left: 1em;">
@@ -99,7 +99,7 @@
 
 
 <script setup>
-    import { ref, computed, provide, watch, reactive, onBeforeUpdate, nextTick, inject, toRaw} from 'vue'
+    import { ref, computed, provide, watch, reactive, onBeforeUpdate, nextTick, inject, toRaw, onUpdated} from 'vue'
     import rdf from 'rdf-ext';
     import { useConfig } from '@/composables/configuration';
     import { useGraphData } from '@/composables/graphdata';
@@ -123,6 +123,7 @@ import SubmitComp from './SubmitComp.vue';
         configUrl: String
     })
 
+    const itemsTrigger = ref(false)
     const queried_id = ref(null)
     const showShapesWoID = ref(true)
     const { config, configFetched, configError} = useConfig(props.configUrl);
@@ -259,8 +260,6 @@ import SubmitComp from './SubmitComp.vue';
     // Select a data type
     var selectedShape = ref(null)
     var selectedIRI = ref(null)
-    const instanceItems = ref([])
-
     // Select a data item
     var selectedItem = ref(null)
     
@@ -281,9 +280,6 @@ import SubmitComp from './SubmitComp.vue';
         console.log("onBeforeUpdate ShaclVue")
         editItemIdx.value = null
         editShapeIRI.value = null
-        if (selectedIRI.value) {
-            instanceItems.value = getInstanceItems()
-        }
     })
 
     const idFilteredNodeShapeNames = computed(() =>{
@@ -306,7 +302,6 @@ import SubmitComp from './SubmitComp.vue';
 
 
     watch(prefixes_ready, (newValue) => {
-        // console.log("CHECK: prefixesready")
         if (newValue) {
             // Get all prefixes and derive context from it
             Object.assign(allPrefixes, shapePrefixes, graphPrefixes, classPrefixes)
@@ -323,6 +318,12 @@ import SubmitComp from './SubmitComp.vue';
     }, {immediate: true });
 
 
+    watch(graphData, () => {
+        console.log("Graphdata UPDATED SHACLVUE")
+        itemsTrigger.value = !itemsTrigger.value
+    }, { deep: true });
+
+
     const formattedDescription = computed(() => {
         // For the class description, use a regular expression to replace text between backticks with <code> tags
         if (selectedShape.value) {
@@ -331,10 +332,8 @@ import SubmitComp from './SubmitComp.vue';
     })
 
     async function selectType(IRI, fromUser) {
-        instanceItems.value = []
         selectedIRI.value = IRI
         selectedShape.value = nodeShapes.value[IRI]
-
         if (config.value.use_service) {
             classRecordsLoading.value = true
             // First fetch rdf data from configured service
@@ -343,7 +342,6 @@ import SubmitComp from './SubmitComp.vue';
             // Then continue with the rest
             await nextTick();
         }
-        instanceItems.value = getInstanceItems()
         if (fromUser) updateURL(IRI)
     }
 
@@ -398,8 +396,6 @@ import SubmitComp from './SubmitComp.vue';
         newItemIdx.value = null
         editItem.value = false
         addItem.value = false
-        // selectedIRI.value = IRI
-        // selectedShape.value = nodeShapes.value[IRI]
         newItemIdx.value = '_:' + crypto.randomUUID()
         addForm(selectedIRI.value, newItemIdx.value, 'new')
         addItem.value = true
@@ -424,20 +420,21 @@ import SubmitComp from './SubmitComp.vue';
             editShapeIRI.value = toIRI(objectTerm.value, allPrefixes)
         }
         editItemIdx.value = instance.value // this is the id
-        console.log(editShapeIRI.value)
-        console.log(editItemIdx.value)
 
-        if (config.value.use_service) {
-            idRecordLoading.value = true
-            // First fetch rdf data from configured service
-            await fetchFromService('get-record', editItemIdx.value, allPrefixes)
-            idRecordLoading.value = false
-            // Then continue with the rest
-            await nextTick();
-        }
+        // See: https://hub.datalad.org/datalink/annotate-trr379-demo/issues/32
+        // leaving the following commented out for now:
+        // if (config.value.use_service) {
+        //     idRecordLoading.value = true
+        //     // First fetch rdf data from configured service
+        //     await fetchFromService('get-record', editItemIdx.value, allPrefixes)
+        //     idRecordLoading.value = false
+        //     // Then continue with the rest
+        //     await nextTick();
+        // }
 
         // if the node is already in the formData, edit that
         if (formData[editShapeIRI.value]?.[editItemIdx.value]) {
+            console.log("The node is already in the formData, we will edit that")
             editMode.form = true
             editMode.graph = false
         } else {
@@ -456,10 +453,16 @@ import SubmitComp from './SubmitComp.vue';
     provide('editInstanceItem', editInstanceItem)
 
 
-    function getInstanceItems() {
+    const instanceItemsComp = computed(() =>{
         // ---
         // The goal of this method is to populate the list of data objects of the selected type
         // ---
+
+        var x = itemsTrigger.value
+
+        if (!selectedIRI.value) {
+            return []
+        }
         // find nodes with triple predicate == rdf:type, and triple object == the selected class
         var quads = getLiteralAndNamedNodes(
             graphData,
@@ -498,7 +501,7 @@ import SubmitComp from './SubmitComp.vue';
             instanceItemsArr.push(item)
         });
         return instanceItemsArr
-    }
+    })
 
     const openForms = ref([])
     const currentOpenForm = computed(() => {
@@ -529,7 +532,6 @@ import SubmitComp from './SubmitComp.vue';
             formOpen.value = false
             canSubmit.value = true
             editMode.form = editMode.graph = false
-            instanceItems.value = getInstanceItems()
         }
     }
     provide('addForm', addForm)

@@ -7,7 +7,7 @@ import { ref, onMounted } from 'vue'
 const basePath = import.meta.env.BASE_URL || '/';
 
 export function useConfig(url) {
-    const defaultURL = `${basePath}config.json`
+    const defaultURL = `${basePath}config_test.json`
     var configURL
     if (url) {
         if (url.indexOf('http')) {

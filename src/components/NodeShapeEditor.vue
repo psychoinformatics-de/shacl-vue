@@ -79,25 +79,20 @@
     const usedPropertyGroups = shallowRef({});
 
     onMounted(() => {
-
         usedPropertyGroups.value = computeUsedPropertyGroups();
         ready.value = true;
-        console.log("NodeShapeEditor is MOUNTED")
     })
 
     onBeforeMount(() => {
-        console.log(`NodeShapeEditor is about to be mounted.`)
         if (config.value.hasOwnProperty("group_layout") && config.value.group_layout == "tabs") {
             group_layout.value = "tabs"
         }
     })
 
     onBeforeUpdate(() => {
-        console.log(`the NodeShapeEditor component is about to be updated.`)
     })
 
     onBeforeUnmount(() => {
-        console.log(`NodeShapeEditor is about to be UNMOUNTED.`)
         localShapeIri.value = null
         localNodeIdx.value = null
     });
@@ -109,7 +104,6 @@
     
 
     function computeUsedPropertyGroups() {
-        console.log("usedPropertyGroups recomputed");
         // first get a list of all the sh:PropertyGroup instances 
         // that are provided for any property via sh:group
         var group_instances = shape_obj.properties.map(function(shape_prop) {

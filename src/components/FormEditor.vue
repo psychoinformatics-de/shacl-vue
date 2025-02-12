@@ -84,7 +84,8 @@
   // ---- //
   const localShapeIri = ref(props.shape_iri);
   const localNodeIdx = ref(props.node_idx);
-  const show_all_fields = ref(true)
+  const config = inject('config')
+  const show_all_fields = ref(false)
   const ID_IRI = inject('ID_IRI')
   const save_node = inject('save_node')
   const clear_current_node = inject('clear_current_node')
@@ -120,6 +121,12 @@
   onBeforeMount(() => {
     console.log(`the FormEditor component is about to be mounted.`)
     add_empty_node(localShapeIri.value, localNodeIdx.value)
+
+    if (config.value.hasOwnProperty("show_all_fields")) {
+      if (typeof config.value.show_all_fields == "boolean" && config.value.show_all_fields) {
+        show_all_fields.value = true
+      }
+    }
   })
 
   onBeforeUnmount(() => {

@@ -34,7 +34,7 @@
             <template v-slot:item="data">
                 <!-- Show the "Add Item" button first -->
                 <div v-if="data.item.props.isButton">
-                    <v-list-item @click.stop>
+                    <v-list-item @click.stop :active="false">
                         <v-list-item-title>
                             <v-menu v-model="menu" location="end">
                                 <template v-slot:activator="{ props }">
@@ -47,13 +47,12 @@
                                     </v-list-item>
                                 </v-list>
                             </v-menu>
-
                         </v-list-item-title>
                     </v-list-item>
                 </div>
                 <!-- Then show all other items -->
                 <div v-else>
-                    <v-list-item @click.stop="selectItem(data.item)" rounded>
+                    <v-list-item @click.stop="selectItem(data.item)" rounded :active="subValues.selectedInstance?.value == data.item.value" class="myInstancesList">
                         <template v-slot:prepend>
                             <v-icon>{{ getClassIcon(toIRI(data.item.props[toCURIE(RDF.type.value, allPrefixes)], allPrefixes)) }}</v-icon>
                         </template>
@@ -186,7 +185,9 @@
 
     function valueParser(value) {
         // Parsing internalValue into ref values for separate subcomponent(s)
-        if (!itemsToList.value) return { selectedInstance: null };
+        if (!itemsToList.value) {
+            return { selectedInstance: null };
+        }
         var inst = findObjectByKey(itemsToList.value, "value", value)
         return { selectedInstance: inst ?? null }
     }
@@ -295,7 +296,6 @@
         });
         itemsToList.value = itemsToListArr
     }
-
 </script>
 
 <!-- Component matching logic -->

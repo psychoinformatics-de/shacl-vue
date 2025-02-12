@@ -16,6 +16,7 @@
     },
     "id_iri": "https://concepts.datalad.org/s/things/v1/id",
     "show_shapes_wo_id": false,
+    "show_all_fields": false,
     "use_service": false,
     "use_token": false,
     "token_info": false,
