@@ -177,14 +177,18 @@ export function useFormData() {
                 formData[nodeshape_iri][subject_iri] = reactive(structuredClone(toRaw(formData[nodeshape_iri][node_iri])))
                 delete formData[nodeshape_iri][node_iri]
             }
+            console.log("formData saved to graph. Current formData:")
+            console.log(toRaw(formData))
+            return {
+                nodeshape_iri: nodeshape_iri,
+                node_iri: subject_iri || node_iri
+            }
             // at the end, what to do with current data in formdata?
             // we keep it there because this keeps track of changes during
             // the session, so that we know what to submit back to the service.
         } else {
             console.error(`\t- Node ${nodeshape_iri} does not exist`)
         }
-        console.log("formData saved to graph. Current formData:")
-        console.log(toRaw(formData))
     }
 
     async function submitFormData(nodeShapes, id_iri, prefixes, config) {

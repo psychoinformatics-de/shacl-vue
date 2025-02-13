@@ -130,23 +130,65 @@
     const addForm = inject('addForm');
     const removeForm = inject('removeForm');
     const getClassIcon = inject('getClassIcon')
+    // const activatedInstancesSelectEditor = inject('activatedInstancesSelectEditor')
+    const lastSavedNode = inject('lastSavedNode')
+    const openForms = inject('openForms')
 
     const cancelDialogForm = () => {
         // console.log("Canceling from form in dialog")
         newNodeIdx.value = null
-        removeForm()
     };
     provide('cancelFormHandler', cancelDialogForm);
     const saveDialogForm = () => {
         // console.log("Saving from form in dialog")
         newNodeIdx.value = null
-        removeForm()
     };
     provide('saveFormHandler', saveDialogForm);
 
     // ------------------- //
     // Computed properties //
     // ------------------- //
+
+    // trigger whenever lastSavedNode is updated, i.e. whenever a form is saved 
+    watch(lastSavedNode, (savedNode) => {
+        if (savedNode) {
+            if(!openForms.at(-1).activatedInstancesSelectEditor) {
+                return;
+            }
+            // First check if the current component is also the activatedInstancesSelectEditor
+            // If not, do nothing
+            if (
+                openForms.at(-1).activatedInstancesSelectEditor.nodeshape_iri == props.node_uid &&
+                openForms.at(-1).activatedInstancesSelectEditor.node_iri == props.node_idx &&
+                openForms.at(-1).activatedInstancesSelectEditor.predicate_iri == props.triple_uid &&
+                openForms.at(-1).activatedInstancesSelectEditor.predicate_idx == props.triple_idx
+            ) {
+                // If this is the instancesSelectEditor instance that activated the recently saved
+                // and closed form, we want to set the selected instance as the saved node
+                // This is the format of savedNode:
+                // {
+                //     nodeshape_iri: nodeshape_iri,
+                //     node_iri: subject_iri
+                // }
+                // First, let's make sure the list is updated to include the recently saved node:
+                getItemsToList()
+                // Then we need to set the selectedInstance. The itemsToList has items as objects,
+                // with value = quad.subject.value. 
+                // We need to find the item that has the value being the same as the saved node's node_iri:
+                var inst = findObjectByKey(itemsToList.value, "value", savedNode.node_iri)
+                if (inst) {
+                    subValues.value.selectedInstance = inst
+                } else {
+                    console.log("A node was recently saved but it could not be found in the itemsToList and was therefore not set as the selectedItem")
+                }
+                openForms.at(-1).activatedInstancesSelectEditor = null
+                lastSavedNode.value = null
+            } else {
+                console.log("activatedInstancesSelectEditor is not the same as last saved node")
+            }
+        }
+    }, {immediate: true });
+
 
     watch(graphData, () => {
         console.log("CHECK: graphdata instanceselecteditor")
@@ -203,6 +245,12 @@
     }
 
     function handleAddItemClick(item) {
+        openForms.at(-1).activatedInstancesSelectEditor = {
+            nodeshape_iri: props.node_uid,
+            node_iri: props.node_idx,
+            predicate_iri: props.triple_uid,
+            predicate_idx: props.triple_idx,
+        }
         selectedAddItemShapeIRI.value = item.value
         newNodeIdx.value = '_:' + crypto.randomUUID()
         console.log("New form shape IRI")

@@ -96,14 +96,14 @@
 
     onMounted(() => {
         console.log(`PropertyShapeEditor is MOUNTED:`)
-        if ((editMode.graph || editMode.form) && openForms.value.length == 1) {
+        if ((editMode.graph || editMode.form) && openForms.length == 1) {
             // if we're busy editing the FIRST form, and if the triple already has a value,
             // don't add another empty element
             if (formData[localNodeUid.value][localNodeIdx.value][my_uid.value]) {
                 return;
             }
         }
-        if (openForms.value.length >= 2) { 
+        if (openForms.length >= 2) { 
             // Whenever more than one form is open, it means we are not in edit mode but in
             // new form mode. If the new form already has a triple value, it means onMounted
             // is now run because another open form was cancelled/saved. In such cases we should

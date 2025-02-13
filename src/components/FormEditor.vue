@@ -190,8 +190,8 @@
         // - for each triple in oldTriples: create a new one with same subject and predicate
         //   and with new IRI as object, then delete the old triple
         console.log("going to save form now")
-        save_node(localShapeIri.value, localNodeIdx.value, nodeShapes.value, graphData, editMode.form || editMode.graph, ID_IRI.value, allPrefixes);
-        removeForm()
+        var saved_node = save_node(localShapeIri.value, localNodeIdx.value, nodeShapes.value, graphData, editMode.form || editMode.graph, ID_IRI.value, allPrefixes);
+        removeForm(saved_node)
         if (typeof saveFormHandler === 'function') {
           saveFormHandler();
         }
@@ -227,7 +227,7 @@
       console.log(`Removing current node: ${localShapeIri.value} - ${localNodeIdx.value}`)
       remove_current_node(localShapeIri.value, localNodeIdx.value)
     }
-    removeForm()
+    removeForm(null)
     if (typeof cancelFormHandler === 'function') {
       cancelFormHandler();
     }

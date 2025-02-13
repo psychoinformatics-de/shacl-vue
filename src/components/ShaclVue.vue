@@ -124,6 +124,10 @@ import SubmitComp from './SubmitComp.vue';
         configUrl: String
     })
 
+    const activatedInstancesSelectEditor = ref(null)
+    provide('activatedInstancesSelectEditor', activatedInstancesSelectEditor)
+    const lastSavedNode = ref(null)
+    provide('lastSavedNode', lastSavedNode)
     const itemsTrigger = ref(false)
     const queried_id = ref(null)
     const showShapesWoID = ref(true)
@@ -507,30 +511,40 @@ import SubmitComp from './SubmitComp.vue';
         return instanceItemsArr
     })
 
-    const openForms = ref([])
+    const openForms = reactive([])
     const currentOpenForm = computed(() => {
-        if (openForms.value.length > 0) {
-            return 'panel' + openForms.value.length.toString();
+        if (openForms.length > 0) {
+            return 'panel' + openForms.length.toString();
         }
         return null;
     })
 
     function addForm(shapeIRI, nodeIDX, formType) {
-        for (var i=0;i<openForms.value.length;i++) {
-            openForms.value[i].disabled = true;
+        for (var i=0;i<openForms.length;i++) {
+            openForms[i].disabled = true;
         }
-        openForms.value.push({
+        openForms.push({
             "shapeIRI": shapeIRI,
             "nodeIDX": nodeIDX,
             "formType": formType,
-            "disabled": false
+            "disabled": false,
+            "activatedInstancesSelectEditor": null,
+            // "activatedInstancesSelectEditor": {
+            //     nodeshape_iri: null,
+            //     node_iri: null,
+            //     predicate_iri: null,
+            //     predicate_idx: null,
+            // }
         })
     }
 
-    function removeForm() {
-        openForms.value.pop()
-        if (openForms.value.length > 0) {
-            openForms.value.at(-1).disabled = false
+    function removeForm(savedNode) {
+        if (savedNode) {
+            lastSavedNode.value = savedNode
+        }
+        openForms.pop()
+        if (openForms.length > 0) {
+            openForms.at(-1).disabled = false
         } else {
             editItem.value = false
             formOpen.value = false
