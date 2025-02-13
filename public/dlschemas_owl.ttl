@@ -1,66 +1,1500 @@
+@prefix IAO: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix dlidentifiers: <https://concepts.datalad.org/s/identifiers/unreleased/> .
+@prefix dlprops: <https://concepts.datalad.org/s/properties/unreleased/> .
+@prefix dlprov: <https://concepts.datalad.org/s/prov/unreleased/> .
+@prefix dlpubs: <https://concepts.datalad.org/s/publications/unreleased/> .
+@prefix dlres: <https://concepts.datalad.org/s/resources/unreleased/> .
+@prefix dlroles: <https://concepts.datalad.org/s/roles/unreleased/> .
+@prefix dlsocial: <https://concepts.datalad.org/s/social/unreleased/> .
+@prefix dlspatial: <https://concepts.datalad.org/s/spatial/unreleased/> .
+@prefix dltemporal: <https://concepts.datalad.org/s/temporal/unreleased/> .
+@prefix dlthings: <https://concepts.datalad.org/s/things/v1/> .
+@prefix dltypes: <https://concepts.datalad.org/s/types/unreleased/> .
+@prefix ns1: <http://purl.org/ontology/bibo/> .
+@prefix obo: <http://purl.obolibrary.org/obo/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix pav: <http://purl.org/pav/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema1: <http://schema.org/> .
+@prefix sio: <http://semanticscience.org/resource/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix trr379base: <https://concepts.trr379.de/s/base/unreleased/> .
+@prefix w3ctr: <https://www.w3.org/TR/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<https://concepts.datalad.org/s/agents/unreleased/InstantaneousEvent> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/Thing> .
+xsd:nonNegativeInteger a rdfs:Datatype .
 
-<https://concepts.datalad.org/s/agents/unreleased/Location> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/Thing> .
+dlprops:conforms_to a owl:DatatypeProperty ;
+    rdfs:label "conforms_to" ;
+    rdfs:range xsd:anyURI ;
+    skos:definition "An established standard to which the subject conforms." ;
+    skos:exactMatch <dcterms:conformsTo> ;
+    skos:inScheme <https://concepts.datalad.org/s/properties/unreleased> ;
+    skos:note "This property SHOULD be used to indicate a model, schema, ontology, view or profile that the subject conforms to." .
 
-<https://concepts.datalad.org/s/distribution/unreleased/DataService> rdfs:subClassOf <https://concepts.datalad.org/s/distribution/unreleased/Resource> .
+dltypes:EmailAddress a rdfs:Datatype ;
+    owl:equivalentClass [ a rdfs:Datatype ;
+            owl:onDatatype xsd:string ;
+            owl:withRestrictions ( [ xsd:pattern "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])" ] ) ] .
 
-<https://concepts.datalad.org/s/distribution/unreleased/Distribution> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Entity> .
+<https://concepts.trr379.de/s/base/unreleased.owl.ttl> a owl:Ontology ;
+    rdfs:label "trr379-base-schema" ;
+    dcterms:license "CC-BY-4.0" ;
+    dcterms:title "Base schema for TRR379 metadata" ;
+    ns1:status <http://publications.europa.eu/resource/authority/concept-status/DRAFT> ;
+    pav:version "UNRELEASED" ;
+    skos:definition """TODO
 
-<https://concepts.datalad.org/s/distribution/unreleased/LicenseDocument> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Entity> .
+More information is available on the schema's [about page](about).
 
-<https://concepts.datalad.org/s/identifiers/unreleased/Checksum> rdfs:subClassOf <https://concepts.datalad.org/s/identifiers/unreleased/ComputedIdentifier> .
+The schema definition is available as
 
-<https://concepts.datalad.org/s/identifiers/unreleased/DOI> rdfs:subClassOf <https://concepts.datalad.org/s/identifiers/unreleased/IssuedIdentifier> .
+- [JSON-LD context](../unreleased.context.jsonld)
+- [LinkML YAML](../unreleased.yaml)
+- [OWL TTL](../unreleased.owl.ttl)
+- [SHACL TTL](../unreleased.shacl.ttl)
+""" ;
+    skos:note "ALL CONTENT HERE IS UNRELEASED AND MAY CHANGE ANY TIME" .
 
-<https://concepts.datalad.org/s/prov/unreleased/SoftwareAgent> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Agent> .
+xsd:hexBinary a rdfs:Datatype ;
+    owl:equivalentClass [ a rdfs:Datatype ;
+            owl:onDatatype xsd:string ;
+            owl:withRestrictions ( [ xsd:pattern "^[a-fA-F0-9]+$" ] ) ] .
 
-<https://concepts.datalad.org/s/publications/unreleased/Publication> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Entity> .
+dlprops:about a owl:DatatypeProperty ;
+    rdfs:label "about" ;
+    rdfs:range xsd:anyURI ;
+    skos:definition "A relation of an information artifact to the subject, such as a URL identifying the topic of a document." ;
+    skos:exactMatch IAO:0000136,
+        schema1:about ;
+    skos:inScheme <https://concepts.datalad.org/s/properties/unreleased> .
 
-<https://concepts.datalad.org/s/resources/unreleased/Dataset> rdfs:subClassOf <https://concepts.datalad.org/s/resources/unreleased/Resource> .
+dlprov:acted_on_behalf_of a owl:ObjectProperty ;
+    rdfs:label "acted_on_behalf_of" ;
+    rdfs:domain dlprov:Agent ;
+    rdfs:range dlprov:Agent ;
+    skos:definition "Assign the authority and responsibility for carrying out a specific activity of the subject agent to another agent." ;
+    skos:exactMatch <prov:actedOnBehalfOf> ;
+    skos:inScheme <https://concepts.datalad.org/s/prov/unreleased> .
 
-<https://concepts.datalad.org/s/resources/unreleased/Grant> rdfs:subClassOf <https://concepts.datalad.org/s/resources/unreleased/Resource> .
+dlprov:associated_with a owl:ObjectProperty ;
+    rdfs:label "associated_with" ;
+    rdfs:domain dlprov:Activity ;
+    rdfs:range dlprov:Agent ;
+    skos:definition "An activity association is an assignment of responsibility to an agent for an activity, indicating that the agent had a role in the activity. It further allows for a plan to be specified, which is the plan intended by the agent to achieve some goals in the context of this activity." ;
+    skos:exactMatch <prov:wasAssociatedWith> ;
+    skos:inScheme <https://concepts.datalad.org/s/prov/unreleased> .
 
-<https://concepts.datalad.org/s/roles/unreleased/Role> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/Thing> .
+dlprov:attributed_to a owl:ObjectProperty ;
+    rdfs:label "attributed_to" ;
+    rdfs:domain dlprov:Entity ;
+    rdfs:range dlprov:Agent ;
+    skos:definition "Attribution is the ascribing of an entity to an agent." ;
+    skos:exactMatch <prov:wasAttributedTo> ;
+    skos:inScheme <https://concepts.datalad.org/s/prov/unreleased> .
 
-<https://concepts.datalad.org/s/social/unreleased/Organization> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Agent> .
+dlprov:derived_from a owl:ObjectProperty ;
+    rdfs:label "derived_from" ;
+    rdfs:domain dlprov:Entity ;
+    rdfs:range dlprov:Entity ;
+    skos:definition "Derivation is a transformation of an entity into another, an update of an entity resulting in a new one, or the construction of a new entity based on a pre-existing entity." ;
+    skos:exactMatch <prov:wasDerivedFrom> ;
+    skos:inScheme <https://concepts.datalad.org/s/prov/unreleased> .
 
-<https://concepts.datalad.org/s/social/unreleased/Person> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Agent> .
+dlprov:generated_by a owl:ObjectProperty ;
+    rdfs:label "generated_by" ;
+    rdfs:domain dlprov:Entity ;
+    rdfs:range dlprov:Activity ;
+    skos:definition "Generation is the completion of production of a new entity by an activity. This entity did not exist before generation and becomes available for usage after this generation." ;
+    skos:exactMatch <prov:wasAttributedTo> ;
+    skos:inScheme <https://concepts.datalad.org/s/prov/unreleased> .
 
-<https://concepts.datalad.org/s/social/unreleased/Project> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Activity> .
+dlprov:informed_by a owl:ObjectProperty ;
+    rdfs:label "informed_by" ;
+    rdfs:domain dlprov:Activity ;
+    rdfs:range dlprov:Activity ;
+    skos:definition "Communication is the exchange of an entity by two activities, one activity using the entity generated by the other." ;
+    skos:exactMatch <prov:wasInformedBy> ;
+    skos:inScheme <https://concepts.datalad.org/s/prov/unreleased> .
 
-<https://concepts.datalad.org/s/things/unreleased/AttributeSpecification> rdfs:subClassOf <https://concepts.datalad.org/s/things/unreleased/ThingMixin>,
-        <https://concepts.datalad.org/s/things/unreleased/ValueSpecificationMixin> .
+dlres:IndexedResourcePart a owl:Class ;
+    rdfs:label "IndexedResourcePart" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty trr379base:resource ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty trr379base:locator ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty trr379base:locator ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty trr379base:locator ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty trr379base:resource ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty trr379base:resource ],
+        dlres:IndexedResourceRelationship ;
+    skos:definition "An association class for attaching an index `locator` as additional information to a `hasPart` relationship." ;
+    skos:inScheme <https://concepts.datalad.org/s/resources/unreleased> .
 
-<https://concepts.datalad.org/s/things/unreleased/Property> rdfs:subClassOf <https://concepts.datalad.org/s/things/unreleased/Thing> .
+dlres:IndexedResourcePartOf a owl:Class ;
+    rdfs:label "IndexedResourcePartOf" ;
+    rdfs:subClassOf dlres:IndexedResourceRelationship ;
+    skos:definition "An association class for attaching an index `locator` as additional information to a `isPartOf` relationship." ;
+    skos:inScheme <https://concepts.datalad.org/s/resources/unreleased> .
 
-<https://concepts.datalad.org/s/things/unreleased/ValueSpecification> rdfs:subClassOf <https://concepts.datalad.org/s/things/unreleased/Thing>,
-        <https://concepts.datalad.org/s/things/unreleased/ValueSpecificationMixin> .
+dlres:IndexedResourceRelationship a owl:Class ;
+    rdfs:label "IndexedResourceRelationship" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlres:locator ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlres:locator ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlres:resource ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlres:locator ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlroles:roles ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlres:Resource ;
+            owl:onProperty dlres:resource ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlres:resource ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlroles:Role ;
+            owl:onProperty dlroles:roles ] ;
+    skos:definition "An association class for attaching a `name` as additional information to a `hasPart` relationship." ;
+    skos:inScheme <https://concepts.datalad.org/s/resources/unreleased> .
 
-<https://concepts.datalad.org/s/things/v1/AttributeSpecification> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/ThingMixin>,
-        <https://concepts.datalad.org/s/things/v1/ValueSpecificationMixin> .
+dlres:indexed_part_of a owl:ObjectProperty ;
+    rdfs:label "indexed_part_of" ;
+    rdfs:range dlres:IndexedResourcePartOf ;
+    skos:broadMatch <dcat:qualifiedRelation> ;
+    skos:definition "A qualified relation that assigns an index `locator` to a resource within the context of an `isPartOf` relationship with a subject (the contained resource)." ;
+    skos:inScheme <https://concepts.datalad.org/s/resources/unreleased> .
 
-<https://concepts.datalad.org/s/things/v1/Property> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/Thing> .
+dlres:indexed_parts a owl:ObjectProperty ;
+    rdfs:label "indexed_parts" ;
+    rdfs:range dlres:IndexedResourcePart ;
+    skos:broadMatch <dcat:qualifiedRelation> ;
+    skos:definition "A qualified relation that assigns an index `locator` to a resource within the context of a `hasPart` relationship with a subject (the containing resource)." ;
+    skos:inScheme <https://concepts.datalad.org/s/resources/unreleased> .
 
-<https://concepts.datalad.org/s/things/v1/ValueSpecification> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/Thing>,
-        <https://concepts.datalad.org/s/things/v1/ValueSpecificationMixin> .
+dlsocial:additional_names a owl:DatatypeProperty ;
+    rdfs:label "additional_names" ;
+    rdfs:range xsd:string ;
+    rdfs:subPropertyOf dlprops:name ;
+    skos:definition "Additional name(s) associated with the subject, such as one or more middle names, or a nick name." ;
+    skos:exactMatch <vcard:additional_name> ;
+    skos:inScheme <https://concepts.datalad.org/s/social/unreleased> .
 
-<https://concepts.datalad.org/s/distribution/unreleased/Resource> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Entity> .
+dltemporal:InstantaneousEvent a owl:Class ;
+    rdfs:label "InstantaneousEvent" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom dlidentifiers:Identifier ;
+            owl:onProperty dlidentifiers:identifiers ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dltemporal:at_time ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlroles:qualified_relations ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dltemporal:at_time ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlroles:Relationship ;
+            owl:onProperty dlroles:qualified_relations ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlidentifiers:identifiers ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom w3ctr:NOTE-datetime ;
+            owl:onProperty dltemporal:at_time ],
+        dlthings:Thing ;
+    skos:definition "A moment of a transition from one particular state of the world to another." ;
+    skos:exactMatch <prov:InstantaneousEvent> ;
+    skos:inScheme <https://concepts.datalad.org/s/temporal/unreleased> .
 
-<https://concepts.datalad.org/s/identifiers/unreleased/ComputedIdentifier> rdfs:subClassOf <https://concepts.datalad.org/s/identifiers/unreleased/Identifier> .
+dlthings:Annotation a owl:Class ;
+    rdfs:label "Annotation" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:annotation_tag ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlthings:annotation_value ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty dlthings:annotation_tag ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty dlthings:annotation_value ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:annotation_tag ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:annotation_value ] ;
+    skos:definition "A tag/value pair with the semantics of OWL Annotation." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
 
-<https://concepts.datalad.org/s/identifiers/unreleased/IssuedIdentifier> rdfs:subClassOf <https://concepts.datalad.org/s/identifiers/unreleased/Identifier> .
+dlthings:ValueSpecification a owl:Class ;
+    rdfs:label "ValueSpecification" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty trr379base:value ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty trr379base:value ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty trr379base:value ],
+        dlthings:Thing,
+        dlthings:ValueSpecificationMixin ;
+    skos:definition "A `Thing` that is a value of some kind. This class can be used to describe an outcome of a measurement, a factual value or constant, or other qualitative or quantitative information with an associated identifier. If no identifier is available, an `AttributeSpecification` can be used within the context of an associated `Thing` (`attributes`)." ;
+    skos:exactMatch obo:OBI_0001933 ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
 
-<https://concepts.datalad.org/s/prov/unreleased/Activity> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/Thing> .
+dlthings:ValueSpecificationMixin a owl:Class ;
+    rdfs:label "ValueSpecificationMixin" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlthings:value ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:value ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:range ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:range ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:value ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:range ] ;
+    skos:definition "Mix-in for a (structured) value specification. Two slots are provided to define a (literal) value (`value`) and its type (`range`)." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
 
-<https://concepts.datalad.org/s/resources/unreleased/Resource> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Entity> .
+dlthings:annotations a owl:ObjectProperty ;
+    rdfs:label "annotations" ;
+    rdfs:range dlthings:Annotation ;
+    skos:definition "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
 
-<https://concepts.datalad.org/s/things/unreleased/Thing> rdfs:subClassOf <https://concepts.datalad.org/s/things/unreleased/ThingMixin> .
+dlthings:attributes a owl:ObjectProperty ;
+    rdfs:label "attributes" ;
+    rdfs:range dlthings:AttributeSpecification ;
+    skos:definition "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+    skos:exactMatch sio:SIO_000008 ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
 
-<https://concepts.datalad.org/s/prov/unreleased/Agent> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/Thing> .
+dlthings:broad_mappings a owl:DatatypeProperty ;
+    rdfs:label "broad_mappings" ;
+    rdfs:range xsd:anyURI ;
+    rdfs:subPropertyOf dlthings:mappings ;
+    skos:definition "A list of terms from different schemas or terminology systems that have broader meaning." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
 
-<https://concepts.datalad.org/s/prov/unreleased/Entity> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/Thing> .
+dlthings:characterized_by a owl:ObjectProperty ;
+    rdfs:label "characterized_by" ;
+    rdfs:range dlthings:Statement ;
+    skos:definition "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+    skos:exactMatch obo:RO_0000053 ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
 
-<https://concepts.datalad.org/s/things/v1/Thing> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/ThingMixin> .
+dlthings:close_mappings a owl:DatatypeProperty ;
+    rdfs:label "close_mappings" ;
+    rdfs:range xsd:anyURI ;
+    rdfs:subPropertyOf dlthings:mappings ;
+    skos:definition "A list of terms from different schemas or terminology systems that have close meaning." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:exact_mappings a owl:DatatypeProperty ;
+    rdfs:label "exact_mappings" ;
+    rdfs:range xsd:anyURI ;
+    rdfs:subPropertyOf dlthings:mappings ;
+    skos:definition "A list of terms from different schemas or terminology systems that have identical meaning." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:narrow_mappings a owl:DatatypeProperty ;
+    rdfs:label "narrow_mappings" ;
+    rdfs:range xsd:anyURI ;
+    rdfs:subPropertyOf dlthings:mappings ;
+    skos:definition "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:related_mappings a owl:DatatypeProperty ;
+    rdfs:label "related_mappings" ;
+    rdfs:range xsd:anyURI ;
+    rdfs:subPropertyOf dlthings:mappings ;
+    skos:definition "A list of terms from different schemas or terminology systems that have related meaning." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:relations a owl:ObjectProperty,
+        owl:SymmetricProperty ;
+    rdfs:label "relations" ;
+    rdfs:domain dlthings:Thing ;
+    rdfs:range dlthings:Thing ;
+    skos:definition "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+    skos:exactMatch <dcat:relation>,
+        <dcterms:relation> ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+rdfs:Resource a rdfs:Datatype ;
+    owl:equivalentClass xsd:anyURI .
+
+dlidentifiers:Checksum a owl:Class ;
+    rdfs:label "Checksum" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty trr379base:creator ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:hexBinary ;
+            owl:onProperty trr379base:notation ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty trr379base:creator ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty trr379base:creator ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty trr379base:notation ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty trr379base:notation ],
+        dlidentifiers:ComputedIdentifier ;
+    skos:definition "A Checksum is a value that allows to check the integrity of the contents of a file. Even small changes to the content of the file will change its checksum. This class allows the results of a variety of checksum and cryptographic message digest algorithms to be represented." ;
+    skos:exactMatch dlidentifiers:Checksum,
+        <spdx:Checksum> ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> .
+
+dlidentifiers:DOI a owl:Class ;
+    rdfs:label "DOI" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty trr379base:notation ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty trr379base:creator ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty trr379base:notation ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty trr379base:creator ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty trr379base:schema_agency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty trr379base:creator ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty trr379base:notation ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty trr379base:schema_agency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty trr379base:schema_agency ],
+        dlidentifiers:IssuedIdentifier ;
+    owl:hasKey ( dlidentifiers:notation ) ;
+    skos:definition "Digital Object Identifier (DOI; ISO 26324), an identifier system governed by the DOI Foundation, where individual identifiers are issued by one of several registration agencies." ;
+    skos:exactMatch dlidentifiers:DOI ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> .
+
+dlidentifiers:creator a owl:DatatypeProperty ;
+    rdfs:label "creator" ;
+    rdfs:range xsd:anyURI ;
+    skos:definition "An agent responsible for making an entity." ;
+    skos:exactMatch <dcterms:creator> ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> .
+
+dlidentifiers:schema_agency a owl:DatatypeProperty ;
+    rdfs:label "schema_agency" ;
+    rdfs:range xsd:string ;
+    skos:definition "Name of the agency that issued an identifier." ;
+    skos:exactMatch <ADMS:schemaAgency> ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> .
+
+dlprops:same_as a owl:DatatypeProperty ;
+    rdfs:label "same_as" ;
+    rdfs:range xsd:anyURI ;
+    skos:closeMatch schema1:sameAs ;
+    skos:definition "Declares that the subject and an object are equal. Can be used to indicate a URL of a reference Web page that unambiguously indicates the subject's identity. For example, the URL of the subject's Wikipedia page, Wikidata entry, or official website." ;
+    skos:exactMatch owl:sameAs ;
+    skos:inScheme <https://concepts.datalad.org/s/properties/unreleased> .
+
+dlprov:SoftwareAgent a owl:Class ;
+    rdfs:label "SoftwareAgent" ;
+    rdfs:subClassOf dlprov:Agent ;
+    skos:definition "Running software." ;
+    skos:exactMatch dlprov:SoftwareAgent,
+        <prov:SoftwareAgent> ;
+    skos:inScheme <https://concepts.datalad.org/s/prov/unreleased> .
+
+dlpubs:Publication a owl:Class ;
+    rdfs:label "Publication" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom w3ctr:NOTE-datetime ;
+            owl:onProperty dltemporal:date_published ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dltemporal:date_modified ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dltemporal:date_published ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom w3ctr:NOTE-datetime ;
+            owl:onProperty dltemporal:date_modified ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dltemporal:date_published ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dltemporal:date_modified ],
+        dlres:Resource ;
+    skos:closeMatch sio:SIO_000087 ;
+    skos:definition "A document that is the output of a publishing process. This can printed or electronic work offered for distribution, and may have been made available by a publisher." ;
+    skos:exactMatch IAO:0000311,
+        obo:NCIT_C48471,
+        dlpubs:Publication ;
+    skos:inScheme <https://concepts.datalad.org/s/publications/unreleased> .
+
+dlres:Dataset a owl:Class ;
+    rdfs:label "Dataset" ;
+    rdfs:subClassOf dlres:Resource ;
+    skos:definition "A collection of data, published or curated by a single agent. This is a conceptual entity. A single dataset might be available in more than one representation, with differing schematic layouts, formats, and serializations." ;
+    skos:exactMatch <dcat:Dataset>,
+        dlres:Dataset ;
+    skos:inScheme <https://concepts.datalad.org/s/resources/unreleased> .
+
+dlres:Grant a owl:Class ;
+    rdfs:label "Grant" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlres:sponsor ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlres:sponsor ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlprov:Agent ;
+            owl:onProperty dlres:sponsor ],
+        dlres:Resource ;
+    skos:definition "A grant, typically financial or otherwise quantifiable, of resources." ;
+    skos:exactMatch schema1:Grant,
+        dlres:Grant ;
+    skos:inScheme <https://concepts.datalad.org/s/resources/unreleased> .
+
+dlres:Instrument a owl:Class ;
+    rdfs:label "Instrument" ;
+    rdfs:subClassOf dlres:Resource ;
+    skos:definition "A thing that enables an agent to perform an action. This is typically a device (e.g., a machine to perform a particular type of measurement), but it can also be a questionnaire that is used to perform a particular kind of assessment. An instrument is typically not a \"reagent\"." ;
+    skos:exactMatch dlres:Instrument ;
+    skos:inScheme <https://concepts.datalad.org/s/resources/unreleased> ;
+    skos:narrowMatch obo:NCIT_C62103 ;
+    skos:relatedMatch schema1:instrument .
+
+dlres:locator a owl:DatatypeProperty ;
+    rdfs:label "locator" ;
+    rdfs:range xsd:string ;
+    skos:definition "A descriptive identifier that locates a resource within a containing resource. This can be a unique name, a numerical key, or another notation that uniquely identifies the subject within the containing resource." ;
+    skos:exactMatch <bibo:locator> ;
+    skos:inScheme <https://concepts.datalad.org/s/resources/unreleased> .
+
+dlres:resource a owl:ObjectProperty ;
+    rdfs:label "resource" ;
+    rdfs:range dlres:Resource ;
+    skos:definition "Property referencing a resource within an indexed-part or indexed-part-of qualified relationship." ;
+    skos:inScheme <https://concepts.datalad.org/s/resources/unreleased> .
+
+dlres:sponsor a owl:ObjectProperty ;
+    rdfs:label "sponsor" ;
+    rdfs:range dlprov:Agent ;
+    skos:definition "An agent that supports a thing through a pledge, promise, or financial contribution." ;
+    skos:exactMatch schema1:sponsor ;
+    skos:inScheme <https://concepts.datalad.org/s/resources/unreleased> .
+
+dlsocial:Organization a owl:Class ;
+    rdfs:label "Organization" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlprops:name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlprops:short_name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlprops:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlprops:short_name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlprops:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlprops:short_name ],
+        dlprov:Agent ;
+    skos:definition "A social or legal instititution such as a company, a society, or a university." ;
+    skos:exactMatch <foaf:Organization>,
+        dlsocial:Organization,
+        <prov:Organization> ;
+    skos:inScheme <https://concepts.datalad.org/s/social/unreleased> ;
+    skos:note "This class does not offer common slots like \"address\" or \"contact\". Instead, this information should be expressed as `qualified_relations` to other things with a role-characterization. An address can be expressed as a relation to a location, and the role this location has for the organization (e.g., \"main office\"). Likewise, a contact can be describe as a relation to a person, and the role that this person fulfills for the organization (e.g., \"spokesperson\")." .
+
+dlsocial:Person a owl:Class ;
+    rdfs:label "Person" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlsocial:honorific_name_suffix ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlsocial:given_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlsocial:honorific_name_suffix ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlsocial:honorific_name_prefix ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlsocial:family_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlsocial:family_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlsocial:honorific_name_prefix ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlsocial:additional_names ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlsocial:honorific_name_suffix ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlsocial:family_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlsocial:formatted_name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlsocial:formatted_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlsocial:given_name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlsocial:given_name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlsocial:formatted_name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlsocial:honorific_name_prefix ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlsocial:additional_names ],
+        dlprov:Agent ;
+    skos:definition "Person agents are people, alive, dead, or fictional." ;
+    skos:exactMatch <foaf:Person>,
+        dlsocial:Person,
+        <prov:Person> ;
+    skos:inScheme <https://concepts.datalad.org/s/social/unreleased> ;
+    skos:note "This class does not offer common slots like \"affiliation\" or \"email\". Instead, this information should be expressed as `qualified_relations` to other things with a role characterization. An affiliation can be expressed as a relation to an organization, and the role that the organization has for the person (e.g., \"employer\"). This approach has the advantage that relations like a membership can be expressed at either end (at an organizations potential `members` slot, but also (symmetrically) as a persons potential `member_of` slot)." .
+
+dlsocial:Project a owl:Class ;
+    rdfs:label "Project" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlprops:title ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlprops:title ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlprops:title ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlprops:short_name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlprops:short_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlprops:short_name ],
+        dlprov:Activity ;
+    skos:broadMatch obo:BFO_0000015 ;
+    skos:closeMatch obo:NCIT_C47885 ;
+    skos:definition "A collective endeavour of some kind. Typically it is a planned process that is undertaken or attempted to meet some requirement, or to achieve a particular goal." ;
+    skos:exactMatch <foaf:Project>,
+        dlsocial:Project ;
+    skos:inScheme <https://concepts.datalad.org/s/social/unreleased> .
+
+dlsocial:family_name a owl:DatatypeProperty ;
+    rdfs:label "family_name" ;
+    rdfs:range xsd:string ;
+    rdfs:subPropertyOf dlprops:name ;
+    skos:definition "The (inherited) family name of the subject. In many Western languages this is the \"last name\"." ;
+    skos:exactMatch <foaf:familyName>,
+        <vcard:family-name> ;
+    skos:inScheme <https://concepts.datalad.org/s/social/unreleased> .
+
+dlsocial:formatted_name a owl:DatatypeProperty ;
+    rdfs:label "formatted_name" ;
+    rdfs:range xsd:string ;
+    rdfs:subPropertyOf dlprops:name ;
+    skos:definition "A formatted text corresponding to the name of the subject." ;
+    skos:exactMatch <vcard:fn> ;
+    skos:inScheme <https://concepts.datalad.org/s/social/unreleased> .
+
+dlsocial:given_name a owl:DatatypeProperty ;
+    rdfs:label "given_name" ;
+    rdfs:range xsd:string ;
+    rdfs:subPropertyOf dlprops:name ;
+    skos:definition "The given (non-inherited) name of the subject." ;
+    skos:exactMatch <foaf:familyName>,
+        <vcard:given-name> ;
+    skos:inScheme <https://concepts.datalad.org/s/social/unreleased> .
+
+dlsocial:honorific_name_prefix a owl:DatatypeProperty ;
+    rdfs:label "honorific_name_prefix" ;
+    rdfs:range xsd:string ;
+    rdfs:subPropertyOf dlprops:name ;
+    skos:definition "The honorific prefix(es) of the subject's name. For example, (academic/formal) titles like \"Mrs\", or \"Dr\", \"Dame\"." ;
+    skos:exactMatch <vcard:honorific-suffix> ;
+    skos:inScheme <https://concepts.datalad.org/s/social/unreleased> .
+
+dlsocial:honorific_name_suffix a owl:DatatypeProperty ;
+    rdfs:label "honorific_name_suffix" ;
+    rdfs:range xsd:string ;
+    rdfs:subPropertyOf dlprops:name ;
+    skos:definition "The honorific suffix(es) of the subject's name. For example, generation labels (\"III\"), or indicators of an academic degree, a profession, or a position (\"MD\", \"BA\")." ;
+    skos:exactMatch <vcard:honorific-suffix> ;
+    skos:inScheme <https://concepts.datalad.org/s/social/unreleased> .
+
+dltemporal:at_time a owl:DatatypeProperty ;
+    rdfs:label "at_time" ;
+    rdfs:range w3ctr:NOTE-datetime ;
+    skos:definition "Time at which an instanteneous event takes place or took place." ;
+    skos:exactMatch <prov:atTime> ;
+    skos:inScheme <https://concepts.datalad.org/s/temporal/unreleased> .
+
+dltemporal:date_modified a owl:DatatypeProperty ;
+    rdfs:label "date_modified" ;
+    rdfs:range w3ctr:NOTE-datetime ;
+    skos:definition "Timepoint at which the subject was (last) changed, updated or modified." ;
+    skos:editorialNote "a related problem also exists for `linkml-validate`, we cannot have a more specific range right now",
+        "successful validation with `datetime` as a range and linkml-jsonschema-validate` depends on a patched linkml, see https://github.com/linkml/linkml/issues/1806" ;
+    skos:exactMatch <dcterms:modified> ;
+    skos:inScheme <https://concepts.datalad.org/s/temporal/unreleased> .
+
+dltemporal:date_published a owl:DatatypeProperty ;
+    rdfs:label "date_published" ;
+    rdfs:range w3ctr:NOTE-datetime ;
+    skos:definition "Timepoint at which the subject was (last) published." ;
+    skos:exactMatch schema1:datePublished ;
+    skos:inScheme <https://concepts.datalad.org/s/temporal/unreleased> .
+
+dltemporal:ended_at a owl:DatatypeProperty ;
+    rdfs:label "ended_at" ;
+    rdfs:range w3ctr:NOTE-datetime ;
+    skos:definition "End is when an activity is deemed to have been ended by some trigger. The activity no longer exists after its end. Any usage, generation, or invalidation involving an activity precedes the activity's end." ;
+    skos:exactMatch <prov:endedAtTime> ;
+    skos:inScheme <https://concepts.datalad.org/s/temporal/unreleased> .
+
+dltemporal:started_at a owl:DatatypeProperty ;
+    rdfs:label "started_at" ;
+    rdfs:range w3ctr:NOTE-datetime ;
+    skos:definition "Start is when an activity is deemed to have been started by some trigger. The activity did not exist before its start. Any usage, generation, or invalidation involving an activity follows the activity's start." ;
+    skos:exactMatch <prov:startedAtTime> ;
+    skos:inScheme <https://concepts.datalad.org/s/temporal/unreleased> .
+
+dlthings:Statement a owl:Class ;
+    rdfs:label "Statement" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:object ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlthings:Property ;
+            owl:onProperty dlthings:predicate ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty dlthings:predicate ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty dlthings:object ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:predicate ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:object ] ;
+    skos:definition "An RDF statement that links a `predicate` (a `Property`) with an `object` (a `Thing`) to the subject to form a triple. A `Statement` is used to qualify a relation to a `Thing` referenced by its identifier. For specifying a qualified relation to an attribute that has no dedicated identifier, use an `AttributeSpecification`." ;
+    skos:exactMatch rdf:Statement,
+        dlthings:Statement ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:annotation_tag a owl:DatatypeProperty ;
+    rdfs:label "annotation_tag" ;
+    rdfs:range xsd:anyURI ;
+    skos:definition "A tag identifying an annotation." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:annotation_value a owl:DatatypeProperty ;
+    rdfs:label "annotation_value" ;
+    rdfs:range xsd:string ;
+    skos:definition "The actual annotation." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:description a owl:DatatypeProperty ;
+    rdfs:label "description" ;
+    rdfs:range xsd:string ;
+    skos:definition "A free-text account of the subject." ;
+    skos:exactMatch <dcterms:description>,
+        rdfs:comment ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:id a owl:DatatypeProperty ;
+    rdfs:label "id" ;
+    rdfs:range xsd:anyURI ;
+    skos:definition "Persistent and globally unique identifier of a `Thing`." ;
+    skos:exactMatch <ADMS:identifier>,
+        <dcterms:identifier>,
+        schema1:identifier ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:range a owl:DatatypeProperty ;
+    rdfs:label "range" ;
+    rdfs:range xsd:anyURI ;
+    skos:definition "Declares that the value of a `Thing` or `AttributeSpecification` are instances of a particular class." ;
+    skos:exactMatch rdfs:range ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:value a owl:DatatypeProperty ;
+    rdfs:label "value" ;
+    rdfs:range xsd:string ;
+    skos:definition "Value of a thing." ;
+    skos:exactMatch rdf:value ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlidentifiers:ComputedIdentifier a owl:Class ;
+    rdfs:label "ComputedIdentifier" ;
+    rdfs:subClassOf dlidentifiers:Identifier ;
+    skos:definition "An identifier that has been derived from information on the identified entity." ;
+    skos:exactMatch dlidentifiers:ComputedIdentifier ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> ;
+    skos:narrowMatch <spdx:Checksum> .
+
+dlidentifiers:IssuedIdentifier a owl:Class ;
+    rdfs:label "IssuedIdentifier" ;
+    rdfs:seeAlso <https://semiceu.github.io/ADMS/releases/2.00/#Identifier> ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlidentifiers:schema_agency ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlidentifiers:schema_agency ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlidentifiers:schema_agency ],
+        dlidentifiers:Identifier ;
+    skos:definition "An identifier that was issued by a particular agent with a notation that has no (or an undefined) relation to the nature of the identified entity." ;
+    skos:exactMatch <ADMS:Identifier>,
+        dlidentifiers:IssuedIdentifier ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> .
+
+dlidentifiers:notation a owl:DatatypeProperty ;
+    rdfs:label "notation" ;
+    rdfs:range xsd:string ;
+    skos:definition "String of characters such as \"T58:5\" or \"30:4833\" used to uniquely identify a concept within the scope of a given concept scheme." ;
+    skos:exactMatch skos:notation ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> .
+
+dlroles:roles a owl:ObjectProperty ;
+    rdfs:label "roles" ;
+    rdfs:range dlroles:Role ;
+    skos:definition "Describes the function of an entity or agent (object) within the scope of a `Relationship` with the subject." ;
+    skos:exactMatch <dcat:had_role>,
+        <prov:hadRole> ;
+    skos:inScheme <https://concepts.datalad.org/s/roles/unreleased> .
+
+dlthings:AttributeSpecification a owl:Class ;
+    rdfs:label "AttributeSpecification" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom dlthings:Property ;
+            owl:onProperty dlthings:predicate ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:predicate ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty dlthings:predicate ],
+        dlthings:ThingMixin,
+        dlthings:ValueSpecificationMixin ;
+    skos:closeMatch dlthings:Thing ;
+    skos:definition "An attribute is conceptually a thing, but it requires no dedicated identifier (`id`). Instead, it is linked to a `Thing` via its `attributes` slot and declares a `predicate` on the nature of the relationship." ;
+    skos:exactMatch sio:SIO_000614 ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:ThingMixin a owl:Class ;
+    rdfs:label "ThingMixin" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:narrow_mappings ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlthings:Annotation ;
+            owl:onProperty dlthings:annotations ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom rdfs:Resource ;
+            owl:onProperty dltypes:schema_type ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:exact_mappings ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:description ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:related_mappings ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlthings:description ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:close_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:broad_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:attributes ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:annotations ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:exact_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dltypes:schema_type ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dltypes:schema_type ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:close_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:narrow_mappings ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:broad_mappings ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlthings:Statement ;
+            owl:onProperty dlthings:characterized_by ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlthings:AttributeSpecification ;
+            owl:onProperty dlthings:attributes ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:related_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:characterized_by ] ;
+    skos:definition "Mix-in with the common interface of `Thing` and `AttributeSpecification`. This interface enables type specifications (`rdf:type`) for things and attributes via a `type` designator slot to indicate specialized schema classes for validation where a slot's `range` is too generic. A thing or attribute can be further describe with statements on qualified relations to other things (`characterized_by`), or inline attributes (`attributes`). A set of `mappings` slots enables the alignment for arbitrary external schemas and terminologies." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:mappings a owl:DatatypeProperty ;
+    rdfs:label "mappings" ;
+    rdfs:range xsd:anyURI ;
+    skos:definition "A list of terms from different schemas or terminology systems that have comparable meaning. These may include terms that are precisely equivalent, broader or narrower in meaning, or otherwise semantically related but not equivalent from a strict ontological perspective." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlroles:Role a owl:Class ;
+    rdfs:label "Role" ;
+    rdfs:subClassOf dlthings:Thing ;
+    skos:definition "A role is the function of a resource or agent with respect to a subject, in the context of resource attribution or relationships." ;
+    skos:exactMatch <dcat:Role>,
+        dlroles:Role,
+        <prov:Role> ;
+    skos:inScheme <https://concepts.datalad.org/s/roles/unreleased> .
+
+dlspatial:Location a owl:Class ;
+    rdfs:label "Location" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom dlroles:Relationship ;
+            owl:onProperty dlroles:qualified_relations ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlidentifiers:identifiers ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlidentifiers:Identifier ;
+            owl:onProperty dlidentifiers:identifiers ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlroles:qualified_relations ],
+        dlthings:Thing ;
+    skos:definition "A location can be an identifiable geographic place (ISO 19112), but it can also be a non-geographic place such as a directory, row, or column. As such, there are numerous ways in which location can be expressed, such as by a coordinate, address, landmark, and so forth." ;
+    skos:exactMatch dlspatial:Location,
+        <prov:Location> ;
+    skos:inScheme <https://concepts.datalad.org/s/spatial/unreleased> .
+
+dlspatial:at_location a owl:ObjectProperty ;
+    rdfs:label "at_location" ;
+    rdfs:range dlspatial:Location ;
+    skos:definition "Associate the subject with a location. This can be a geographic place, or a place in a directory, or table." ;
+    skos:exactMatch <prov:atLocation> ;
+    skos:inScheme <https://concepts.datalad.org/s/spatial/unreleased> .
+
+dlthings:Property a owl:Class ;
+    rdfs:label "Property" ;
+    rdfs:subClassOf dlthings:Thing ;
+    skos:definition "An RDF property, a `Thing` used to define a `predicate`, for example in a `Statement`." ;
+    skos:exactMatch rdf:Property,
+        dlthings:Property ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:object a owl:DatatypeProperty ;
+    rdfs:label "object" ;
+    rdfs:range xsd:anyURI ;
+    skos:definition "Reference to a `Thing` within a `Statement`." ;
+    skos:exactMatch rdf:object ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:predicate a owl:ObjectProperty ;
+    rdfs:label "predicate" ;
+    rdfs:range dlthings:Property ;
+    skos:definition "Reference to a `Property` within a `Statement`." ;
+    skos:exactMatch rdf:predicate ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlprops:title a owl:DatatypeProperty ;
+    rdfs:label "title" ;
+    rdfs:range xsd:string ;
+    skos:definition "A summarily description of the subject. It is closely related to a `name`, but often less compact and more descriptive. Typically used for documents." ;
+    skos:exactMatch <dcterms:title>,
+        sio:SIO_000185 ;
+    skos:inScheme <https://concepts.datalad.org/s/properties/unreleased> ;
+    skos:relatedMatch schema1:name .
+
+dlroles:Relationship a owl:Class ;
+    rdfs:label "Relationship" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom dlroles:Role ;
+            owl:onProperty dlroles:roles ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty dlthings:object ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:object ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:object ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty dlroles:roles ] ;
+    skos:closeMatch <dcat:Relationship>,
+        <prov:Influence> ;
+    skos:definition "An association class for characterizing the relation between two things with the role(s) the object had with respect to the subject. A relationship is always between two things only, but can be annotated with multiple roles (for example, a person having both an author role with respect to a dataset, and also being the person who is legally responsible contact for it)." ;
+    skos:exactMatch dlroles:Relationship ;
+    skos:inScheme <https://concepts.datalad.org/s/roles/unreleased> .
+
+dlprops:short_name a owl:DatatypeProperty ;
+    rdfs:label "short_name" ;
+    rdfs:range xsd:string ;
+    rdfs:subPropertyOf dlprops:name ;
+    skos:definition "A shortened name for the subject. For example, an acronym, initialism, nickname, or other abbreviation of the `name`." ;
+    skos:exactMatch <pq:P1813> ;
+    skos:inScheme <https://concepts.datalad.org/s/properties/unreleased> .
+
+dlprov:Entity a owl:Class ;
+    rdfs:label "Entity" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom dlprov:Entity ;
+            owl:onProperty dlprov:derived_from ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlidentifiers:identifiers ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlroles:Relationship ;
+            owl:onProperty dlroles:qualified_relations ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlprov:attributed_to ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlroles:qualified_relations ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlidentifiers:Identifier ;
+            owl:onProperty dlidentifiers:identifiers ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlprov:Activity ;
+            owl:onProperty dlprov:generated_by ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlprov:generated_by ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlprov:derived_from ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlprov:Agent ;
+            owl:onProperty dlprov:attributed_to ],
+        dlthings:Thing ;
+    skos:definition "A physical, digital, conceptual, or other kind of thing with some fixed aspects; entities may be real or imaginary." ;
+    skos:exactMatch dlprov:Entity,
+        <prov:Entity> ;
+    skos:inScheme <https://concepts.datalad.org/s/prov/unreleased> .
+
+dlres:Resource a owl:Class ;
+    rdfs:label "Resource" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlprops:about ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlprops:short_name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlprops:short_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlprops:short_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlprops:title ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlres:IndexedResourcePart ;
+            owl:onProperty dlres:indexed_parts ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlprops:about ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlres:indexed_part_of ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlprops:title ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlprops:same_as ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlprops:title ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlprops:same_as ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlres:indexed_parts ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlres:IndexedResourcePartOf ;
+            owl:onProperty dlres:indexed_part_of ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlprops:same_as ],
+        dlprov:Entity ;
+    skos:definition "A consumable, often quantifiable entity, typically made available by a single agent." ;
+    skos:exactMatch dlres:Resource ;
+    skos:inScheme <https://concepts.datalad.org/s/resources/unreleased> ;
+    skos:narrowMatch <dcat:Resource> .
+
+dlidentifiers:identifiers a owl:ObjectProperty ;
+    rdfs:label "identifiers" ;
+    rdfs:range dlidentifiers:Identifier ;
+    skos:definition "An unambiguous reference to the subject within a given context." ;
+    skos:exactMatch <ADMS:identifier>,
+        <dcterms:identifier>,
+        schema1:identifier ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> .
+
+dlprops:name a owl:DatatypeProperty ;
+    rdfs:label "name" ;
+    rdfs:range xsd:string ;
+    skos:closeMatch dlprops:title ;
+    skos:definition "Name of the subject. A name is closely related to a `title`, but often more compact and identifier-like, but without the implication of uniqueness of an identifier. A name is often used by technical systems to display an item in an organizational structure, such as a file in a directory hierarchy." ;
+    skos:exactMatch <foaf:name>,
+        schema1:name,
+        rdfs:label ;
+    skos:inScheme <https://concepts.datalad.org/s/properties/unreleased> .
+
+dlprov:Activity a owl:Class ;
+    rdfs:label "Activity" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom dlidentifiers:Identifier ;
+            owl:onProperty dlidentifiers:identifiers ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlspatial:at_location ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dltemporal:ended_at ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlprov:Activity ;
+            owl:onProperty dlprov:informed_by ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dltemporal:started_at ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlprov:informed_by ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlroles:Relationship ;
+            owl:onProperty dlroles:qualified_relations ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom w3ctr:NOTE-datetime ;
+            owl:onProperty dltemporal:ended_at ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlroles:qualified_relations ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dltemporal:ended_at ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlprov:Agent ;
+            owl:onProperty dlprov:associated_with ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlspatial:Location ;
+            owl:onProperty dlspatial:at_location ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlspatial:at_location ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom w3ctr:NOTE-datetime ;
+            owl:onProperty dltemporal:started_at ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlprov:associated_with ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dltemporal:started_at ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlidentifiers:identifiers ],
+        dlthings:Thing ;
+    skos:definition "An activity is something that occurs over a period of time and acts upon or with entities; it may include consuming, processing, transforming, modifying, relocating, using, or generating entities." ;
+    skos:exactMatch dlprov:Activity,
+        <prov:Activity> ;
+    skos:inScheme <https://concepts.datalad.org/s/prov/unreleased> ;
+    skos:note "This class does not support even a basic `name` slot, because depending on the context, there may not be a suitable name, or one name would not be enough. If no specialized derived class is available in a context where a `name` or similar attribute is desired, it can be expressed via the `has_attributes` slot." .
+
+dlroles:qualified_relations a owl:ObjectProperty ;
+    rdfs:label "qualified_relations" ;
+    rdfs:domain dlthings:Thing ;
+    rdfs:range dlroles:Relationship ;
+    skos:definition "Characterizes the relationship or role of an entity with respect to the subject." ;
+    skos:exactMatch <dcat:qualifiedRelation> ;
+    skos:inScheme <https://concepts.datalad.org/s/roles/unreleased> .
+
+w3ctr:NOTE-datetime a rdfs:Datatype ;
+    owl:equivalentClass [ a rdfs:Datatype ;
+            owl:intersectionOf ( xsd:string [ a rdfs:Datatype ;
+                        owl:onDatatype xsd:string ;
+                        owl:withRestrictions ( [ xsd:pattern "^([-+]\\d+)|(\\d{4})|(\\d{4}-[01]\\d)|(\\d{4}-[01]\\d-[0-3]\\d)|(\\d{4}-[01]\\d-[0-3]\\dT[0-2]\\d:[0-5]\\d:[0-5]\\d\\.\\d+([+-][0-2]\\d:[0-5]\\d|Z))|(\\d{4}-[01]\\d-[0-3]\\dT[0-2]\\d:[0-5]\\d:[0-5]\\d([+-][0-2]\\d:[0-5]\\d|Z))|(\\d{4}-[01]\\d-[0-3]\\dT[0-2]\\d:[0-5]\\d([+-][0-2]\\d:[0-5]\\d|Z))$" ] ) ] ) ] .
+
+dlidentifiers:Identifier a owl:Class ;
+    rdfs:label "Identifier" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty dlidentifiers:notation ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dltypes:schema_type ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlidentifiers:creator ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlidentifiers:notation ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlidentifiers:creator ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlidentifiers:notation ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom rdfs:Resource ;
+            owl:onProperty dltypes:schema_type ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlidentifiers:creator ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dltypes:schema_type ] ;
+    skos:closeMatch <ADMS:Identifier> ;
+    skos:definition "An identifier is a label that uniquely identifies an item in a particular context. Some identifiers are globally unique. All identifiers are unique within their individual scope." ;
+    skos:exactMatch dlidentifiers:Identifier ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> .
+
+dlprov:Agent a owl:Class ;
+    rdfs:label "Agent" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlprov:acted_on_behalf_of ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlidentifiers:Identifier ;
+            owl:onProperty dlidentifiers:identifiers ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlroles:Relationship ;
+            owl:onProperty dlroles:qualified_relations ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlspatial:Location ;
+            owl:onProperty dlspatial:at_location ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlspatial:at_location ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlidentifiers:identifiers ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlroles:qualified_relations ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlprov:Agent ;
+            owl:onProperty dlprov:acted_on_behalf_of ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlspatial:at_location ],
+        dlthings:Thing ;
+    skos:definition "Something that bears some form of responsibility for an activity taking place, for the existence of an entity, or for another agent's activity." ;
+    skos:exactMatch <foaf:Agent>,
+        dlprov:Agent,
+        <prov:Agent> ;
+    skos:inScheme <https://concepts.datalad.org/s/prov/unreleased> ;
+    skos:note "This class does not support even a basic `name` slot, because depending on the context, there may not be a suitable name, or one name would not be enough. If no specialized derived class is available in a context where a `name` or similar attribute is desired, it can be expressed via the `has_attributes` slot." .
+
+dlthings:Thing a owl:Class ;
+    rdfs:label "Thing" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty trr379base:exact_mappings ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:id ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty trr379base:annotations ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlthings:Thing ;
+            owl:onProperty dlthings:relations ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty trr379base:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty trr379base:attributes ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty trr379base:broad_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty trr379base:narrow_mappings ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty trr379base:narrow_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty dlthings:id ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty trr379base:annotations ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty trr379base:close_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty trr379base:attributes ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty trr379base:related_mappings ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty trr379base:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:id ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty trr379base:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty trr379base:related_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty trr379base:close_mappings ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty trr379base:characterized_by ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:relations ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty trr379base:exact_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty trr379base:characterized_by ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty trr379base:broad_mappings ],
+        dlthings:ThingMixin ;
+    skos:definition "The most basic, identifiable item. In addition to the slots that are common between a `Thing` and an `AttributeSpecification` (see `ThingMixin`), two additional slots are provided. The `id` slot takes the required identifier for a `Thing`. The `relation` slot allows for the inline specification of other `Thing` instances. Such a relation is unqualified (and symmetric), and should be further characterized via a `Statement` (see `characterized_by`). From a schema perspective, the `relation` slots allows for building self-contained, structured documents (e.g., a JSON object) with arbitrarily complex information on a `Thing`." ;
+    skos:exactMatch schema1:Thing,
+        dlthings:Thing ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dltypes:schema_type a owl:DatatypeProperty ;
+    rdfs:label "schema_type" ;
+    rdfs:range rdfs:Resource ;
+    skos:definition "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+    skos:exactMatch <dcterms:type> ;
+    skos:inScheme <https://concepts.datalad.org/s/types/unreleased> .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlpubs:Publication ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlpubs:Publication .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlres:Instrument ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlres:Instrument .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlroles:Role ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlroles:Role .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlidentifiers:Checksum ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlidentifiers:Checksum .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlprov:Activity ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlprov:Activity .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlres:Resource ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlres:Resource .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlthings:Property ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlthings:Property .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlspatial:Location ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlspatial:Location .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlres:Dataset ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlres:Dataset .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlthings:AttributeSpecification ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlthings:AttributeSpecification .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlidentifiers:Identifier ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlidentifiers:Identifier .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlthings:Thing ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlthings:Thing .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dltemporal:InstantaneousEvent ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dltemporal:InstantaneousEvent .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlprov:Agent ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlprov:Agent .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlprov:SoftwareAgent ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlprov:SoftwareAgent .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlidentifiers:DOI ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlidentifiers:DOI .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlsocial:Project ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlsocial:Project .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlres:Grant ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlres:Grant .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlsocial:Person ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlsocial:Person .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlthings:ValueSpecification ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlthings:ValueSpecification .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlprov:Entity ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlprov:Entity .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlsocial:Organization ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlsocial:Organization .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlthings:ThingMixin ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlthings:ThingMixin .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlidentifiers:IssuedIdentifier ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlidentifiers:IssuedIdentifier .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlidentifiers:ComputedIdentifier ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlidentifiers:ComputedIdentifier .
+
 
