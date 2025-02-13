@@ -5,6 +5,7 @@
                 <v-navigation-drawer
                     theme="dark"
                     color="#41b883"
+                    v-model="drawer"
                     permanent
                 >
                     <v-list nav selectable :disabled="formOpen" v-model:selected="selectedItem">
@@ -268,6 +269,7 @@ import SubmitComp from './SubmitComp.vue';
     const newItemIdx = ref(null)
     const editItem = ref(false)
     const formOpen = ref(false)
+    const drawer = ref(true)
     const editShapeIRI = ref(null)
     const editItemIdx = ref(null)
     const editMode = reactive({
@@ -400,6 +402,7 @@ import SubmitComp from './SubmitComp.vue';
         addForm(selectedIRI.value, newItemIdx.value, 'new')
         addItem.value = true
         formOpen.value = true
+        drawer.value = false
         canSubmit.value = false
     }
 
@@ -447,6 +450,7 @@ import SubmitComp from './SubmitComp.vue';
         addForm(editShapeIRI.value, editItemIdx.value, 'edit')
         editItem.value = true
         formOpen.value = true
+        drawer.value = false
         canSubmit.value = false
         window.scrollTo(0,0);
     }
@@ -530,6 +534,7 @@ import SubmitComp from './SubmitComp.vue';
         } else {
             editItem.value = false
             formOpen.value = false
+            drawer.value = true
             canSubmit.value = true
             editMode.form = editMode.graph = false
         }
