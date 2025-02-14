@@ -235,13 +235,22 @@ export function getLiteralAndNamedNodes(graphData, predicate, propertyClass, pre
 }
 
 
-export function getSubjectTriples(graphData, someTerm) {
+export function getSubjectTriples(graphData, someTerm, blankNodesResolved=false) {
   // console.log(`Getting all triples with subject: ${someTerm.value}`)
   const quads = rdf.grapoi({ dataset: graphData, term: someTerm }).out().quads();
   // Array.from(quads).forEach(quad => {
   //     console.log(`\t${quad.subject.value} - ${quad.predicate.value} - ${quad.object.value}`)
   // })
-  return Array.from(quads)
+  var quadArray = Array.from(quads)
+  if (blankNodesResolved) {
+    quads.forEach(q => {
+      if (q.object.termType === "BlankNode") {
+        var moreQuads = getSubjectTriples(graphData, q, true)
+        quadArray = quadArray.concat(Array.from(moreQuads))
+      }
+    })
+  }
+  return quadArray  
 }
 
 

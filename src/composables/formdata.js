@@ -191,7 +191,7 @@ export function useFormData() {
         }
     }
 
-    async function submitFormData(nodeShapes, id_iri, prefixes, config) {
+    async function submitFormData(nodeShapes, id_iri, prefixes, config, graphData) {
         console.log("inside submitFormData function")
         console.log(toRaw(formData))
         if (Object.keys(formData).length == 0) {
@@ -210,15 +210,11 @@ export function useFormData() {
             return
         }
         const { token } = useToken();
-        // Send a POST to a service for every record in formData
-        // Some exploration:
-        // - we need to send a POST request for every NAMED NODE record,
-        //   with blank nodes resolved
+        
         var headers = {}
         if (token.value !== null && token.value !== "null") {
             headers['X-DumpThings-Token'] = token.value;
         }
-
 
         try {
             // collect all POST requests as Promises
@@ -228,10 +224,25 @@ export function useFormData() {
                 // Get shapes for reference
                 var nodeShape = nodeShapes[class_uri]
                 var propertyShapes = nodeShape.properties
+                // if the nodeshape does NOT have a propertyshape with sh:path being equal to ID_IRI,
+                // it means the class's records will be blank nodes and we can skip the whole class
+                var ps = propertyShapes.find((prop) => prop[SHACL.path.value] == id_iri)
+                if(!ps) {
+                    console.log(`Class '${class_uri}' shape does not have an id field, i.e. it will have blank node records, i.e. skipping.`)
+                    continue;
+                }
                 for (var record_id of Object.keys(formData[class_uri])) {
+                    console.log(`formData for node: ${record_id}`)
+                    console.log(toRaw(formData[class_uri][record_id]))
                     // Turn the record/node into quads
-                    // 
                     var quads = formNodeToQuads(class_uri, record_id, nodeShapes, propertyShapes, id_iri, prefixes)
+                    // Ne need to resolve blank nodes recursively, and add all to the dataset
+                    quads.forEach(quad => {
+                        if (quad.object.termType === "BlankNode") {
+                            var moreQuads = getSubjectTriples(graphData, quad.object, true)
+                            quads = quads.concat(Array.from(moreQuads))
+                        }
+                    });
                     // Create an rdf dataset per record
                     var ds = rdf.dataset()
                     quads.forEach(quad => {
