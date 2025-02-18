@@ -42,7 +42,7 @@
                                     <span v-else>
                                         <div v-if="instanceItemsComp.length">
                                             <span v-for="r in instanceItemsComp">
-                                                <RecordViewer :classIRI="selectedIRI" :record="r" :key="selectedIRI + '-' + r.title + '-' + itemsTrigger" :formOpen="formOpen" :variant="r.title == queried_id ? 'outlined' : 'tonal'"></RecordViewer>
+                                                <NodeShapeViewer :classIRI="selectedIRI" :quad="r.props.quad" :key="selectedIRI + '-' + r.title + '-' + itemsTrigger" :formOpen="formOpen" :variant="r.title == queried_id ? 'outlined' : 'tonal'"></NodeShapeViewer>
                                             </span>
                                         </div>
                                         <div v-else style="margin-top: 1em; margin-left: 1em;">
@@ -118,7 +118,6 @@
         findObjectByKey
     } from '../modules/utils';
     import {SHACL, RDF, RDFS, DLTHINGS, XSD} from '@/modules/namespaces'
-import SubmitComp from './SubmitComp.vue';
 
     const props = defineProps({
         configUrl: String
@@ -254,7 +253,6 @@ import SubmitComp from './SubmitComp.vue';
             if (config.value.hasOwnProperty("class_icons")) {
                 configClassIcons.value = config.value.class_icons
             }
-
             await getGraphData()
             await getClassData()
             await getSHACLschema()
@@ -307,7 +305,7 @@ import SubmitComp from './SubmitComp.vue';
     })
 
 
-    watch(prefixes_ready, (newValue) => {
+    watch(prefixes_ready, async (newValue) => {
         if (newValue) {
             // Get all prefixes and derive context from it
             Object.assign(allPrefixes, shapePrefixes, graphPrefixes, classPrefixes)
@@ -319,6 +317,27 @@ import SubmitComp from './SubmitComp.vue';
             });
             console.log("ALL PREFIXES READY")
             console.log(toRaw(allPrefixes))
+
+            if (config.value.hasOwnProperty("use_service") &&
+                config.value.use_service &&
+                config.value.hasOwnProperty("service_fetch_before") &&
+                config.value.service_fetch_before
+            ) {
+
+                console.log("service_fetch_before!")
+                if (config.value.service_fetch_before["get-record"]?.length > 0) {
+                    for (var iri of config.value.service_fetch_before["get-record"]) {
+                        console.log(`fetching record upfront: ${iri}`)
+                        await fetchFromService('get-record', iri, allPrefixes)
+                    }
+                }
+                if (config.value.service_fetch_before["get-records"]?.length > 0) {
+                    for (var iri of config.value.service_fetch_before["get-records"]) {
+                        console.log(`fetching recordS upfront: ${iri}`)
+                        await fetchFromService('get-records', iri, allPrefixes)
+                    }
+                }                
+            }
             setViewFromQuery()
         }
     }, {immediate: true });

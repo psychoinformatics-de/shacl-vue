@@ -1,85 +1,97 @@
 <template>
-        <h2>{{ toCURIE(shape_iri) }}</h2>
-        <v-table theme="light">
-        <thead>
-        <tr>
-            <th class="text-left">
-            Attribute
-            </th>
-            <th class="text-left">
-            Value
-            </th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr
-            v-for="(value, key) in shapeAttributes"
-            :key="key"
-        >
-            <td>{{ toCURIE(key) }}</td>
-            <td>{{ value }}</td>
-        </tr>
-        </tbody>
-        
-        </v-table>
-        <br>
-        <v-divider></v-divider>
-        <br>
-
-        <h3>Properties:</h3>
-        <br>
-        <span v-for="property in shape_obj.properties">
-            <v-card variant="outlined" style="margin-bottom: 0.5em;">
-                <v-card-text>
-                    <v-card-title><small>{{ toCURIE(property["http://www.w3.org/ns/shacl#path"])}}</small></v-card-title>
-                        <v-table theme="light">
-                            <tbody>
-                            <tr
-                                v-for="(value, key) in property"
-                                :key="key"
-                            >
-                                <td>{{ toCURIE(key) }}</td>
-                                <td>{{ value }}</td>
-                            </tr>
-                            </tbody>
-                            
-                        </v-table>
-                    
-                </v-card-text>
-                
-            </v-card>
-        </span>
+    <v-card class="mx-4 mb-4" :variant="props.variant">
+        <v-card-title class="text-h6">
+            <v-icon>{{ getClassIcon(props.classIRI) }}</v-icon>&nbsp;
+            <TextOrLinkViewer :textVal="record.title" :prefLabel="record.prefLabel"></TextOrLinkViewer>&nbsp;
+            <v-btn
+                icon="mdi-pencil"
+                variant="tonal"
+                size="x-small"
+                class="rounded-lg"
+                @click="editInstanceItem(record)"
+            ></v-btn>
+        </v-card-title>
+        <v-card-subtitle>{{ toCURIE(record.subtitle, allPrefixes) }}</v-card-subtitle>
+        <v-card-text v-if="!props.formOpen">
+            <!-- literal and named nodes -->
+            <span v-for="tt of ['Literal', 'NamedNode']">
+                <span v-for="(v, k, index) in record.triples[tt]">
+                    <span v-if="k != RDF.type.value ">
+                        <strong>{{ makeReadable(toCURIE(k, allPrefixes, "parts").property) }}</strong>:
+                        <span v-for="(el, i) in v">
+                            <span v-if="v.length > 1"><br>&nbsp;- </span>
+                            &nbsp;<TextOrLinkViewer :textVal="el.value" :prefLabel="getPrefLabel(el, graphData, allPrefixes)"></TextOrLinkViewer>
+                        </span>
+                        <br>
+                    </span>
+                </span>
+            </span>
+            <!-- Blank nodes -->
+            <span v-for="(v, k, index) in record.triples['BlankNode']">
+                <strong>{{ makeReadable(toCURIE(k, allPrefixes, "parts").property) }}</strong>:
+                <br>
+                <span v-for="(el, i) in v">
+                    <div>
+                        <BlankNodeViewer :node="el"></BlankNodeViewer>
+                    </div>
+                </span>
+            </span>
+        </v-card-text>
+    </v-card>
 
 
 </template>
 
 <script setup>
-    import { ref, onMounted, computed } from 'vue'
+    import { ref, onMounted, computed, reactive, onBeforeMount, inject} from 'vue'
+    import { toCURIE, getSubjectTriples, makeReadable, getPrefLabel} from '../modules/utils';
+    import { RDF } from '@/modules/namespaces';
     // Define component properties
     const props = defineProps({
-        shape_iri: String,
-        shape_obj: Object,
+        classIRI: String,
+        quad: Object,
+        variant: String,
+        formOpen: Boolean,
     })
 
-    const ready = ref(false)
+    const editInstanceItem = inject('editInstanceItem')
+    const allPrefixes = inject('allPrefixes')
+    const getClassIcon = inject('getClassIcon')
+    const graphData = inject('graphData')
+    const record = reactive({})
 
-
-    const shapeAttributes = computed(() => {
-        const ignore_properties = [
-            "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-            "properties",
-            "http://www.w3.org/ns/shacl#ignoredProperties"
-        ]
-        var new_obj = {}
-        for (const [key, value] of Object.entries(props.shape_obj)) {
-            if (ignore_properties.indexOf(key) < 0) {
-                new_obj[key] = value
-            }
+    onBeforeMount(() => {
+        record.title = props.quad.subject.value
+        record.subtitle = props.quad.object.value
+        record.relatedQuads = getSubjectTriples(graphData, props.quad.subject)
+        record.prefLabel = getPrefLabel(props.quad.subject, graphData, allPrefixes)
+        record.triples = {
+            "Literal": {},
+            "BlankNode": {},
+            "NamedNode": {},
         }
-        return new_obj
+        record.relatedQuads.forEach((rQ) => {
+            addRecordProperty(rQ)
+        })
     })
 
     onMounted(() => {
-        ready.value = true;
     })
+
+
+    // const shapeAttributes = computed(() => {
+    // })
+
+    function addRecordProperty(quad) {
+        var termType = quad.object.termType
+        if (!record.triples[termType].hasOwnProperty(quad.predicate.value)) {
+            record.triples[termType][quad.predicate.value] = []
+        }
+        record.triples[termType][quad.predicate.value].push(quad.object)
+        // if (termType === "BlankNode") {
+        //     record.triples[termType][quad.predicate.value].push(quad.object)
+        // } else {
+        //     record.triples[termType][quad.predicate.value].push(quad.object.value)
+        // }
+    }
 </script>
