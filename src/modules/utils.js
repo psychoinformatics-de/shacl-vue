@@ -1,4 +1,4 @@
-import { SHACL, RDF, XSD} from '../modules/namespaces'
+import { SHACL, RDF, XSD, DLTHINGS} from '../modules/namespaces'
 import rdf from 'rdf-ext';
 
 
@@ -302,4 +302,43 @@ export function makeReadable(input) {
   output = output.replace(/_/g,' ');
   output = output.replace(/-/g,' ');
   return output
+}
+
+export function getPrefLabel(node, graphData, allPrefixes, from) {
+  // console.log("Inside getPrefLabel")
+  // console.log(allPrefixes)
+  var prefLabel = ""
+  // Get quads related to a subject, and then isolate those that are 'DLTHINGS.annotations'
+  node.value = toIRI(node.value, allPrefixes)
+  var relatedQuads = getSubjectTriples(graphData, node)
+  var annotationQuads = relatedQuads.filter((q) => {
+      return q.predicate.value == DLTHINGS.annotations.value &&
+      q.object.termType === "BlankNode"
+  })
+  // If no annotations, return empty string
+  if (!annotationQuads) {
+      return prefLabel
+  }
+  // For each annotation quad, ...
+  for (var aq of annotationQuads) {
+      var bnQuads = getSubjectTriples(graphData, aq.object)
+      var annotationTagQuad = bnQuads.find((bnQ) => {
+          return bnQ.predicate.value == DLTHINGS.annotation_tag.value && (
+              bnQ.object.value == "skos:prefLabel" ||
+              bnQ.object.value == toIRI("skos:prefLabel", allPrefixes)
+          )
+      })
+      if (annotationTagQuad) {
+          var annotationValueQuad = bnQuads.find((bnQ2) => {
+              return bnQ2.predicate.value == DLTHINGS.annotation_value.value
+          })
+          if (annotationValueQuad) {
+              prefLabel = annotationValueQuad.object.value
+              console.log(`Found annotation '${prefLabel}' for node:`)
+              console.log(node.value)
+              break;
+          }
+      }
+  }
+  return prefLabel
 }
