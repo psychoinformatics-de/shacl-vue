@@ -438,8 +438,8 @@
         console.log(instance)
         addItem.value = false
         editItem.value = false
-        var subjectTerm = instance.props.quad.subject
-        var objectTerm = instance.props.quad.object
+        var subjectTerm = instance.quad.subject
+        var objectTerm = instance.quad.object
         if (objectTerm.termType === "NamedNode") {
             editShapeIRI.value = objectTerm.value
         } else {

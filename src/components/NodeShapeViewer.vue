@@ -62,6 +62,8 @@
 
     onBeforeMount(() => {
         record.title = props.quad.subject.value
+        record.quad = props.quad
+        record.value = props.quad.subject.value
         record.subtitle = props.quad.object.value
         record.relatedQuads = getSubjectTriples(graphData, props.quad.subject)
         record.prefLabel = getPrefLabel(props.quad.subject, graphData, allPrefixes)
