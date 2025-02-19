@@ -36,9 +36,9 @@
 </template>
 
 <script setup>
-    import { ref, onMounted, computed, reactive, onBeforeMount, inject, toRaw} from 'vue'
+    import { reactive, onBeforeMount, inject, onUpdated} from 'vue'
     import { toCURIE, getSubjectTriples, makeReadable, getPrefLabel} from '../modules/utils';
-    import { RDF, DLTHINGS } from '@/modules/namespaces';
+    import { RDF } from '@/modules/namespaces';
     // Define component properties
     const props = defineProps({
         node: Object,
@@ -50,6 +50,14 @@
     const record = reactive({})
 
     onBeforeMount(() => {
+        updateRecord()
+    })
+
+    onUpdated(() => {
+        updateRecord()
+    })
+
+    function updateRecord() {
         record.relatedQuads = getSubjectTriples(graphData, props.node)
         record.prefLabel = getPrefLabel(props.node, graphData, allPrefixes)
         record.triples = {
@@ -60,14 +68,8 @@
         record.relatedQuads.forEach((rQ) => {
             addRecordProperty(rQ)
         })
-    })
+    }
 
-    onMounted(() => {
-    })
-
-
-    // const shapeAttributes = computed(() => {
-    // })
 
     function addRecordProperty(quad) {
         var termType = quad.object.termType
@@ -75,11 +77,6 @@
             record.triples[termType][quad.predicate.value] = []
         }
         record.triples[termType][quad.predicate.value].push(quad.object)
-        // if (termType === "BlankNode") {
-        //     record.triples[termType][quad.predicate.value].push(quad.object)
-        // } else {
-        //     record.triples[termType][quad.predicate.value].push(quad.object.value)
-        // }
     }
     
 
