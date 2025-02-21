@@ -1,101 +1,107 @@
 <template>
-    <span v-if="page_ready">
-        <v-card>
-            <v-layout>
-                <v-navigation-drawer
-                    theme="dark"
-                    color="#41b883"
-                    v-model="drawer"
-                    permanent
-                >
-                    <v-list nav selectable :disabled="formOpen" v-model:selected="selectedItem">
-                        <v-list-item  value="data"><h4>Data Types</h4></v-list-item>
-                        <!-- <v-text-field variant="outlined" append-inner-icon="mdi-magnify" density="compact"></v-text-field> -->
-                        <v-list-item
-                            v-for="node in idFilteredNodeShapeNames"
-                            :prepend-icon="getClassIcon(nodeShapeNames[node])"
-                            :title="node"
-                            @click="selectType(nodeShapeNames[node], true)">
-                        </v-list-item>
-                    </v-list>
-                </v-navigation-drawer>
-                <v-main style="min-height: 90vh">
-                    <v-container fluid>
-                        <v-row>
-                            <v-col
-                                :cols="formOpen ? 3 : 12"
-                                class="transition-all"
-                                :class="formOpen ? 'opacity-column' : ''"
-                            >
-                                
-                                <span v-if="selectedIRI">
-                                    <h2 class="mx-4 mb-4 truncate-heading">
-                                        {{ toCURIE(selectedIRI, allPrefixes) }}
-                                        &nbsp;&nbsp; <v-btn icon="mdi-plus" size="x-small" variant="tonal" @click="addInstanceItem()"></v-btn>
-                                    </h2>
-
-                                    <p class="mx-4 mb-4" v-html="formattedDescription"></p>
-                                    
-                                    <span v-if="classRecordsLoading">
-                                        <v-skeleton-loader type="list-item-avatar"></v-skeleton-loader>
-                                    </span>
-                                    <span v-else>
-                                        <div v-if="instanceItemsComp.length">
-                                            <span v-for="r in instanceItemsComp">
-                                                <NodeShapeViewer :classIRI="selectedIRI" :quad="r.props.quad" :key="selectedIRI + '-' + r.title + '-' + itemsTrigger" :formOpen="formOpen" :variant="r.title == queried_id ? 'outlined' : 'tonal'"></NodeShapeViewer>
-                                            </span>
-                                        </div>
-                                        <div v-else style="margin-top: 1em; margin-left: 1em;">
-                                            <em>No items</em>
-                                        </div>
-                                    </span>
-                                </span>
-                                <span v-else style="margin-top: 1em; margin-left: 1em;">
-                                    <em>Select a data type</em>
-                                </span>
-
-                            </v-col>
-                            <v-col v-if="formOpen" cols="9">
-                                <v-expansion-panels variant="accordion" v-model="currentOpenForm" class="custompanels">
-                                    <v-expansion-panel
-                                        v-for="(f, i) in openForms"
-                                        :key="f.shapeIRI + '-'+ f.nodeIDX + '-expansionpanel'"
-                                        :value="'panel' + (i+1).toString()"
-                                        :disabled="f.disabled"
+    <AppHeader v-if="config_ready" :logo="configVarsMain.appTheme.logo" />
+    <v-main>
+        <v-container fluid>
+            <span v-if="page_ready">
+                <v-card>
+                    <v-layout>
+                        <v-navigation-drawer
+                            theme="dark"
+                            :color="configVarsMain.appTheme.panel_color"
+                            v-model="drawer"
+                            permanent
+                        >
+                            <v-list nav selectable :disabled="formOpen" v-model:selected="selectedItem">
+                                <v-list-item  value="data"><h4>Data Types</h4></v-list-item>
+                                <!-- <v-text-field variant="outlined" append-inner-icon="mdi-magnify" density="compact"></v-text-field> -->
+                                <v-list-item
+                                    v-for="node in idFilteredNodeShapeNames"
+                                    :prepend-icon="getClassIcon(nodeShapeNames[node])"
+                                    :title="node"
+                                    @click="selectType(nodeShapeNames[node], true)">
+                                </v-list-item>
+                            </v-list>
+                        </v-navigation-drawer>
+                        <v-main style="min-height: 90vh">
+                            <v-container fluid>
+                                <v-row>
+                                    <v-col
+                                        :cols="formOpen ? 3 : 12"
+                                        class="transition-all"
+                                        :class="formOpen ? 'opacity-column' : ''"
                                     >
-                                        <v-expansion-panel-title> <h2><em>Editing: {{ toCURIE(f.shapeIRI, allPrefixes) }} </em></h2></v-expansion-panel-title>
-                                        <v-expansion-panel-text density="compact">
-                                            <span v-if="idRecordLoading">
+                                        
+                                        <span v-if="selectedIRI">
+                                            <h2 class="mx-4 mb-4 truncate-heading">
+                                                {{ toCURIE(selectedIRI, allPrefixes) }}
+                                                &nbsp;&nbsp; <v-btn icon="mdi-plus" size="x-small" variant="tonal" @click="addInstanceItem()"></v-btn>
+                                            </h2>
+
+                                            <p class="mx-4 mb-4" v-html="formattedDescription"></p>
+                                            
+                                            <span v-if="classRecordsLoading">
                                                 <v-skeleton-loader type="list-item-avatar"></v-skeleton-loader>
                                             </span>
                                             <span v-else>
-                                                <FormEditor :key="f.shapeIRI + '-'+ f.nodeIDX + '-form-' + f.formType" :shape_iri="f.shapeIRI" :node_idx="f.nodeIDX"></FormEditor>
+                                                <div v-if="instanceItemsComp.length">
+                                                    <span v-for="r in instanceItemsComp">
+                                                        <NodeShapeViewer :classIRI="selectedIRI" :quad="r.props.quad" :key="selectedIRI + '-' + r.title + '-' + itemsTrigger" :formOpen="formOpen" :variant="r.title == queried_id ? 'outlined' : 'tonal'"></NodeShapeViewer>
+                                                    </span>
+                                                </div>
+                                                <div v-else style="margin-top: 1em; margin-left: 1em;">
+                                                    <em>No items</em>
+                                                </div>
                                             </span>
-                                        </v-expansion-panel-text>
-                                    </v-expansion-panel>
-                                </v-expansion-panels>
-                            </v-col>
-                        </v-row>
-                    </v-container>
-                </v-main>
-            </v-layout>
-        </v-card>
-        <v-dialog v-model="submitDialog" max-width="500">
-            <SubmitComp></SubmitComp>
-        </v-dialog>
-        <v-dialog v-model="noSubmitDialog" max-width="500" @click:outside="noSubmitDialog = false">
-            <v-card>
-                <v-card-title>Nothing to submit</v-card-title>
-                <v-card-text>You have no changes to submit</v-card-text>
-                <v-card-actions>
-                    <v-btn @click="noSubmitDialog = false">Close</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
-    </span>
-    <span v-else>
-        <v-skeleton-loader type="article"></v-skeleton-loader>
-    </span>
+                                        </span>
+                                        <span v-else style="margin-top: 1em; margin-left: 1em;">
+                                            <em>Select a data type</em>
+                                        </span>
+
+                                    </v-col>
+                                    <v-col v-if="formOpen" cols="9">
+                                        <v-expansion-panels variant="accordion" v-model="currentOpenForm" class="custompanels">
+                                            <v-expansion-panel
+                                                v-for="(f, i) in openForms"
+                                                :key="f.shapeIRI + '-'+ f.nodeIDX + '-expansionpanel'"
+                                                :value="'panel' + (i+1).toString()"
+                                                :disabled="f.disabled"
+                                            >
+                                                <v-expansion-panel-title> <h2><em>Editing: {{ toCURIE(f.shapeIRI, allPrefixes) }} </em></h2></v-expansion-panel-title>
+                                                <v-expansion-panel-text density="compact">
+                                                    <span v-if="idRecordLoading">
+                                                        <v-skeleton-loader type="list-item-avatar"></v-skeleton-loader>
+                                                    </span>
+                                                    <span v-else>
+                                                        <FormEditor :key="f.shapeIRI + '-'+ f.nodeIDX + '-form-' + f.formType" :shape_iri="f.shapeIRI" :node_idx="f.nodeIDX"></FormEditor>
+                                                    </span>
+                                                </v-expansion-panel-text>
+                                            </v-expansion-panel>
+                                        </v-expansion-panels>
+                                    </v-col>
+                                </v-row>
+                            </v-container>
+                        </v-main>
+                    </v-layout>
+                </v-card>
+                <v-dialog v-model="submitDialog" max-width="500">
+                    <SubmitComp></SubmitComp>
+                </v-dialog>
+                <v-dialog v-model="noSubmitDialog" max-width="500" @click:outside="noSubmitDialog = false">
+                    <v-card>
+                        <v-card-title>Nothing to submit</v-card-title>
+                        <v-card-text>You have no changes to submit</v-card-text>
+                        <v-card-actions>
+                            <v-btn @click="noSubmitDialog = false">Close</v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
+            </span>
+            <span v-else>
+                <v-skeleton-loader type="article"></v-skeleton-loader>
+            </span>
+        </v-container>
+    </v-main>
+    <AppFooter />
 </template>
 
 
@@ -115,7 +121,8 @@
         getSubjectTriples,
         toIRI,
         addCodeTagsToText, 
-        findObjectByKey
+        findObjectByKey,
+        adjustHexColor
     } from '../modules/utils';
     import {SHACL, RDF, RDFS, DLTHINGS, XSD} from '@/modules/namespaces'
 
@@ -123,14 +130,30 @@
         configUrl: String
     })
 
+    const canSubmit = ref(true)
+    const submitButtonPressed = ref(false)
+    function submitFn() {
+        submitButtonPressed.value = true
+    }
+    provide('submitButtonPressed', submitButtonPressed)
+    provide('submitFn', submitFn)
+    provide('canSubmit', canSubmit)
+
+    const appName = ref("shacl-vue")
+    const documentationUrl = ref("https://psychoinformatics-de.github.io/shacl-vue/docs/")
+    const sourceCodeUrl = ref("https://github.com/psychoinformatics-de/shacl-vue")
+    provide('appName', appName)
+    provide('documentationUrl', documentationUrl)
+    provide('sourceCodeUrl', sourceCodeUrl)
+
     const activatedInstancesSelectEditor = ref(null)
     provide('activatedInstancesSelectEditor', activatedInstancesSelectEditor)
     const lastSavedNode = ref(null)
     provide('lastSavedNode', lastSavedNode)
     const itemsTrigger = ref(false)
     const queried_id = ref(null)
-    const showShapesWoID = ref(true)
-    const { config, configFetched, configError} = useConfig(props.configUrl);
+    const config_ready = ref(false)
+    const { config, configFetched, configError, configVarsMain, loadConfigVars} = useConfig(props.configUrl);
     const classRecordsLoading = ref(false)
     const idRecordLoading = ref(false)
     provide('config', config)
@@ -216,13 +239,9 @@
     provide('page_ready', page_ready)
     const allPrefixes = reactive({});
     provide('allPrefixes', allPrefixes)
-    const submitButtonPressed = inject('submitButtonPressed')
-    const canSubmit = inject('canSubmit')
     const noSubmitDialog = ref(false)
     const submitDialog = ref(false)
     provide('submitDialog', submitDialog)
-    const configPrefixes = ref({})
-    const configClassIcons = ref({})
 
     // When user clicks the submit button
     watch(submitButtonPressed, (newValue) => {
@@ -244,15 +263,16 @@
                 ID_IRI.value = config.value.id_iri
                 console.log(`ID_IRI is: ${ID_IRI.value}`)
             }
-            if (config.value.hasOwnProperty("show_shapes_wo_id")) {
-                showShapesWoID.value = config.value.show_shapes_wo_id
-            }
-            if (config.value.hasOwnProperty("prefixes")) {
-                configPrefixes.value = config.value.prefixes
-            }
-            if (config.value.hasOwnProperty("class_icons")) {
-                configClassIcons.value = config.value.class_icons
-            }
+            // Load all variables from config that are necessary for the main shaclvue component
+            loadConfigVars()
+            appName.value = configVarsMain.appName
+            documentationUrl.value = configVarsMain.documentationUrl
+            sourceCodeUrl.value = configVarsMain.sourceCodeUrl
+            document.documentElement.style.setProperty("--link-color", configVarsMain.appTheme.link_color);
+            document.documentElement.style.setProperty("--hover-color", configVarsMain.appTheme.hover_color);
+            document.documentElement.style.setProperty("--visited-color", adjustHexColor(configVarsMain.appTheme.link_color, -1));
+            document.documentElement.style.setProperty("--active-color", configVarsMain.appTheme.active_color);
+            config_ready.value = true
             await getGraphData()
             await getClassData()
             await getSHACLschema()
@@ -288,7 +308,7 @@
 
     const idFilteredNodeShapeNames = computed(() =>{
 
-        if (showShapesWoID.value === true) {
+        if (configVarsMain.showShapesWoID === true) {
             return nodeShapeNamesArray.value
         }
         var shapeNames = []
@@ -310,9 +330,9 @@
             // Get all prefixes and derive context from it
             Object.assign(allPrefixes, shapePrefixes, graphPrefixes, classPrefixes)
             var allPrefixKeys = Object.keys(allPrefixes)
-            Object.keys(configPrefixes.value).forEach(p => {
+            Object.keys(configVarsMain.prefixes).forEach(p => {
                 if (allPrefixKeys.indexOf(p) < 0) {
-                    allPrefixes[p] = configPrefixes.value[p]
+                    allPrefixes[p] = configVarsMain.prefixes[p]
                 }
             });
             console.log("ALL PREFIXES READY")
@@ -408,9 +428,9 @@
     }
 
     function getClassIcon(class_iri) {
-        if (configClassIcons.value) {
-            if (configClassIcons.value[class_iri] ) {
-                return configClassIcons.value[class_iri]
+        if (configVarsMain.classIcons) {
+            if (configVarsMain.classIcons[class_iri] ) {
+                return configVarsMain.classIcons[class_iri]
             }
         }
         return "mdi-circle-outline"
@@ -548,12 +568,6 @@
             "formType": formType,
             "disabled": false,
             "activatedInstancesSelectEditor": null,
-            // "activatedInstancesSelectEditor": {
-            //     nodeshape_iri: null,
-            //     node_iri: null,
-            //     predicate_iri: null,
-            //     predicate_idx: null,
-            // }
         })
     }
 
@@ -580,7 +594,7 @@
 
 <style>
     .code-style {
-        color: red;
+        color: #ff0000;
         background-color: #f5f5f5;
         padding: 0.1em 0.2em;
         font-family: monospace;
@@ -596,32 +610,27 @@
         margin: 0 !important;
         padding: 0 !important;
     }
+
+    a {
+        color: var(--link-color);
+        text-decoration: none;
+    }
+
+    a:hover {
+        color: var(--hover-color);
+        text-decoration: underline;
+    }
+
+    a:visited {
+        color: var(--visited-color);
+    }
+
+    a:active {
+        color: var(--active-color);
+    }
 </style>
 
 <style scoped>
-    .banner {
-        display: flex;
-        flex-direction: row;
-        width: 100%;
-        margin: auto;
-    }
-    .banner-column {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        margin: 4em;
-        color: #34495e;
-    }
-    .banner-column h1 {
-        font-size: 2.5em;
-    }
-    .banner-buttons {
-        display: flex;
-        flex-direction: row;
-        width: 100%;
-        margin: auto;
-        margin-top: 1em;
-    }
     .truncate-heading {
         white-space: nowrap; /* Prevent text wrapping */
         overflow: hidden;    /* Hide overflowed text */

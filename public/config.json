@@ -1,4 +1,14 @@
 {
+    "app_name": "shacl-vue",
+    "documentation_url": "",
+    "source_code_url": "",
+    "app_theme": {
+        "link_color": "#41b883",
+        "hover_color": "#1565C0",
+        "active_color": "#D32F2F",
+        "panel_color": "#41b883",
+        "logo": "shacl_vue_logo.svg"
+    },
     "shapes_url": "dlschemas_shacl.ttl",
     "use_default_shapes": false,
     "data_url": "dlschemas_data.ttl",

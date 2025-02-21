@@ -342,3 +342,26 @@ export function getPrefLabel(node, graphData, allPrefixes, from) {
   }
   return prefLabel
 }
+
+export function snakeToPascal(snakeStr) {
+  return snakeStr
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('');
+}
+
+export function snakeToCamel(snakeStr) {
+  return snakeStr
+      .split('_')
+      .map((word, index) => index === 0 ? word.toLowerCase() : word.charAt(0).toUpperCase() + word.slice(1))
+      .join('');
+}
+
+export function adjustHexColor(hexColor, amount) {
+  // Remove the '#' if present
+  let colorInt = parseInt(hexColor.replace('#', ''), 16);
+  // Adjust the color value
+  colorInt = Math.max(0, Math.min(0xFFFFFF, colorInt + amount));
+  // Convert back to hex and ensure it's always 6 digits
+  return `#${colorInt.toString(16).padStart(6, '0')}`;
+}

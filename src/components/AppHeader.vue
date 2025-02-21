@@ -5,13 +5,13 @@
                 <v-img
                     :width="36"
                     cover
-                    src="../assets/shacl_vue.svg"
+                    :src="props.logo"
                     style="margin-left: 10px;"
                 ></v-img>
             </a>
         </template>
         <v-app-bar-title> 
-            <a @click="goToHome()" class="header-button"><code style="font-size: 1em;">shacl-vue</code></a>
+            <a @click="goToHome()" class="header-button"><code style="font-size: 1em;">{{ appName }}</code></a>
         </v-app-bar-title>
 
         <template v-slot:append>
@@ -37,28 +37,32 @@
                     ></v-btn>
                 </template>
             </v-tooltip>
-            <v-tooltip text="Documentation" location="bottom">
-                <template v-slot:activator="{ props }">
-                    <v-btn 
-                    icon="mdi-text-box"
-                    href="https://psychoinformatics-de.github.io/shacl-vue/docs/"
-                    target="_blank"
-                    v-bind="props"
-                    class="header-button"
-                    ></v-btn>
-                </template>
-            </v-tooltip>
-            <v-tooltip text="Source code" location="bottom">
-                <template v-slot:activator="{ props }">
-                    <v-btn 
-                    icon="mdi-code-not-equal-variant"
-                    href="https://github.com/psychoinformatics-de/shacl-vue"
-                    target="_blank"
-                    v-bind="props"
-                    class="header-button"
-                    ></v-btn>
-                </template>
-            </v-tooltip>
+            <span v-if="documentationUrl">
+                <v-tooltip text="Documentation" location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn 
+                        icon="mdi-text-box"
+                        :href="documentationUrl"
+                        target="_blank"
+                        v-bind="props"
+                        class="header-button"
+                        ></v-btn>
+                    </template>
+                </v-tooltip>
+            </span>
+            <span v-if="sourceCodeUrl">
+                <v-tooltip text="Source code" location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn 
+                        icon="mdi-code-not-equal-variant"
+                        :href="sourceCodeUrl"
+                        target="_blank"
+                        v-bind="props"
+                        class="header-button"
+                        ></v-btn>
+                    </template>
+                </v-tooltip>
+            </span>
         </template>
     </v-app-bar>
 
@@ -98,11 +102,18 @@
 <script setup>
     import { inject, onBeforeMount, ref} from 'vue'
     import { useToken } from '@/composables/tokens'
+
+    const props = defineProps({
+        logo: String
+    })
+
     const { token, setToken, clearToken } = useToken()
     const submitFn = inject('submitFn')
     const canSubmit = inject('canSubmit')
+    const appName = inject('appName')
+    const documentationUrl = inject('documentationUrl')
+    const sourceCodeUrl = inject('sourceCodeUrl')
     const visible = ref(false)
-    
     const tokenDialog = ref(false)
     const tokenExists = ref(false)
     const tokenval = ref("")
@@ -153,13 +164,10 @@
 <style scoped>
 
     .header-button {
-        color: black;
+        color: #1d1d1d;
     }
     .header-button:hover {
         text-decoration: none;
         cursor:pointer;
     }
-
-    
-
 </style>
