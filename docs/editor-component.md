@@ -84,7 +84,7 @@ The custom nature of an editor component is established by adding any number of 
     }
 
     function valueCombiner(values) {
-        // Determing internalValue from subvalues/subcomponents
+        // Determine internalValue from subvalues/subcomponents
         return values.hex_text
     }
 

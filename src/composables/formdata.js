@@ -5,7 +5,7 @@
 //   "https://concepts.datalad.org/s/distribution/unreleased/Person": {          // RDF type of a subject
 //     "https://example.org/ns/dataset/#ahorst": {                               // A subject: named or blank node
 //       "https://concepts.datalad.org/s/distribution/unreleased/email":  []     // A predicate: named node
-//       "shaclvue:termType": "NamedNode"                                        // the nodetype of te subject: NamedNode or BlankNode
+//       "shaclvue:termType": "NamedNode"                                        // the nodetype of the subject: NamedNode or BlankNode
 //     }
 //   },
 //   "https://concepts.datalad.org/s/prov/unreleased/Attribution": { // type

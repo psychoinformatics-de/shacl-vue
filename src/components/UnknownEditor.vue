@@ -32,7 +32,7 @@
     }
 
     function valueCombiner(values) {
-        // Determing internalValue from subvalues/subcomponents
+        // Determine internalValue from subvalues/subcomponents
         return null
     }
 </script>

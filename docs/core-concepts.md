@@ -42,7 +42,7 @@ Currently, `shacl-vue` does not yet support the full SHACL specification, only t
 
 The application makes extensive use of:
 
-- [Vue Components](https://vuejs.org/guide/essentials/component-basics.html) to create standalone functional units that specify their own look and feel (`<template>`), their logic and state management code (`<scritp setup>`), additional JavaScript code (`<script>`), and any optional local styling (`<style scoped>`). These components are the main driver behind `shacl-vue`'s ability to render different forms and fields based on the specifications in a SHACL schema.
+- [Vue Components](https://vuejs.org/guide/essentials/component-basics.html) to create standalone functional units that specify their own look and feel (`<template>`), their logic and state management code (`<script setup>`), additional JavaScript code (`<script>`), and any optional local styling (`<style scoped>`). These components are the main driver behind `shacl-vue`'s ability to render different forms and fields based on the specifications in a SHACL schema.
 - [Lifecycle hooks](https://vuejs.org/guide/essentials/lifecycle) to run tasks during a component's life cycle, e.g. after creation or on mounting.
 - [Provide / Inject](https://vuejs.org/guide/components/provide-inject.html) to share states between parent and child components
 - [Composables](https://vuejs.org/guide/reusability/composables.html) to manage generalizable and reusable code across components.

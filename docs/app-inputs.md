@@ -103,7 +103,7 @@ As an example, for `shacl-vue`'s demo instance the SHACL shapes graph at [shacl-
 
 ## Creating the class hierarchy
 
-As with the schema and SHACL generation above, LinkML and helper scripts can be used to generate the required `shacl-vue` inut. Here, LinkML's OWL generator is used, and the output is then filtered to only include all triples in the graph where the predicate equals `rdfs:subClassOf`. This is linked-data speak for saying: lets only extract all information about which class is a subclass of which other class, which allows us to put together a hierarchy of classes.
+As with the schema and SHACL generation above, LinkML and helper scripts can be used to generate the required `shacl-vue` input. Here, LinkML's OWL generator is used, and the output is then filtered to only include all triples in the graph where the predicate equals `rdfs:subClassOf`. This is linked-data speak for saying: lets only extract all information about which class is a subclass of which other class, which allows us to put together a hierarchy of classes.
 
 A Python script for this process is available at [shacl-vue/tools/gen_owl_minimal.py](https://github.com/psychoinformatics-de/shacl-vue/blob/main/tools/gen_owl_minimal.py) and can be used as follows via the command line:
 
