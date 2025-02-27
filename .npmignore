@@ -1,0 +1,6 @@
+node_modules
+dist
+public
+.vscode
+.github
+_save_for_later
