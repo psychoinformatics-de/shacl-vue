@@ -1,6 +1,6 @@
 {
   "name": "shacl-vue",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Autogenerate user interfaces from SHACL shapes",
   "main": "./dist/lib/shacl-vue.cjs.js",
   "type": "module",
