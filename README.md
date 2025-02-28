@@ -1,6 +1,6 @@
 # shacl-vue
 
-***THIS REPOSITORY IS UNDER CONTINOUS DEVELOPMENT***
+***THIS REPOSITORY IS UNDER CONTINUOUS DEVELOPMENT***
 
 
 ## Overview
@@ -15,7 +15,7 @@ Think of it as an automatic builder that you just have to feed with a model of y
 ## Links
 
 - For an example of a deployed `shacl-vue` instance, see the [metadata annotation tool](https://annotate.trr379.de/s/demo/) of the [TRR379 Research Consortium](https://www.trr379.de/)
-- Refer to the (possibly outdated) [documenation](https://psychoinformatics-de.github.io/shacl-vue/docs/) for more information.
+- Refer to the (possibly outdated) [documentation](https://psychoinformatics-de.github.io/shacl-vue/docs/) for more information.
 
 ## Installation and usage
 
