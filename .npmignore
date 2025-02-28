@@ -1,6 +1,11 @@
+dist/app
+src
+tests
 node_modules
-dist
 public
+vite.config.app.mjs
+vite.config.lib.mjs
+.vitepress
 .vscode
 .github
 _save_for_later
