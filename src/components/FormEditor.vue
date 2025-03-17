@@ -67,8 +67,8 @@
 <script setup>
   import { ref, onMounted, onBeforeMount, onBeforeUnmount, provide, inject, reactive, computed} from 'vue'
   import { SHACL } from '../modules/namespaces'
-  import { toCURIE, addCodeTagsToText } from '../modules/utils';
-  const graphData = inject('graphData')
+  import { toCURIE } from 'shacl-tulip'
+  import { addCodeTagsToText } from '../modules/utils';
 
   // ----- //
   // Props //
@@ -84,20 +84,18 @@
   // ---- //
   const localShapeIri = ref(props.shape_iri);
   const localNodeIdx = ref(props.node_idx);
+  const shapesDS = inject('shapesDS')
+  const rdfDS = inject('rdfDS')
+  const formData = inject('formData')
   const config = inject('config')
   const show_all_fields = ref(false)
   const ID_IRI = inject('ID_IRI')
-  const save_node = inject('save_node')
-  const clear_current_node = inject('clear_current_node')
-  const remove_current_node = inject('remove_current_node')
   const allPrefixes = inject('allPrefixes');
-  const nodeShapes = inject('nodeShapes')
   const cancelFormHandler = inject('cancelFormHandler')
   const saveFormHandler = inject('saveFormHandler')
   const editMode = inject('editMode')
-  const add_empty_node = inject('add_empty_node')
   const removeForm = inject('removeForm')
-  const shape_obj = nodeShapes.value[localShapeIri.value]
+  const shape_obj = shapesDS.data.nodeShapes[localShapeIri.value]
   const form = ref(null)
   const formValid = ref(null)
   const fieldMap = reactive({}); // Maps element IDs to human-readable labels
@@ -120,7 +118,7 @@
 
   onBeforeMount(() => {
     console.log(`the FormEditor component is about to be mounted.`)
-    add_empty_node(localShapeIri.value, localNodeIdx.value)
+    formData.addSubject(localShapeIri.value, localNodeIdx.value)
 
     if (config.value.hasOwnProperty("show_all_fields")) {
       if (typeof config.value.show_all_fields == "boolean" && config.value.show_all_fields) {
@@ -190,7 +188,8 @@
         // - for each triple in oldTriples: create a new one with same subject and predicate
         //   and with new IRI as object, then delete the old triple
         console.log("going to save form now")
-        var saved_node = save_node(localShapeIri.value, localNodeIdx.value, nodeShapes.value, graphData, editMode.form || editMode.graph, ID_IRI.value, allPrefixes);
+        // var saved_node = save_node(localShapeIri.value, localNodeIdx.value, nodeShapes.value, graphData, editMode.form || editMode.graph, ID_IRI.value, allPrefixes);
+        var saved_node = formData.saveNode(localShapeIri.value, localNodeIdx.value, shapesDS, rdfDS, editMode.form || editMode.graph)
         removeForm(saved_node)
         if (typeof saveFormHandler === 'function') {
           saveFormHandler();
@@ -215,7 +214,7 @@
   }
 
   function resetForm() {
-    clear_current_node(localShapeIri.value, localNodeIdx.value)
+    formData.clearSubject(localShapeIri.value, localNodeIdx.value)
     form.value.resetValidation();
     validationErrors.value = []
 
@@ -225,7 +224,7 @@
     console.log("Cancelling form from FormEditor")
     if (!editMode.form) {
       console.log(`Removing current node: ${localShapeIri.value} - ${localNodeIdx.value}`)
-      remove_current_node(localShapeIri.value, localNodeIdx.value)
+      formData.removeSubject(localShapeIri.value, localNodeIdx.value)
     }
     removeForm(null)
     if (typeof cancelFormHandler === 'function') {

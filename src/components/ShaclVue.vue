@@ -16,9 +16,9 @@
                                 <!-- <v-text-field variant="outlined" append-inner-icon="mdi-magnify" density="compact"></v-text-field> -->
                                 <v-list-item
                                     v-for="node in idFilteredNodeShapeNames"
-                                    :prepend-icon="getClassIcon(nodeShapeNames[node])"
+                                    :prepend-icon="getClassIcon(shapesDS.data.nodeShapeNames[node])"
                                     :title="node"
-                                    @click="selectType(nodeShapeNames[node], true)">
+                                    @click="selectType(shapesDS.data.nodeShapeNames[node], true)">
                                 </v-list-item>
                             </v-list>
                         </v-navigation-drawer>
@@ -106,229 +106,82 @@
 
 
 <script setup>
-    import { ref, computed, provide, watch, reactive, onBeforeUpdate, nextTick, inject, toRaw, onUpdated} from 'vue'
-    import rdf from 'rdf-ext';
+    import { effect, ref, computed, provide, watch, reactive, onBeforeUpdate, nextTick, toRaw} from 'vue'
     import { useConfig } from '@/composables/configuration';
-    import { useGraphData } from '@/composables/graphdata';
-    import { useClassData } from '@/composables/classdata';
-    import { useShapeData } from '@/composables/shapedata';
-    import { useFormData } from '@/composables/formdata';
+    import { adjustHexColor, findObjectByKey, addCodeTagsToText } from '../modules/utils';
+    import {toCURIE, toIRI} from 'shacl-tulip'
     import editorMatchers from '@/modules/editors';
     import defaultEditor from '@/components/UnknownEditor.vue';
-    import {
-        toCURIE,
-        getLiteralAndNamedNodes,
-        getSubjectTriples,
-        toIRI,
-        addCodeTagsToText, 
-        findObjectByKey,
-        adjustHexColor
-    } from '../modules/utils';
+    import { useData } from '@/composables/useData';
+    import { useClasses } from '@/composables/useClasses';
+    import { useShapes } from '@/composables/useShapes';
+    import { useForm } from '@/composables/useForm';
+    import rdf from 'rdf-ext'
     import {SHACL, RDF, RDFS, DLTHINGS, XSD} from '@/modules/namespaces'
 
     const props = defineProps({
         configUrl: String
     })
 
-    const canSubmit = ref(true)
-    const submitButtonPressed = ref(false)
-    function submitFn() {
-        submitButtonPressed.value = true
-    }
-    provide('submitButtonPressed', submitButtonPressed)
-    provide('submitFn', submitFn)
-    provide('canSubmit', canSubmit)
-
-    const appName = ref("shacl-vue")
-    const documentationUrl = ref("https://psychoinformatics-de.github.io/shacl-vue/docs/")
-    const sourceCodeUrl = ref("https://github.com/psychoinformatics-de/shacl-vue")
-    provide('appName', appName)
-    provide('documentationUrl', documentationUrl)
-    provide('sourceCodeUrl', sourceCodeUrl)
-
-    const activatedInstancesSelectEditor = ref(null)
-    provide('activatedInstancesSelectEditor', activatedInstancesSelectEditor)
-    const lastSavedNode = ref(null)
-    provide('lastSavedNode', lastSavedNode)
-    const itemsTrigger = ref(false)
-    const queried_id = ref(null)
+    // ---------------------------------------------------- //
+    // CONFIGURATION, AND LOADING SHAPES/CLASSES/DATA/FORMS //
+    // ---------------------------------------------------- //
     const config_ready = ref(false)
     const { config, configFetched, configError, configVarsMain, loadConfigVars} = useConfig(props.configUrl);
-    const classRecordsLoading = ref(false)
-    const idRecordLoading = ref(false)
-    provide('config', config)
-    provide('configFetched', configFetched)
-    provide('configError', configError)
+    const { rdfDS, getRdfData, fetchFromService } = useData(config)
+    const { classDS, getClassData } = useClasses(config)
+    const { shapesDS, getSHACLschema } = useShapes(config)
+    const { formData, submitFormData } = useForm(config)
     const ID_IRI = ref("")
-    provide('ID_IRI', ID_IRI)
-    const {
-        graphData,
-        batchMode,
-        getGraphData,
-        graphPrefixes,
-        serializedGraphData,
-        graphTriples,
-        updateSerializedData,
-        triggerReactivity,
-        fetchFromService
-    } = useGraphData(config)
-    const {
-        classData,
-        getClassData,
-        classPrefixes,
-        serializedClassData
-    } = useClassData(config)
-    const {
-        shapesDataset,
-        nodeShapes,
-        propertyGroups,
-        nodeShapeNamesArray,
-        shapePrefixes,
-        prefixArray,
-        prefixes_ready,
-        nodeShapeIRIs,
-        nodeShapeNames,
-        page_ready,
-        getSHACLschema
-    } = useShapeData(config)
-    const {
-        formData,
-        add_empty_node,
-        remove_current_node,
-        clear_current_node,
-        add_empty_triple,
-        add_empty_triple_manual,
-        remove_triple,
-        save_node,
-        quadsToFormData,
-        submitFormData,
-    } = useFormData()
-    provide('submitFormData', submitFormData)
-    provide('fetchFromService', fetchFromService)
-    provide('formData', formData)
-    provide('batchMode', batchMode)
-    provide('updateSerializedData', updateSerializedData)
-    provide('triggerReactivity', triggerReactivity)
-    provide('quadsToFormData', quadsToFormData)
-    provide('editorMatchers', editorMatchers)
-    provide('defaultEditor', defaultEditor)
-    provide('add_empty_triple', add_empty_triple)
-    provide('add_empty_triple_manual', add_empty_triple_manual)
-    provide('add_empty_node', add_empty_node)
-    provide('remove_triple', remove_triple)
-    provide('remove_current_node', remove_current_node)
-    provide('clear_current_node', clear_current_node)
-    provide('save_node', save_node)
-    provide('graphData', graphData)
-    provide('getGraphData', getGraphData)
-    provide('serializedGraphData', serializedGraphData)
-    provide('graphTriples', graphTriples)
-    provide('graphPrefixes', graphPrefixes)
-    provide('serializedClassData', serializedClassData)
-    provide('classData', classData)
-    provide('classPrefixes', classPrefixes)
-    provide('shapesDataset', shapesDataset)
-    provide('nodeShapes', nodeShapes)
-    provide('propertyGroups', propertyGroups)
-    provide('nodeShapeNamesArray', nodeShapeNamesArray)
-    provide('shapePrefixes', shapePrefixes)
-    provide('prefixArray', prefixArray)
-    provide('prefixes_ready', prefixes_ready)
-    provide('nodeShapeIRIs', nodeShapeIRIs)
-    provide('nodeShapeNames', nodeShapeNames)
-    provide('page_ready', page_ready)
-    const allPrefixes = reactive({});
-    provide('allPrefixes', allPrefixes)
-    const noSubmitDialog = ref(false)
-    const submitDialog = ref(false)
-    provide('submitDialog', submitDialog)
-
-    // When user clicks the submit button
-    watch(submitButtonPressed, (newValue) => {
-        if (newValue) {
-            if (Object.keys(formData).length == 0) {
-                noSubmitDialog.value = true;
-                submitDialog.value = false;
-            } else {
-                submitDialog.value = true;
-                noSubmitDialog.value = false;
-            }
-            submitButtonPressed.value = false;
-        }
-    }, { immediate: true });
-
     watch(configFetched, async (newValue) => {
         if (newValue) {
-            if (config.value.id_iri) {
-                ID_IRI.value = config.value.id_iri
-                console.log(`ID_IRI is: ${ID_IRI.value}`)
+            if (!config.value.id_iri) {
+                throw new Error("Configuration error: 'id_iri' is a required field");
             }
-            // Load all variables from config that are necessary for the main shaclvue component
+            ID_IRI.value = config.value.id_iri;
+            console.log(`ID_IRI is: ${config.value.id_iri}`)
+            // Load all variables from config that are necessary for the main shaclvue and appheader components
             loadConfigVars()
-            appName.value = configVarsMain.appName
-            documentationUrl.value = configVarsMain.documentationUrl
-            sourceCodeUrl.value = configVarsMain.sourceCodeUrl
             document.documentElement.style.setProperty("--link-color", configVarsMain.appTheme.link_color);
             document.documentElement.style.setProperty("--hover-color", configVarsMain.appTheme.hover_color);
             document.documentElement.style.setProperty("--visited-color", adjustHexColor(configVarsMain.appTheme.link_color, -1));
             document.documentElement.style.setProperty("--active-color", configVarsMain.appTheme.active_color);
             config_ready.value = true
-            await getGraphData()
+
+            formData.ID_IRI = ID_IRI.value
+            console.log("vkljhgvkcf")
+            console.log(toRaw(formData.content))
+            await getRdfData()
             await getClassData()
             await getSHACLschema()
         }
     }, { immediate: true });
-
-    // Data for creating/editing items
-    // Select a data type
-    var selectedShape = ref(null)
-    var selectedIRI = ref(null)
-    // Select a data item
-    var selectedItem = ref(null)
-    
-    // Create or edit a data item
-    const addItem = ref(false)
-    const newItemIdx = ref(null)
-    const editItem = ref(false)
-    const formOpen = ref(false)
-    const drawer = ref(true)
-    const editShapeIRI = ref(null)
-    const editItemIdx = ref(null)
-    const editMode = reactive({
-        form: false,
-        graph: false,
-    })
-    provide('editMode', editMode)
-
-    onBeforeUpdate( () => {
-        console.log("onBeforeUpdate ShaclVue")
-        editItemIdx.value = null
-        editShapeIRI.value = null
-    })
-
-    const idFilteredNodeShapeNames = computed(() =>{
-
-        if (configVarsMain.showShapesWoID === true) {
-            return nodeShapeNamesArray.value
-        }
-        var shapeNames = []
-        for (var n of nodeShapeNamesArray.value) {
-            if ( findObjectByKey(
-                nodeShapes.value[nodeShapeNames.value[n]].properties,
-                SHACL.path.value,
-                ID_IRI.value)
-            ) {
-                shapeNames.push(n)
-            }
-        }
-        return shapeNames
-    })
+    provide('config', config)
+    provide('configFetched', configFetched)
+    provide('configError', configError)
+    provide('configVarsMain', configVarsMain) // for ShaclVue and AppHeader components, mainly
+    provide('ID_IRI', ID_IRI)
+    provide('rdfDS', rdfDS)
+    provide('shapesDS', shapesDS)
+    provide('classDS', classDS)
+    provide('formData', formData)
+    provide('fetchFromService', fetchFromService)
 
 
-    watch(prefixes_ready, async (newValue) => {
+    // ---------------------------------------------- //
+    // ONCE ALL SHAPES/CLASSES/DATA/FORMS ARE LOADED:
+    // - SET PREFIXES
+    // - FETCH FROM SERVICE IF REQUIRED
+    // - SET VIEW FROM QUERY
+    // ---------------------------------------------- //
+    const allPrefixes = reactive({});
+    const page_ready = ref(false);
+    provide('allPrefixes', allPrefixes)
+    watch(() => shapesDS.data.prefixesLoaded, async (newValue) => {
+        console.log('prefixesLoaded changed:', shapesDS.data.prefixesLoaded);
         if (newValue) {
             // Get all prefixes and derive context from it
-            Object.assign(allPrefixes, shapePrefixes, graphPrefixes, classPrefixes)
+            Object.assign(allPrefixes, shapesDS.data.prefixes, rdfDS.data.prefixes, classDS.data.prefixes)
             var allPrefixKeys = Object.keys(allPrefixes)
             Object.keys(configVarsMain.prefixes).forEach(p => {
                 if (allPrefixKeys.indexOf(p) < 0) {
@@ -338,12 +191,10 @@
             console.log("ALL PREFIXES READY")
             console.log(toRaw(allPrefixes))
 
-            if (config.value.hasOwnProperty("use_service") &&
-                config.value.use_service &&
+            if (configVarsMain.useService &&
                 config.value.hasOwnProperty("service_fetch_before") &&
                 config.value.service_fetch_before
             ) {
-
                 console.log("service_fetch_before!")
                 if (config.value.service_fetch_before["get-record"]?.length > 0) {
                     for (var iri of config.value.service_fetch_before["get-record"]) {
@@ -359,15 +210,97 @@
                 }                
             }
             setViewFromQuery()
+            page_ready.value = true
         }
     }, {immediate: true });
 
 
-    watch(graphData, () => {
+    // ---------------- //
+    // SUBMISSION STUFF //
+    // ---------------- //
+    const canSubmit = ref(true)
+    const submitButtonPressed = ref(false)
+    function submitFn() {
+        submitButtonPressed.value = true
+    }
+    provide('submitButtonPressed', submitButtonPressed)
+    provide('submitFn', submitFn)
+    provide('canSubmit', canSubmit)
+    const noSubmitDialog = ref(false)
+    const submitDialog = ref(false)
+    provide('submitDialog', submitDialog)
+    // When user clicks the submit button
+    watch(submitButtonPressed, (newValue) => {
+        if (newValue) {
+            if (Object.keys(formData).length == 0) {
+                noSubmitDialog.value = true;
+                submitDialog.value = false;
+            } else {
+                submitDialog.value = true;
+                noSubmitDialog.value = false;
+            }
+            submitButtonPressed.value = false;
+        }
+    }, { immediate: true });
+
+    
+
+
+    const activatedInstancesSelectEditor = ref(null)
+    provide('activatedInstancesSelectEditor', activatedInstancesSelectEditor)
+    const lastSavedNode = ref(null)
+    provide('lastSavedNode', lastSavedNode)
+    const itemsTrigger = ref(false)
+    const queried_id = ref(null)
+    const classRecordsLoading = ref(false)
+    const idRecordLoading = ref(false)
+    provide('editorMatchers', editorMatchers)
+    provide('defaultEditor', defaultEditor)
+    // Data for creating/editing items
+    // Select a data type
+    var selectedShape = ref(null)
+    var selectedIRI = ref(null)
+    // Select a data item
+    var selectedItem = ref(null)
+    // Create or edit a data item
+    const addItem = ref(false)
+    const newItemIdx = ref(null)
+    const editItem = ref(false)
+    const formOpen = ref(false)
+    const drawer = ref(true)
+    const editShapeIRI = ref(null)
+    const editItemIdx = ref(null)
+    const editMode = reactive({
+        form: false,
+        graph: false,
+    })
+    provide('editMode', editMode)
+    onBeforeUpdate( () => {
+        console.log("onBeforeUpdate ShaclVue")
+        editItemIdx.value = null
+        editShapeIRI.value = null
+    })
+
+    const idFilteredNodeShapeNames = computed(() =>{
+        if (configVarsMain.showShapesWoID === true) {
+            return shapesDS.data.nodeShapeNamesArray
+        }
+        var shapeNames = []
+        for (var n of shapesDS.data.nodeShapeNamesArray) {
+            if ( findObjectByKey(
+                shapesDS.data.nodeShapes[shapesDS.data.nodeShapeNames[n]].properties,
+                SHACL.path.value,
+                ID_IRI.value)
+            ) {
+                shapeNames.push(n)
+            }
+        }
+        return shapeNames
+    })
+    watch(rdfDS.data.graph, () => {
         console.log("Graphdata UPDATED SHACLVUE")
         itemsTrigger.value = !itemsTrigger.value
     }, { deep: true });
-
 
     const formattedDescription = computed(() => {
         // For the class description, use a regular expression to replace text between backticks with <code> tags
@@ -378,7 +311,7 @@
 
     async function selectType(IRI, fromUser) {
         selectedIRI.value = IRI
-        selectedShape.value = nodeShapes.value[IRI]
+        selectedShape.value = shapesDS.data.nodeShapes[IRI]
         if (config.value.use_service) {
             classRecordsLoading.value = true
             // First fetch rdf data from configured service
@@ -417,7 +350,7 @@
             // this could be a curie or iri
             // check if iri is in 
             var nodeShapeIRI = toIRI(nodeShape, allPrefixes)
-            if (nodeShapes.value[nodeShapeIRI]) {
+            if (shapesDS.data.nodeShapes[nodeShapeIRI]) {
                 await selectType(nodeShapeIRI)
             } else {
                 console.log("Queried nodeshape not found in shacl schema")
@@ -479,13 +412,13 @@
         // }
 
         // if the node is already in the formData, edit that
-        if (formData[editShapeIRI.value]?.[editItemIdx.value]) {
+        if (formData.content[editShapeIRI.value]?.[editItemIdx.value]) {
             console.log("The node is already in the formData, we will edit that")
             editMode.form = true
             editMode.graph = false
         } else {
             // If not, we need to create the formData entries from quads in the dataset
-            quadsToFormData(editShapeIRI.value, subjectTerm, graphData, ID_IRI.value, allPrefixes)
+            formData.quadsToFormData(editShapeIRI.value, subjectTerm, rdfDS)
             editMode.form = false
             editMode.graph = true
         }
@@ -511,12 +444,7 @@
             return []
         }
         // find nodes with triple predicate == rdf:type, and triple object == the selected class
-        var quads = getLiteralAndNamedNodes(
-            graphData,
-            rdf.namedNode(RDF.type),
-            selectedIRI.value,
-            allPrefixes
-        )
+        var quads = rdfDS.getLiteralAndNamedNodes(rdf.namedNode(RDF.type), selectedIRI.value, allPrefixes)
         // Create list items from quads
         var instanceItemsArr = []
         quads.forEach(quad => {
@@ -524,7 +452,7 @@
             if (quad.subject.termType === 'BlankNode') {
                 extra = ' (BlankNode)'
             }
-            var relatedTrips = getSubjectTriples(graphData, quad.subject)
+            var relatedTrips = rdfDS.getSubjectTriples(quad.subject)
             var item = {
                 title: quad.subject.value + extra,
                 value: quad.subject.value,
@@ -536,7 +464,7 @@
                 }
                 if (quad.object.termType === "BlankNode") {
                     var bnItem = {}
-                    var blankNodeTrips = getSubjectTriples(graphData, quad.object)
+                    var blankNodeTrips = rdfDS.getSubjectTriples(quad.object)
                     blankNodeTrips.forEach(bnquad => {
                         bnItem[bnquad.predicate.value] = bnquad.object.value
                     })

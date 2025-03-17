@@ -56,7 +56,8 @@
 <script setup>
     import { inject, computed, ref, watch, onMounted} from 'vue'
     import { useRules } from '../composables/rules'
-    import { toCURIE, isObject } from '../modules/utils';
+    import { isObject } from '../modules/utils';
+    import { toCURIE } from 'shacl-tulip'
     import { useRegisterRef } from '../composables/refregister';
     import { useBaseInput } from '@/composables/base';
 

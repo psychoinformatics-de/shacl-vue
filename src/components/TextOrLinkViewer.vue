@@ -7,7 +7,7 @@
 
 <script setup>
     import { onBeforeMount, ref, inject} from 'vue';
-    import { toIRI } from '@/modules/utils';
+    import { toIRI } from 'shacl-tulip'
     const props = defineProps({
         textVal: String,
         prefLabel: String,

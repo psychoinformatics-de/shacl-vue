@@ -20,7 +20,7 @@
                         <strong>{{ makeReadable(toCURIE(k, allPrefixes, "parts").property) }}</strong>:
                         <span v-for="(el, i) in v">
                             <span v-if="v.length > 1"><br>&nbsp;- </span>
-                            &nbsp;<TextOrLinkViewer :textVal="el.value" :prefLabel="getPrefLabel(el, graphData, allPrefixes)"></TextOrLinkViewer>
+                            &nbsp;<TextOrLinkViewer :textVal="el.value" :prefLabel="getPrefLabel(el, rdfDS, allPrefixes)"></TextOrLinkViewer>
                         </span>
                         <br>
                     </span>
@@ -44,7 +44,8 @@
 
 <script setup>
     import { reactive, onBeforeMount, inject, onUpdated} from 'vue'
-    import { toCURIE, getSubjectTriples, makeReadable, getPrefLabel} from '../modules/utils';
+    import { toCURIE } from 'shacl-tulip'
+    import { makeReadable, getPrefLabel} from '../modules/utils';
     import { RDF } from '@/modules/namespaces';
     // Define component properties
     const props = defineProps({
@@ -57,7 +58,7 @@
     const editInstanceItem = inject('editInstanceItem')
     const allPrefixes = inject('allPrefixes')
     const getClassIcon = inject('getClassIcon')
-    const graphData = inject('graphData')
+    const rdfDS = inject('rdfDS')
     const record = reactive({})
 
     onBeforeMount(() => {
@@ -73,8 +74,8 @@
         record.quad = props.quad
         record.value = props.quad.subject.value
         record.subtitle = props.quad.object.value
-        record.relatedQuads = getSubjectTriples(graphData, props.quad.subject)
-        record.prefLabel = getPrefLabel(props.quad.subject, graphData, allPrefixes)
+        record.relatedQuads = rdfDS.getSubjectTriples(props.quad.subject)
+        record.prefLabel = getPrefLabel(props.quad.subject, rdfDS, allPrefixes)
         record.triples = {
             "Literal": {},
             "BlankNode": {},

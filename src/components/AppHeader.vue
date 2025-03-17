@@ -11,38 +11,42 @@
             </a>
         </template>
         <v-app-bar-title> 
-            <a @click="goToHome()" class="header-button"><code style="font-size: 1em;">{{ appName }}</code></a>
+            <a @click="goToHome()" class="header-button"><code style="font-size: 1em;">{{ configVarsMain.appName }}</code></a>
         </v-app-bar-title>
 
         <template v-slot:append>
 
-            <v-tooltip text="Token" location="bottom">
-                <template v-slot:activator="{ props }">
-                    <v-btn 
-                    icon="mdi-key-variant"
-                    @click="tokenFn()"
-                    v-bind="props"
-                    :disabled="!canSubmit"
-                    ></v-btn>
-                </template>
-            </v-tooltip>
-            
-            <v-tooltip text="Submit" location="bottom">
-                <template v-slot:activator="{ props }">
-                    <v-btn 
-                    icon="mdi-cloud-upload"
-                    @click="submitFn()"
-                    v-bind="props"
-                    :disabled="!canSubmit"
-                    ></v-btn>
-                </template>
-            </v-tooltip>
-            <span v-if="documentationUrl">
+            <span v-if="configVarsMain.useToken">
+                <v-tooltip text="Token" location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn 
+                        icon="mdi-key-variant"
+                        @click="tokenFn()"
+                        v-bind="props"
+                        :disabled="!canSubmit"
+                        ></v-btn>
+                    </template>
+                </v-tooltip>
+            </span>
+            <span v-if="configVarsMain.useService">
+                <v-tooltip text="Submit" location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn 
+                        icon="mdi-cloud-upload"
+                        @click="submitFn()"
+                        v-bind="props"
+                        :disabled="!canSubmit"
+                        ></v-btn>
+                    </template>
+                </v-tooltip>
+            </span>
+
+            <span v-if="configVarsMain.documentationUrl">
                 <v-tooltip text="Documentation" location="bottom">
                     <template v-slot:activator="{ props }">
                         <v-btn 
                         icon="mdi-text-box"
-                        :href="documentationUrl"
+                        :href="configVarsMain.documentationUrl"
                         target="_blank"
                         v-bind="props"
                         class="header-button"
@@ -50,12 +54,12 @@
                     </template>
                 </v-tooltip>
             </span>
-            <span v-if="sourceCodeUrl">
+            <span v-if="configVarsMain.sourceCodeUrl">
                 <v-tooltip text="Source code" location="bottom">
                     <template v-slot:activator="{ props }">
                         <v-btn 
                         icon="mdi-code-not-equal-variant"
-                        :href="sourceCodeUrl"
+                        :href="configVarsMain.sourceCodeUrl"
                         target="_blank"
                         v-bind="props"
                         class="header-button"
@@ -110,9 +114,7 @@
     const { token, setToken, clearToken } = useToken()
     const submitFn = inject('submitFn')
     const canSubmit = inject('canSubmit')
-    const appName = inject('appName')
-    const documentationUrl = inject('documentationUrl')
-    const sourceCodeUrl = inject('sourceCodeUrl')
+    const configVarsMain = inject('configVarsMain')
     const visible = ref(false)
     const tokenDialog = ref(false)
     const tokenExists = ref(false)

@@ -45,7 +45,6 @@
     import { useRules } from '../composables/rules'
     import { useRegisterRef } from '../composables/refregister';
     import { useBaseInput } from '@/composables/base';
-    import { toCURIE } from '../modules/utils';
 
 
     const props = defineProps({

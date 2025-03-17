@@ -1,59 +1,6 @@
 import { SHACL, RDF, XSD, DLTHINGS} from '../modules/namespaces'
 import rdf from 'rdf-ext';
-
-
-export function toCURIE(IRI, prefixes, return_type) {
-	// console.log("Inside toCURIE")
-	// console.log(IRI)
-	// console.log(prefixes)
-  // prefixes is an object with prefix as keys and the resolved prefix IRI as the value
-  if (!IRI) {
-    return null
-  }
-  if (!prefixes) {
-    console.log("no prefixes passed!!")
-  }
-  const longToShort = Object.values(prefixes).sort((a, b) => b.length - a.length);
-  for (const iri of longToShort) {
-    if (IRI.indexOf(iri) >= 0) {
-      const prefix = objectFlip(prefixes)[iri]
-      const property = IRI.substring(iri.length)
-      if (return_type == "parts") {
-        return {
-          "prefix": prefix,
-          "property": property,
-        }
-      } else {
-        return prefix + ':' + property
-      }
-    }
-  }
-  return IRI
-}
-
-
-export function toIRI(CURIE, prefixes) {
-  // prefixes is an object with prefix as keys and the resolved prefix IRI as the value
-  if (!CURIE) {
-    return null
-  }
-  if (!prefixes) {
-    console.error("no prefixes passed!!")
-    return null
-  }
-  if (CURIE.indexOf(':') < 0) {
-    // console.log("not a valid curie, returning")
-    return CURIE
-  }
-  var parts = CURIE.split(':')
-  var pref = parts[0]
-  var prop = parts[1]
-  if (Object.keys(prefixes).indexOf(pref) < 0) {
-    return CURIE
-  }
-  return prefixes[pref] + prop
-}
-
+import { toCURIE, toIRI } from 'shacl-tulip';
 
 export function nameOrCURIE(shape, prefixes, readable=false) {
   if (shape.hasOwnProperty(SHACL.name.value)) {
@@ -70,15 +17,6 @@ export function nameOrCURIE(shape, prefixes, readable=false) {
 export function orderArrayOfObjects(array, key) {
   // Returns an array of objects ordered by the value of a specific key 
   return [...array].sort((a,b) => a[key] - b[key])
-}
-
-
-function objectFlip(obj) {
-  // Flip the keys and values of an object
-  return Object.keys(obj).reduce((ret, key) => {
-    ret[obj[key]] = key;
-    return ret;
-  }, {});
 }
 
 
@@ -220,50 +158,6 @@ export function downloadTSV(data, filename) {
 }
 
 
-export function getLiteralAndNamedNodes(graphData, predicate, propertyClass, prefixes) {
-  var propClassCurie = toCURIE(propertyClass, prefixes)
-  // a) use the literal node with xsd data type
-  const literalNodes = rdf.grapoi({ dataset: graphData })
-      .hasOut(predicate, rdf.literal(String(propClassCurie), XSD.anyURI))
-      .quads();
-  // b) and the named node
-  const uriNodes = rdf.grapoi({ dataset: graphData })
-      .hasOut(predicate, rdf.namedNode(propertyClass))
-      .quads();
-  // return as a concatenated array of quads
-  return Array.from(literalNodes).concat(Array.from(uriNodes))
-}
-
-
-export function getSubjectTriples(graphData, someTerm, blankNodesResolved=false) {
-  // console.log(`Getting all triples with subject: ${someTerm.value}`)
-  const quads = rdf.grapoi({ dataset: graphData, term: someTerm }).out().quads();
-  // Array.from(quads).forEach(quad => {
-  //     console.log(`\t${quad.subject.value} - ${quad.predicate.value} - ${quad.object.value}`)
-  // })
-  var quadArray = Array.from(quads)
-  if (blankNodesResolved) {
-    quads.forEach(q => {
-      if (q.object.termType === "BlankNode") {
-        var moreQuads = getSubjectTriples(graphData, q, true)
-        quadArray = quadArray.concat(Array.from(moreQuads))
-      }
-    })
-  }
-  return quadArray  
-}
-
-
-export function getObjectTriples(graphData, someTerm) {
-  // console.log(`Getting all triples with object: ${someTerm.value}`)
-  const quads = rdf.grapoi({ dataset: graphData, term: someTerm }).in().quads();
-  // Array.from(quads).forEach(quad => {
-  //     console.log(`\t${quad.subject.value} - ${quad.predicate.value} - ${quad.object.value}`)
-  // })
-  return Array.from(quads)
-}
-
-
 export function addCodeTagsToText(text) {
 	return text.replace(/`([^`]+)`/g, '<code class="code-style">$1</code>');
 }
@@ -304,13 +198,13 @@ export function makeReadable(input) {
   return output
 }
 
-export function getPrefLabel(node, graphData, allPrefixes, from) {
+export function getPrefLabel(node, graphDataset, allPrefixes, from) {
   // console.log("Inside getPrefLabel")
   // console.log(allPrefixes)
   var prefLabel = ""
   // Get quads related to a subject, and then isolate those that are 'DLTHINGS.annotations'
   node.value = toIRI(node.value, allPrefixes)
-  var relatedQuads = getSubjectTriples(graphData, node)
+  var relatedQuads = graphDataset.getSubjectTriples(node)
   var annotationQuads = relatedQuads.filter((q) => {
       return q.predicate.value == DLTHINGS.annotations.value &&
       q.object.termType === "BlankNode"
@@ -321,7 +215,7 @@ export function getPrefLabel(node, graphData, allPrefixes, from) {
   }
   // For each annotation quad, ...
   for (var aq of annotationQuads) {
-      var bnQuads = getSubjectTriples(graphData, aq.object)
+      var bnQuads = graphDataset.getSubjectTriples(aq.object)
       var annotationTagQuad = bnQuads.find((bnQ) => {
           return bnQ.predicate.value == DLTHINGS.annotation_tag.value && (
               bnQ.object.value == "skos:prefLabel" ||
