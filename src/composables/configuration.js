@@ -3,28 +3,29 @@
  * Composable for managing the application configuration
  */
 
-import { isObject, snakeToCamel, snakeToPascal } from '@/modules/utils';
-import { ref, onMounted, reactive, toRaw } from 'vue'
+import { isObject, snakeToCamel } from '@/modules/utils';
+import { ref, onMounted, reactive } from 'vue'
 const basePath = import.meta.env.BASE_URL || '/';
 
 const mainVarsToLoad = {
     "show_shapes_wo_id": true,
     "prefixes": {},
     "class_icons": {},
-    "app_name": "",
-    "documentation_url": "",
-    "source_code_url": "",
+    "app_name": "shacl-vue",
+    "documentation_url": "https://psychoinformatics-de.github.io/shacl-vue/docs/",
+    "source_code_url": "https://github.com/psychoinformatics-de/shacl-vue",
     "app_theme": {
         "link_color": "#41b883",
         "hover_color": "#1565C0",
         "active_color": "#D32F2F",
         "panel_color": "#41b883",
         "logo": "shacl_vue_logo.svg",
-    }
+    },
+    "use_token": false,
+    "use_service": false
 }
 
 export function useConfig(url) {
-    console.log("Using config...")
     const defaultURL = `${basePath}config.json`
     var configURL
     if (url) {

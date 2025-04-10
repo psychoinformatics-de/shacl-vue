@@ -61,9 +61,8 @@
     const localNodeIdx = ref(props.node_idx);
     const config = inject('config');
     const defaultPropertyGroup = config.value.defaultPropertyGroup;
-    const propertyGroups = inject('propertyGroups');
-    const nodeShapes = inject('nodeShapes')
-    const shape_obj = nodeShapes.value[localShapeIri.value]
+    const shapesDS = inject('shapesDS')
+    const shape_obj = shapesDS.data.nodeShapes[localShapeIri.value]
     const ready = ref(false)
     var tab = ref(null)
     const group_layout = ref('default') // ref('default') or ref('tabs')
@@ -117,8 +116,8 @@
             // provided for a property via `sh:group` was not declared as a
             // propertyGroup (with e.g. name, description, order) and is therefore
             // not part of the incoming SHACL, i.e. not in propertyGroups.value
-            if (propertyGroups.value[group_iri]) {
-                used_prop_groups[group_iri] = propertyGroups.value[group_iri]
+            if (shapesDS.data.propertyGroups[group_iri]) {
+                used_prop_groups[group_iri] = shapesDS.data.propertyGroups[group_iri]
             } else {
                 used_prop_groups[group_iri] = {}
             }

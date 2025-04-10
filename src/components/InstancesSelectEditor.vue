@@ -75,8 +75,9 @@
     import { inject, watch, onBeforeMount, onMounted, ref, provide, computed, nextTick} from 'vue'
     import { useRules } from '../composables/rules'
     import rdf from 'rdf-ext'
-    import {SHACL, RDF, RDFS } from '@/modules/namespaces'
-    import { toCURIE, getLiteralAndNamedNodes, getSubjectTriples, findObjectByKey, makeReadable, toIRI} from '../modules/utils';
+    import { SHACL, RDF, RDFS } from '@/modules/namespaces'
+    import { findObjectByKey } from '../modules/utils';
+    import { toCURIE, toIRI } from 'shacl-tulip'
     import { useRegisterRef } from '../composables/refregister';
     import { useBaseInput } from '@/composables/base';
 
@@ -98,9 +99,9 @@
     // Data //
     // ---- //
     const itemsToList = ref([]);
-    const graphData = inject('graphData');
+    const rdfDS = inject('rdfDS');
     const allPrefixes = inject('allPrefixes');
-    const classData = inject('classData');
+    const classDS = inject('classDS');
     const config = inject('config');
     const fetchFromService = inject('fetchFromService');
     const localPropertyShape = ref(props.property_shape)
@@ -190,7 +191,7 @@
     }, {immediate: true });
 
 
-    watch(graphData, () => {
+    watch(rdfDS.data.graph, () => {
         console.log("CHECK: graphdata instanceselecteditor")
         getItemsToList()
     }, { deep: true });
@@ -204,7 +205,7 @@
                 value: propClass.value
             }
         )
-        const subClasses = rdf.grapoi({ dataset: classData })
+        const subClasses = rdf.grapoi({ dataset: classDS.data.graph })
             .hasOut(rdf.namedNode(RDFS.subClassOf.value), rdf.namedNode(propClass.value))
             .quads();
         
@@ -269,7 +270,7 @@
     function getSubClasses(main_class) {
         // Find quads in the subclass datasetnodes with predicate rdfs:subClassOf
         // object main_class, and return as an array of terms
-        const subClasses = rdf.grapoi({ dataset: classData })
+        const subClasses = rdf.grapoi({ dataset: classDS.data.graph })
             .hasOut(rdf.namedNode(RDFS.subClassOf.value), rdf.namedNode(main_class))
             .quads();
         var myArr = []
@@ -293,17 +294,12 @@
         // console.log("(Re)calculating instance items")
         // find nodes with predicate rdf:type and object being the property class
         // console.log("find nodes with predicate rdf:type and object being the property class:")
-        var quads = getLiteralAndNamedNodes(
-            graphData,
-            rdf.namedNode(RDF.type),
-            propClass.value,
-            allPrefixes
-        )
+        var quads = rdfDS.getLiteralAndNamedNodes(rdf.namedNode(RDF.type), propClass.value, allPrefixes)
         // then find nodes with predicate rdfs:subClassOf and object being the property class
         // TODO: here we are only using a named node for the object because this is how the
         // tools/gen_owl_minimal.py script outputs the triples in the ttl file. This should be
         // generalised
-        const subClasses = rdf.grapoi({ dataset: classData })
+        const subClasses = rdf.grapoi({ dataset: classDS.data.graph })
             .hasOut(rdf.namedNode(RDFS.subClassOf.value), rdf.namedNode(propClass.value))
             .quads();
         // For each subclass, find the quads in graphData that has the class name as object
@@ -313,7 +309,7 @@
             const cl = quad.subject.value
             // console.log(`\t - getting quads with class: ${cl}`)
             // console.log(`\t - (size of data graph: ${graphData.size})`)
-            myArr = myArr.concat(getLiteralAndNamedNodes(graphData, rdf.namedNode(RDF.type), cl, allPrefixes))
+            myArr = myArr.concat(rdfDS.getLiteralAndNamedNodes(rdf.namedNode(RDF.type), cl, allPrefixes))
         });
         // Then combine all quad arrays
         // const combinedQuads = quads.concat(savedQuads).concat(myArr);
@@ -331,7 +327,7 @@
             if (quad.subject.termType === 'BlankNode') {
                 extra = ' (BlankNode)'
             }
-            var relatedTrips = getSubjectTriples(graphData, quad.subject)
+            var relatedTrips = rdfDS.getSubjectTriples(quad.subject)
             var item = {
                 title: quad.subject.value + extra,
                 value: quad.subject.value,

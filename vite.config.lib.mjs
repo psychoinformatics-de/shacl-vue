@@ -49,12 +49,8 @@ export default defineConfig(
       lib: {
         entry: {
           'shacl-vue': './index.js',
-          'shapedata': './src/composables/shapedata.js'
         },
-        // entry: resolve(__dirname, 'index.js'),
-        // entry: './index.js',
         name: 'ShaclVue',
-        // formats: ['es'], // Vue library builds
         fileName: (format, entryName) => `${entryName}.${format}.js`,
       },
       outDir: 'dist/lib',

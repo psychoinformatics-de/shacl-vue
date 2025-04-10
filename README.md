@@ -27,9 +27,7 @@ npm install shacl-vue
 
 ### Use as a library
 
-The `npm` package currently provides the named exports `ShaclVue` and `shapedata`:
-
-#### `ShaclVue`
+The `npm` package currently provides the named export `ShaclVue`:
 
 ```
 import { ShaclVue } from 'shacl-vue'
@@ -46,45 +44,13 @@ This is the main configurable VueJS component that is used to render all functio
 </script>
 ```
 
-Here, `config.json` is used to configure the properties of the specific `shacl-vue` deployment. See examples [here](https://github.com/psychoinformatics-de/shacl-vue/blob/main/public/config.json), and [here](https://hub.datalad.org/datalink/annotate-trr379-demo/src/branch/main/config.json).
+Here, `config.json` is used to configure the properties of the specific `shacl-vue` deployment. See examples [here](https://github.com/psychoinformatics-de/shacl-vue/blob/main/public/config.json), and [here](https://hub.trr379.de/q04/annotate.trr379.de-demo/src/branch/main/dist/config.json).
 
 For the above to work, the VueJS application will have to install `Vuetify` and the `ShaclVue` might need to be [registered explicitly](https://vuejs.org/guide/components/registration).
 
-#### `shapedata`
-
-```
-import { shapedata } from 'shacl-vue'
-```
-
-This utility provides functionality for reading and transforming SHACL shapes from a source schema. The following provides example usage in JavaScript:
-
-```javascript
-import { useShapeData } from 'shacl-vue';
-const config = {}
-config.value = {}
-config.value.shapes_url = "my_shacl_schema.ttl" // this could be a "local" or remote URL that the server allows to be fetched
-const {
-    getSHACLschema,
-    shapesDataset,
-    nodeShapes,
-    propertyGroups,
-    nodeShapeNamesArray,
-    shapePrefixes,
-    prefixArray,
-    prefixes_ready,
-    nodeShapeIRIs,
-    nodeShapeNames,
-    serializedData,
-    page_ready
-} = useShapeData(config)
-await getSHACLschema()
-```
-
-In this example, a minimal configuration variable is used, although the variable could also be loaded from the same `config.json` that is used as the input prop for the `ShaclVue` component above. Here, `getSHACLschema()` will populate most of the `useShapeData`-returned variables. For more information about how each returned variable is produced, see the [source code](https://github.com/psychoinformatics-de/shacl-vue/blob/main/src/composables/shapedata.js).
-
 ### Use as a standalone site
 
-The build steps of `shacl-vue` produce both the library as well as a set of static files that can be served as a standalone site. The abovementioned metadata annotation tool of the TRR379 Research Consortium deploys `shacl-vue` in this manner, and its source code can be viewed [here](https://hub.datalad.org/datalink/annotate-trr379-demo).
+The build steps of `shacl-vue` produce both the library as well as a set of static files that can be served as a standalone site. The abovementioned metadata annotation tool of the TRR379 Research Consortium deploys `shacl-vue` in this manner, and its source code can be viewed [here](https://hub.trr379.de/q04/annotate.trr379.de-demo).
 
 To use `shacl-vue` to deploy a standalone site, follow the build steps below. In addition, a deployment-specific confi file should be provided.
 
@@ -145,3 +111,7 @@ Testing remains a primary TODO for this package, although a minimal test is in p
 ```
 npm run test
 ```
+
+## Dependency on `shacl-tulip`
+
+In an effort to generalize `shacl-vue` for improved use by and interoperability with other applications, the underlying functionality was factored out and packaged as the [`shacl-tulip`](https://github.com/psychoinformatics-de/shacl-tulip) library (like "`shacl-vue`-lib"). `shacl-tulip` provides the main (derived) classes for handling RDF data and related form data. It is completely independent of VueJS, yet class constructors allow passing reactive objects as arguments, which `shacl-tulip` handles seamlessly. It also focuses purely on library-level functionality (including utilities that were previously part of `shacl-vue`), and contains no frontend code. `shacl-vue` imports `shacl-tulip` classes and uses them mainly in its composable code.

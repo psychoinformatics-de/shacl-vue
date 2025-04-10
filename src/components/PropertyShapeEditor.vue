@@ -1,7 +1,7 @@
 <template>
-    <v-row align="start" no-gutters v-if="formData[localNodeUid] && show_field">
+    <v-row align="start" no-gutters v-if="formData.content[localNodeUid] && show_field">
         <v-col cols="4">
-            <span>{{ nameOrCURIE(localPropertyShape, shapePrefixes, true) }}<span v-if="isRequired" style="color: red;"> *</span>:
+            <span>{{ nameOrCURIE(localPropertyShape, shapesDS.data.prefixes, true) }}<span v-if="isRequired" style="color: red;"> *</span>:
                 <v-tooltip activator="parent" location="right" max-width="400px" max-height="400px">
                     <p v-html="addCodeTagsToText(localPropertyShape[SHACL.description.value])"></p>
                 </v-tooltip>
@@ -9,12 +9,12 @@
         </v-col>
         <v-col cols="8">
 
-            <span v-if="formData[localNodeUid][localNodeIdx]">
-                <v-row no-gutters v-for="(triple, triple_idx) in formData[localNodeUid][localNodeIdx][my_uid]" :key="localNodeUid + '-' + my_uid + '-' + triple_idx">
+            <span v-if="formData.content[localNodeUid][localNodeIdx]">
+                <v-row no-gutters v-for="(triple, triple_idx) in formData.content[localNodeUid][localNodeIdx][my_uid]" :key="localNodeUid + '-' + my_uid + '-' + triple_idx">
                     <v-col cols="9">
                         <Suspense>
                             <component
-                                v-model="formData[localNodeUid][localNodeIdx][my_uid][triple_idx]"
+                                v-model="formData.content[localNodeUid][localNodeIdx][my_uid][triple_idx]"
                                 :is="matchedComponent"
                                 :property_shape="localPropertyShape"
                                 :node_uid="localNodeUid"
@@ -32,7 +32,7 @@
                                 rounded="0"
                                 elevation="1"
                                 icon="mdi-delete-outline"
-                                @click="remove_triple(localNodeUid, localNodeIdx, my_uid, triple_idx)"
+                                @click="formData.removeObject(localNodeUid, localNodeIdx, my_uid, triple_idx)"
                                 density="comfortable"
                             ></v-btn>
                             &nbsp;
@@ -41,7 +41,7 @@
                                 rounded="0"
                                 elevation="1"
                                 icon="mdi-plus-circle-outline"
-                                @click="add_empty_triple_manual(localNodeUid, localNodeIdx, my_uid)"
+                                @click="formData.addObject(localNodeUid, localNodeIdx, my_uid)"
                                 density="comfortable"
                             ></v-btn>
                     </v-col>
@@ -55,7 +55,7 @@
     import { ref, onMounted, onBeforeMount, computed, inject, onBeforeUpdate, onBeforeUnmount, watch, toRaw} from 'vue'
     import { SHACL } from '../modules/namespaces'
     import { useRules } from '../composables/rules'
-    import { toCURIE, nameOrCURIE, addCodeTagsToText} from '../modules/utils';
+    import { nameOrCURIE, addCodeTagsToText} from '../modules/utils';
     
     // ----- //
     // Props //
@@ -77,16 +77,10 @@
     const localPropertyShape = ref(props.property_shape)
     const localNodeUid = ref(props.node_uid)
     const localNodeIdx = ref(props.node_idx)
-
-    const add_empty_triple = inject('add_empty_triple');
-    const add_empty_triple_manual = inject('add_empty_triple_manual');
-    const editMode = inject('editMode');
-    const remove_triple = inject('remove_triple');
-    const shapePrefixes = inject('shapePrefixes');
     const editorMatchers = inject('editorMatchers');
     const defaultEditor = inject('defaultEditor');
     const formData = inject('formData');
-    const openForms = inject('openForms')
+    const shapesDS = inject('shapesDS');
     const show_all_fields = inject('show_all_fields');
     const { isRequired } = useRules(localPropertyShape.value)
 
@@ -95,10 +89,10 @@
     // ----------------- //
 
     onMounted(() => {
-        if (formData[localNodeUid.value][localNodeIdx.value][my_uid.value]) {
+        if (formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value]) {
             return;
         }
-        add_empty_triple(localNodeUid.value, localNodeIdx.value, my_uid.value, "propertyShapeEditor onMounted")
+        formData.addPredicate(localNodeUid.value, localNodeIdx.value, my_uid.value)
     })
 
 
@@ -155,15 +149,15 @@
             if (localPropertyShape.value[SHACL.maxCount] == 1) {
                 return false
             } else if (localPropertyShape.value[SHACL.maxCount] > 1
-                        && formData[localNodeUid.value][localNodeIdx.value][my_uid.value].length < localPropertyShape.value[SHACL.maxCount]
-                        && formData[localNodeUid.value][localNodeIdx.value][my_uid.value].length == idx + 1
+                        && formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value].length < localPropertyShape.value[SHACL.maxCount]
+                        && formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value].length == idx + 1
             ) {
                 return true
             } else {
                 return false   
             }
         } else {
-            if (formData[localNodeUid.value][localNodeIdx.value][my_uid.value].length == idx + 1) {
+            if (formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value].length == idx + 1) {
                 return true
             } else {
                 return false
@@ -172,7 +166,7 @@
     }
 
     function allowRemoveTriple(idx) {
-        if (formData[localNodeUid.value][localNodeIdx.value][my_uid.value].length > 1) {
+        if (formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value].length > 1) {
             return true
         }
         return false

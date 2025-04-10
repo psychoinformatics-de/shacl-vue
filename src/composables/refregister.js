@@ -12,14 +12,14 @@ export function useRegisterRef(id, props) {
   const fieldRef = ref(null);
   const registerRef = inject('registerRef', null);
   const unregisterRef = inject('unregisterRef', null);
-  const shapePrefixes = inject('shapePrefixes');
+  const shapesDS = inject('shapesDS');
 
   onMounted(() => {
     if (registerRef && fieldRef.value) {
         // console.log("Registering ref from within refregister composable...")
         var fieldData = {
             ref: fieldRef,
-            name: nameOrCURIE(props.property_shape, shapePrefixes)
+            name: nameOrCURIE(props.property_shape, shapesDS.data.prefixes)
         }
         registerRef(id, fieldData);
     }

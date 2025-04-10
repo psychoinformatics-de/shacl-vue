@@ -12,7 +12,7 @@
             <v-list-item @click="selectORelement(data.item)">
                 <span v-for="(value, key, index) in data.item.props">
                     <span v-if="['title', 'subtitle', 'name', 'value'].indexOf(key) < 0">
-                        <strong>{{ toCURIE(key, shapePrefixes) }}</strong>: {{ toCURIE(value, shapePrefixes) }} <br>
+                        <strong>{{ toCURIE(key, shapesDS.data.prefixes) }}</strong>: {{ toCURIE(value, shapesDS.data.prefixes) }} <br>
                     </span>
                 </span>
             </v-list-item>
@@ -37,7 +37,7 @@
     import { useRules } from '../composables/rules'
     import { useRegisterRef } from '../composables/refregister';
     import { useBaseInput } from '@/composables/base';
-    import { toCURIE } from '../modules/utils';
+    import { toCURIE } from 'shacl-tulip'
 
 
     const props = defineProps({
@@ -48,7 +48,7 @@
         triple_uid: String,
         triple_idx: Number
     })
-    const shapePrefixes = inject('shapePrefixes');
+    const shapesDS = inject('shapesDS');
     const editorMatchers = inject('editorMatchers');
     const defaultEditor = inject('defaultEditor');
     const formData = inject('formData');
