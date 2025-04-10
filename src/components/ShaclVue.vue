@@ -231,7 +231,7 @@
     // When user clicks the submit button
     watch(submitButtonPressed, (newValue) => {
         if (newValue) {
-            if (Object.keys(formData).length == 0) {
+            if (Object.keys(formData.content).length == 0) {
                 noSubmitDialog.value = true;
                 submitDialog.value = false;
             } else {
