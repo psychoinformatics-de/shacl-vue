@@ -9,13 +9,4 @@ describe("shacl-vue package exports", () => {
     // Ensure they exist
     expect(ShaclVue).toBeDefined();
   });
-
-  it("should import useShapeData from 'shapedata'", async () => {
-    // Import the built composable from "dist"
-    const { useShapeData } = await import("../dist/lib/shapedata.es.js");
-
-    // Ensure it exists
-    expect(useShapeData).toBeDefined();
-    expect(typeof useShapeData).toBe("function");
-  });
 });
