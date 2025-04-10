@@ -6,5 +6,5 @@
 
 
 <script setup>
-  const confURL = null
+  const confURL = 'config.json'
 </script>

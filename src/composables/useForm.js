@@ -2,7 +2,7 @@
 
 import { reactive, toRaw} from 'vue'
 import rdf from 'rdf-ext';
-import { SHACL, RDF } from '@/modules/namespaces';
+import { SHACL } from '@/modules/namespaces';
 import { replaceServiceIdentifier} from '@/modules/utils';
 import { postRDF } from '@/modules/io'
 import { useToken } from '@/composables/tokens'

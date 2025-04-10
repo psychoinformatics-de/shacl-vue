@@ -1,6 +1,6 @@
 // rules.js
 import { ref } from 'vue'
-import {SHACL, RDF, DASH, XSD} from '../modules/namespaces'
+import { SHACL } from '../modules/namespaces'
 
 export function useRules(propShape) {
 

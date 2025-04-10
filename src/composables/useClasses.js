@@ -1,5 +1,5 @@
 // classdata.js
-import { inject, reactive, ref} from 'vue'
+import { reactive } from 'vue'
 import { ClassDataset } from 'shacl-tulip' 
 
 const basePath = import.meta.env.BASE_URL || '/';
