@@ -60,8 +60,8 @@
     const submitButtonPressed = inject('submitButtonPressed')
     const submitDialog = inject('submitDialog')
     const tokenExists = ref(false)
-    const nodeShapes = inject('nodeShapes')
-    const graphData = inject('graphData')
+    const shapesDS = inject('shapesDS')
+    const rdfDS = inject('rdfDS')
     const ID_IRI = inject('ID_IRI')
     const config = inject('config')
     const allPrefixes = inject('allPrefixes');
@@ -89,7 +89,7 @@
             setToken(tokenval.value)
         }
         awaitingResponse.value = true
-        var submit_result = await submitFormData(nodeShapes.value, ID_IRI.value, allPrefixes, config, graphData)
+        var submit_result = await submitFormData(shapesDS, ID_IRI.value, allPrefixes, config, rdfDS)
         console.log("submit_result")
         console.log(submit_result)
 

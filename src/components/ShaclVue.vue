@@ -166,8 +166,7 @@
     provide('classDS', classDS)
     provide('formData', formData)
     provide('fetchFromService', fetchFromService)
-
-
+    provide('submitFormData', submitFormData)
     // ---------------------------------------------- //
     // ONCE ALL SHAPES/CLASSES/DATA/FORMS ARE LOADED:
     // - SET PREFIXES
@@ -210,7 +209,7 @@
                 }                
             }
             setViewFromQuery()
-            page_ready.value = true
+            page_ready.value = true;
         }
     }, {immediate: true });
 

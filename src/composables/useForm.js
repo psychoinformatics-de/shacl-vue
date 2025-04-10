@@ -12,10 +12,10 @@ export function useForm(config) {
 
     const formData = new FormBase(null, reactive({}))
 
-    async function submitFormData(nodeShapes, id_iri, prefixes, config, graphData) {
+    async function submitFormData(shapesDS, id_iri, prefixes, config, rdfDS) {
         console.log("inside submitFormData function")
-        console.log(toRaw(formData))
-        if (Object.keys(formData).length == 0) {
+        console.log(toRaw(formData.content))
+        if (Object.keys(formData.content).length == 0) {
             console.log("submitFormData: no edited formData to submit; returning.")
             return
         }
@@ -40,10 +40,10 @@ export function useForm(config) {
         try {
             // collect all POST requests as Promises
             let postPromises = [];
-            for (var class_uri of Object.keys(formData)) {
+            for (var class_uri of Object.keys(formData.content)) {
                 // class_uri: all classes that were edited
                 // Get shapes for reference
-                var nodeShape = nodeShapes[class_uri]
+                var nodeShape = shapesDS.data.nodeShapes[class_uri]
                 var propertyShapes = nodeShape.properties
                 // if the nodeshape does NOT have a propertyshape with sh:path being equal to ID_IRI,
                 // it means the class's records will be blank nodes and we can skip the whole class
@@ -52,15 +52,15 @@ export function useForm(config) {
                     console.log(`Class '${class_uri}' shape does not have an id field, i.e. it will have blank node records, i.e. skipping.`)
                     continue;
                 }
-                for (var record_id of Object.keys(formData[class_uri])) {
+                for (var record_id of Object.keys(formData.content[class_uri])) {
                     console.log(`formData for node: ${record_id}`)
-                    console.log(toRaw(formData[class_uri][record_id]))
+                    console.log(toRaw(formData.content[class_uri][record_id]))
                     // Turn the record/node into quads
-                    var quads = formNodeToQuads(class_uri, record_id, nodeShapes, propertyShapes, id_iri, prefixes)
+                    var quads = formData.formNodeToQuads(class_uri, record_id, shapesDS)
                     // Ne need to resolve blank nodes recursively, and add all to the dataset
                     quads.forEach(quad => {
                         if (quad.object.termType === "BlankNode") {
-                            var moreQuads = getSubjectTriples(graphData, quad.object, true)
+                            var moreQuads = rdfDS.getSubjectTriples(quad.object)
                             quads = quads.concat(Array.from(moreQuads))
                         }
                     });
@@ -70,6 +70,7 @@ export function useForm(config) {
                         ds.add(quad)
                     });
                     // A POST replaceServiceIdentifier(class_uri, serviceEndpoints[endpoint], prefixes)
+                    const query_string = replaceServiceIdentifier(class_uri, serviceEndpoints[endpoint], prefixes)
                     var postURL = `${serviceBaseURL}${query_string}`
                     console.log("POSTing to the following URL:")
                     console.log(postURL)

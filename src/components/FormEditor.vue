@@ -65,7 +65,7 @@
 
 
 <script setup>
-  import { ref, onMounted, onBeforeMount, onBeforeUnmount, provide, inject, reactive, computed} from 'vue'
+  import { ref, onMounted, onBeforeMount, onBeforeUnmount, provide, inject, reactive, computed, toRaw} from 'vue'
   import { SHACL } from '../modules/namespaces'
   import { toCURIE } from 'shacl-tulip'
   import { addCodeTagsToText } from '../modules/utils';
@@ -189,7 +189,19 @@
         //   and with new IRI as object, then delete the old triple
         console.log("going to save form now")
         // var saved_node = save_node(localShapeIri.value, localNodeIdx.value, nodeShapes.value, graphData, editMode.form || editMode.graph, ID_IRI.value, allPrefixes);
-        var saved_node = formData.saveNode(localShapeIri.value, localNodeIdx.value, shapesDS, rdfDS, editMode.form || editMode.graph)
+        const reactiveCloneFunc = ((data) => {
+          console.log("using reactiveCloneFunc with data:")
+          console.log(toRaw(data))
+          return structuredClone(toRaw(data))
+        });
+        var saved_node = formData.saveNode(
+          localShapeIri.value,
+          localNodeIdx.value,
+          shapesDS,
+          rdfDS,
+          editMode.form || editMode.graph,
+          reactiveCloneFunc
+        )
         removeForm(saved_node)
         if (typeof saveFormHandler === 'function') {
           saveFormHandler();

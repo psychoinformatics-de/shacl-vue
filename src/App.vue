@@ -7,5 +7,4 @@
 
 <script setup>
   const confURL = null
-
 </script>
