@@ -9,6 +9,7 @@
                 size="x-small"
                 class="rounded-lg"
                 @click="editInstanceItem(record)"
+                :disabled="props.formOpen"
             ></v-btn>
         </v-card-title>
         <v-card-subtitle>{{ toCURIE(record.subtitle, allPrefixes) }}</v-card-subtitle>
