@@ -68,6 +68,19 @@
                 </div>
             </template>
         </v-autocomplete>
+        <v-dialog
+            v-model="uploadMultiRecord"
+            transition="dialog-top-transition"
+        >
+                <TableLoader
+                    @close-multirecord="uploadMultiRecord = false"
+                    :shape_iri="propClass"
+                    :node_idx="props.node_idx"
+                    :propClassList="propClassList"
+                    :parent_shape_iri="props.node_uid"
+                    :parent_property_iri="props.triple_uid"
+                ></TableLoader>
+        </v-dialog>
     </v-input>
 </template>
 
@@ -145,6 +158,7 @@
         newNodeIdx.value = null
     };
     provide('saveFormHandler', saveDialogForm);
+    const uploadMultiRecord = inject('uploadMultiRecord')
 
     // ------------------- //
     // Computed properties //
@@ -189,6 +203,10 @@
             }
         }
     }, {immediate: true });
+
+    watch(uploadMultiRecord, (newval) => {
+        if (newval) {console.log("Upload button pressed")}
+    }, { immediate: true });
 
 
     watch(rdfDS.data.graph, () => {
