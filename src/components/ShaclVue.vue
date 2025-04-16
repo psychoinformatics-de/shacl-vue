@@ -34,7 +34,8 @@
                                         <span v-if="selectedIRI">
                                             <h2 class="mx-4 mb-4 truncate-heading">
                                                 {{ getDisplayName(selectedIRI, configVarsMain, allPrefixes) }}
-                                                &nbsp;&nbsp; <v-btn icon="mdi-plus" size="x-small" variant="tonal" @click="addInstanceItem()"></v-btn>
+                                                &nbsp;&nbsp; <v-btn icon="mdi-plus" size="x-small" variant="tonal" @click="addInstanceItem()" :disabled="formOpen"></v-btn>
+                                                &nbsp;<v-btn icon="mdi-upload" size="x-small" variant="tonal" @click="selectUploadMultiRecord()" :disabled="formOpen"></v-btn>
                                             </h2>
 
                                             <p class="mx-4 mb-4" v-html="formattedDescription"></p>
@@ -72,6 +73,15 @@
                                                     <em>No items</em>
                                                 </div>
                                             </span>
+                                            <v-dialog
+                                                v-model="uploadMultiRecord"
+                                                transition="dialog-top-transition"
+                                            >
+                                                    <TableLoader
+                                                        @close-multirecord="uploadMultiRecord = false"
+                                                        :shape_iri="selectedIRI"
+                                                    ></TableLoader>
+                                            </v-dialog>
                                         </span>
                                         <span v-else style="margin-top: 1em; margin-left: 1em;">
                                             <em>Select a data type</em>
@@ -199,6 +209,8 @@
     // - FETCH FROM SERVICE IF REQUIRED
     // - SET VIEW FROM QUERY
     // ---------------------------------------------- //
+    const uploadMultiRecord = ref(false)
+    const componentReady = ref(false)
     const allPrefixes = reactive({});
     const page_ready = ref(false);
     provide('allPrefixes', allPrefixes)
@@ -267,7 +279,7 @@
     provide('submitFn', submitFn)
     provide('canSubmit', canSubmit)
     const noSubmitDialog = ref(false)
-    const submitDialog = ref(false)
+    const submitDialog = ref(false)    
     provide('submitDialog', submitDialog)
     // When user clicks the submit button
     watch(submitButtonPressed, (newValue) => {
@@ -284,7 +296,9 @@
     }, { immediate: true });
 
     
-
+    function selectUploadMultiRecord() {
+        uploadMultiRecord.value = true;        
+    }
 
     const activatedInstancesSelectEditor = ref(null)
     provide('activatedInstancesSelectEditor', activatedInstancesSelectEditor)

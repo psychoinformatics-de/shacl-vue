@@ -38,7 +38,7 @@
                                 :disabled="compDisabled"
                             ></v-btn>
                             &nbsp;
-                            <!-- Add button -->
+                            <!-- Add single button -->
                             <v-btn v-if="allowAddTriple(triple_idx)"
                                 rounded="0"
                                 elevation="1"
@@ -46,6 +46,15 @@
                                 @click="formData.addObject(localNodeUid, localNodeIdx, my_uid)"
                                 density="comfortable"
                                 :disabled="compDisabled"
+                            ></v-btn>
+                            <!-- Add multiple button -->
+                            &nbsp;
+                            <v-btn v-if="allowAddMany(triple_idx)"
+                                rounded="0"
+                                elevation="1"
+                                icon="mdi-upload"
+                                @click="selectUploadMultiRecord()"
+                                density="comfortable"
                             ></v-btn>
                     </v-col>
                 </v-row>
@@ -55,8 +64,8 @@
 </template>
 
 <script setup>
-    import { ref, onMounted, onBeforeMount, computed, inject, onBeforeUpdate, onBeforeUnmount, watch, toRaw} from 'vue'
     import { SHACL, DLCO} from '../modules/namespaces'
+    import { ref, onMounted, onBeforeMount, computed, inject, onBeforeUpdate, onBeforeUnmount, provide, watch, toRaw} from 'vue'
     import { useRules } from '../composables/rules'
     import { nameOrCURIE, addCodeTagsToText, isObject} from '../modules/utils';
     
@@ -92,6 +101,8 @@
     const configVarsMain = inject('configVarsMain')
     const ID_IRI = inject('ID_IRI');
     const compDisabled = ref(false)
+    const uploadMultiRecord = ref(false)
+    provide('uploadMultiRecord', uploadMultiRecord)
 
     // ----------------- //
     // Lifecycle methods //
@@ -213,6 +224,17 @@
             return true
         }
         return false
+    }
+
+    function allowAddMany(idx) {
+        if (allowAddTriple(idx) && [SHACL.IRI.value, SHACL.BlankNodeOrIRI.value, SHACL.BlankNode.value].includes(localPropertyShape.value[SHACL.nodeKind.value])) {
+            return true
+        }
+        return false
+    }
+
+    function selectUploadMultiRecord() {
+        uploadMultiRecord.value = true;        
     }
 
 

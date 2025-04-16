@@ -59,6 +59,7 @@
     "rdf-ext": "^2.5.2",
     "roboto-fontface": "^0.10.0",
     "shacl-tulip": "^0.0.2",
+    "tabulator-tables": "^6.3.1",
     "util": "^0.12.5",
     "uuid": "^10.0.0"
   },
