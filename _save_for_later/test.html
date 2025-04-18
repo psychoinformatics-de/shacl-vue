@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShaclVue Element Test</title>
+  <script src="shacl-vue-element.iife.js" defer></script>
+  <style>
+    /* Optional styles to make your test output look better */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    shacl-vue {
+      display: block;
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>ShaclVue Element Test</h1>
+  <p>The custom element should render below:</p>
+
+  <VBtn>Boob</VBtn>
+
+  <!-- Your custom element -->
+  <shacl-vue></shacl-vue>
+
+  <!-- Example with attributes -->
+  <!-- <shacl-vue some-prop="value"></shacl-vue> -->
+</body>
+</html>

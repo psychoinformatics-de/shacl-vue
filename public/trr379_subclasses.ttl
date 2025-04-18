@@ -1,0 +1,66 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<https://concepts.datalad.org/s/agents/unreleased/InstantaneousEvent> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/Thing> .
+
+<https://concepts.datalad.org/s/agents/unreleased/Location> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/Thing> .
+
+<https://concepts.datalad.org/s/distribution/unreleased/DataService> rdfs:subClassOf <https://concepts.datalad.org/s/distribution/unreleased/Resource> .
+
+<https://concepts.datalad.org/s/distribution/unreleased/Distribution> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Entity> .
+
+<https://concepts.datalad.org/s/distribution/unreleased/LicenseDocument> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Entity> .
+
+<https://concepts.datalad.org/s/identifiers/unreleased/Checksum> rdfs:subClassOf <https://concepts.datalad.org/s/identifiers/unreleased/ComputedIdentifier> .
+
+<https://concepts.datalad.org/s/identifiers/unreleased/DOI> rdfs:subClassOf <https://concepts.datalad.org/s/identifiers/unreleased/IssuedIdentifier> .
+
+<https://concepts.datalad.org/s/prov/unreleased/SoftwareAgent> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Agent> .
+
+<https://concepts.datalad.org/s/publications/unreleased/Publication> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Entity> .
+
+<https://concepts.datalad.org/s/resources/unreleased/Dataset> rdfs:subClassOf <https://concepts.datalad.org/s/resources/unreleased/Resource> .
+
+<https://concepts.datalad.org/s/resources/unreleased/Grant> rdfs:subClassOf <https://concepts.datalad.org/s/resources/unreleased/Resource> .
+
+<https://concepts.datalad.org/s/roles/unreleased/Role> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/Thing> .
+
+<https://concepts.datalad.org/s/social/unreleased/Organization> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Agent> .
+
+<https://concepts.datalad.org/s/social/unreleased/Person> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Agent> .
+
+<https://concepts.datalad.org/s/social/unreleased/Project> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Activity> .
+
+<https://concepts.datalad.org/s/things/unreleased/AttributeSpecification> rdfs:subClassOf <https://concepts.datalad.org/s/things/unreleased/ThingMixin>,
+        <https://concepts.datalad.org/s/things/unreleased/ValueSpecificationMixin> .
+
+<https://concepts.datalad.org/s/things/unreleased/Property> rdfs:subClassOf <https://concepts.datalad.org/s/things/unreleased/Thing> .
+
+<https://concepts.datalad.org/s/things/unreleased/ValueSpecification> rdfs:subClassOf <https://concepts.datalad.org/s/things/unreleased/Thing>,
+        <https://concepts.datalad.org/s/things/unreleased/ValueSpecificationMixin> .
+
+<https://concepts.datalad.org/s/things/v1/AttributeSpecification> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/ThingMixin>,
+        <https://concepts.datalad.org/s/things/v1/ValueSpecificationMixin> .
+
+<https://concepts.datalad.org/s/things/v1/Property> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/Thing> .
+
+<https://concepts.datalad.org/s/things/v1/ValueSpecification> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/Thing>,
+        <https://concepts.datalad.org/s/things/v1/ValueSpecificationMixin> .
+
+<https://concepts.datalad.org/s/distribution/unreleased/Resource> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Entity> .
+
+<https://concepts.datalad.org/s/identifiers/unreleased/ComputedIdentifier> rdfs:subClassOf <https://concepts.datalad.org/s/identifiers/unreleased/Identifier> .
+
+<https://concepts.datalad.org/s/identifiers/unreleased/IssuedIdentifier> rdfs:subClassOf <https://concepts.datalad.org/s/identifiers/unreleased/Identifier> .
+
+<https://concepts.datalad.org/s/prov/unreleased/Activity> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/Thing> .
+
+<https://concepts.datalad.org/s/resources/unreleased/Resource> rdfs:subClassOf <https://concepts.datalad.org/s/prov/unreleased/Entity> .
+
+<https://concepts.datalad.org/s/things/unreleased/Thing> rdfs:subClassOf <https://concepts.datalad.org/s/things/unreleased/ThingMixin> .
+
+<https://concepts.datalad.org/s/prov/unreleased/Agent> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/Thing> .
+
+<https://concepts.datalad.org/s/prov/unreleased/Entity> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/Thing> .
+
+<https://concepts.datalad.org/s/things/v1/Thing> rdfs:subClassOf <https://concepts.datalad.org/s/things/v1/ThingMixin> .
+
