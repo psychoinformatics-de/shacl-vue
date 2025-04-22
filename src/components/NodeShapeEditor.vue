@@ -1,4 +1,5 @@
 <template>
+    <span v-if="ready">
     <span v-if="group_layout == 'tabs'">
         <v-card>
             <v-tabs v-model="tab" bg-color="#C5CAE9" >
@@ -24,7 +25,20 @@
         </v-card>
     </span>
     <span v-else>
-        <span v-for="group in orderArrayOfObjects([...Object.values(usedPropertyGroups)], SHACL.order.value) ">
+        <h3>Properties from: {{ toCURIE(localShapeIri, allPrefixes) }}</h3>
+        <br>
+        <span v-for="property in classProperties[localShapeIri]" :key="localShapeIri + '-' + localNodeIdx + '-' + property">
+            <PropertyShapeEditor :property_shape="propertyShapes[property]" :node_uid="localShapeIri" :node_idx="localNodeIdx"/>
+        </span>
+        
+        <span v-for="c in superClasses[localShapeIri]">
+            <h3>Properties from: {{ toCURIE(c, allPrefixes) }}</h3>
+            <br>
+            <span v-for="property in classProperties[c]" :key="localShapeIri + '-' + localNodeIdx + '-' + property[SHACL.path.value]">
+                <PropertyShapeEditor :property_shape="propertyShapes[property]" :node_uid="localShapeIri" :node_idx="localNodeIdx"/>
+            </span>
+        </span>
+        <!-- <span v-for="group in orderArrayOfObjects([...Object.values(usedPropertyGroups)], SHACL.order.value) ">
             <span v-if="group['own_properties'].length">
                 <h3>{{ group[RDFS.label.value] }}</h3>
                 <p><em>{{ group[RDFS.comment.value] }}</em></p>
@@ -34,8 +48,12 @@
                 </span>
             </span>
             <br>
-        </span>
+        </span> -->
     </span>
+    
+        
+    </span>
+
 </template>
 
 
@@ -43,6 +61,7 @@
     import { ref, onBeforeUpdate, onBeforeMount, onBeforeUnmount, onMounted, inject, shallowRef} from 'vue'
     import {SHACL, RDF, RDFS, DLTHING} from '../modules/namespaces'
     import { orderArrayOfObjects } from '../modules/utils';
+    import {toCURIE, toIRI} from 'shacl-tulip'
 
     // ----- //
     // Props //
@@ -62,14 +81,18 @@
     const config = inject('config');
     const defaultPropertyGroup = config.value.defaultPropertyGroup;
     const shapesDS = inject('shapesDS')
+    const superClasses = inject('superClasses')
+    const allPrefixes = inject('allPrefixes')
     const shape_obj = shapesDS.data.nodeShapes[localShapeIri.value]
     const ready = ref(false)
     var tab = ref(null)
     const group_layout = ref('default') // ref('default') or ref('tabs')
     const ignoredProperties = [
         RDF.type.value,
-        // DLTHING.meta_type.value,
     ]
+    var propertyShapes = {}
+    var classProperties
+
     
     // ----------------- //
     // Lifecycle methods //
@@ -77,8 +100,11 @@
 
     const usedPropertyGroups = shallowRef({});
 
-    onMounted(() => {
-        usedPropertyGroups.value = computeUsedPropertyGroups();
+    onMounted(() => {        
+        for (var p of shape_obj.properties) {
+            propertyShapes[p[SHACL.path.value]] = p
+        }
+        classProperties = orderProperties(propertyShapes)
         ready.value = true;
     })
 
@@ -100,8 +126,68 @@
     // Computed properties //
     // ------------------- //
 
-    
+    function orderProperties(propertyShapes) {
+        // The current class has a possible hierarchy of superclasses
+        // The current class has properties, any of which can originate from
+        // any of its possible superclasses.
+        // We need to divide all class properties into groups of properties that 
+        // stem from particular superclasses.
+        // For each of the current class's properties, we should check whether that 
+        // property is included in the property of the top-level superclass, and if not
+        // we should check the same for the second-level superclass, and so forth.
+        // If that property is not in any superclass, then it belongs to the current class.
+        // 1. Generate a new array (deep clone) of the current class's properties
+        // 2. Create an empty array for each of the superclasses
+        // 3. If a property is found in any of the superclasses' properties (nodeshape.properties),
+        //    move it to that array and remove it from the original clone. If not, do nothing.
 
+        // Initialize onbject to store all classes and properties
+        var classProps = {}
+        // Get all properties of the current class as a new array
+        var propertyPaths = Object.keys(propertyShapes)
+        classProps[localShapeIri.value] = propertyPaths
+        // Get superclasses
+        var currentSuperClasses = superClasses[localShapeIri.value]
+        // If the class has no superclasses, all of the properties are from the single class
+        if (currentSuperClasses.length == 0) {
+            return classProps
+        }
+        // Initialize all superclass property arrays -> empty
+        // Initialize all superclass property references -> arrays of property paths
+        var superClassPropRefs = {}
+        for (var c of currentSuperClasses) {
+            classProps[c] = []
+            superClassPropRefs[c] = shapesDS.data.nodeShapes[c].properties.map(function(shape_prop) {
+                return shape_prop[SHACL.path.value];
+            });
+        }
+        // Now loop through all the properties and divide them into their top-most-level originating class
+        // note: creating a copy via json so that we don't modify the array that is being looped through
+        for (var p of JSON.parse(JSON.stringify(propertyPaths))) {
+            // Loop through superclasses in reverse order
+            for (var i=currentSuperClasses.length-1; i>=0; i--) {
+                var c = currentSuperClasses[i]
+                if (superClassPropRefs[c].includes(p)) {
+                    removeArrayElement(propertyPaths, p)
+                    // Only add property to class if it should not be ignored
+                    if (ignoredProperties.indexOf(p) < 0) {
+                        classProps[c].push(p)
+                    }
+                    break;
+                }
+            }
+        }
+        return classProps
+    }
+
+    function removeArrayElement(arr, el) {
+        const index = arr.indexOf(el);
+        if (index > -1) { // only splice array when item is found
+            arr.splice(index, 1); // 2nd parameter means remove one item only
+        }
+    }
+
+    
     function computeUsedPropertyGroups() {
         // first get a list of all the sh:PropertyGroup instances 
         // that are provided for any property via sh:group
@@ -147,15 +233,5 @@
     // --------- //
     // Functions //
     // --------- //
-
-    // function orderGroups() {
-    //     // first get a list of all the sh:PropertyGroup instances 
-    //     // that are provided for any property via sh:group
-    //     var group_instances = shape_obj.properties.map(function(shape_prop) {
-    //         return shape_prop[SHACL.group.value];
-    //     });
-    //     // make list unique and remove falsy values
-    //     group_instances = [...new Set(group_instances)].filter( Boolean )
-    // }
 
 </script>

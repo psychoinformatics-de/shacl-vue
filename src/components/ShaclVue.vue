@@ -108,7 +108,7 @@
 <script setup>
     import { effect, ref, computed, provide, watch, reactive, onBeforeUpdate, nextTick, toRaw} from 'vue'
     import { useConfig } from '@/composables/configuration';
-    import { adjustHexColor, findObjectByKey, addCodeTagsToText } from '../modules/utils';
+    import { adjustHexColor, findObjectByKey, addCodeTagsToText, getSuperClasses} from '../modules/utils';
     import {toCURIE, toIRI} from 'shacl-tulip'
     import editorMatchers from '@/modules/editors';
     import defaultEditor from '@/components/UnknownEditor.vue';
@@ -167,6 +167,9 @@
     provide('formData', formData)
     provide('fetchFromService', fetchFromService)
     provide('submitFormData', submitFormData)
+    const superClasses = reactive({})
+    provide('superClasses', superClasses)
+
     // ---------------------------------------------- //
     // ONCE ALL SHAPES/CLASSES/DATA/FORMS ARE LOADED:
     // - SET PREFIXES
@@ -210,6 +213,11 @@
             }
             setViewFromQuery()
             page_ready.value = true;
+            // Get object with nodeshape uris as keys and their superclass arrays as values
+            // This is necessary for ordering the properties according to their originating class, for display
+            for (var uri of shapesDS.data.nodeShapeIRIs) {
+                superClasses[uri] = getSuperClasses(uri, classDS.data.graph)
+            }
         }
     }, {immediate: true });
 

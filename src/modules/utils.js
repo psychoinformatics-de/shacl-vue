@@ -1,4 +1,4 @@
-import { SHACL, RDF, XSD, DLTHINGS} from '../modules/namespaces'
+import { SHACL, RDFS, DLTHINGS} from '../modules/namespaces'
 import rdf from 'rdf-ext';
 import { toCURIE, toIRI } from 'shacl-tulip';
 
@@ -167,4 +167,30 @@ export function adjustHexColor(hexColor, amount) {
   colorInt = Math.max(0, Math.min(0xFFFFFF, colorInt + amount));
   // Convert back to hex and ensure it's always 6 digits
   return `#${colorInt.toString(16).padStart(6, '0')}`;
+}
+
+export function getSuperClasses(class_uri, graph) {
+  var superClasses = []
+  var endReached = false
+  var sC
+  var uri = class_uri
+  while (endReached != true) {
+      sC = getSuperClass(uri, graph)
+      if (sC == null) {
+          endReached = true
+      } else {
+          uri = sC.object.value
+          superClasses.push(uri)
+      }
+  }
+  return superClasses
+}
+
+export function getSuperClass(class_uri, graph) {
+  const superClass = Array.from(rdf.grapoi({ dataset: graph })
+      .hasIn(rdf.namedNode(RDFS.subClassOf.value), rdf.namedNode(class_uri))
+      .quads()
+  )
+  if (superClass) return superClass[0]
+  return null
 }
