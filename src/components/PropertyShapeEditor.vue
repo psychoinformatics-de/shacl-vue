@@ -115,7 +115,7 @@
                         new_id_val += allPrefixes[cfg["id_autogenerate_prefix"]]
                     }
                 }
-                // Then preprend
+                // Then prepend
                 if (cfg["id_autogenerate_prepend"]) {
                     new_id_val += cfg["id_autogenerate_prepend"]
                 }
