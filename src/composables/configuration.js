@@ -9,6 +9,8 @@ const basePath = import.meta.env.BASE_URL || '/';
 
 const mainVarsToLoad = {
     "show_shapes_wo_id": true,
+    "hide_classes": [],
+    "id_autogenerate": {},
     "prefixes": {},
     "class_icons": {},
     "app_name": "shacl-vue",
@@ -22,7 +24,8 @@ const mainVarsToLoad = {
         "logo": "shacl_vue_logo.svg",
     },
     "use_token": false,
-    "use_service": false
+    "use_service": false,
+    "class_name_display": "name"
 }
 
 export function useConfig(url) {

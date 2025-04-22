@@ -25,8 +25,11 @@
         }
     },
     "id_iri": "https://concepts.datalad.org/s/things/v1/pid",
+    "id_autogenerate": {},
     "show_shapes_wo_id": false,
     "show_all_fields": true,
+    "hide_classes": [],
+    "class_name_display": "name",
     "use_service": false,
     "use_token": false,
     "token_info": false,

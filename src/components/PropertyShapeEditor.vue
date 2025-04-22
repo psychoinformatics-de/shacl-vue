@@ -1,5 +1,5 @@
 <template>
-    <v-row align="start" no-gutters v-if="formData.content[localNodeUid] && show_field">
+    <v-row align="start" no-gutters v-if="formData.content[localNodeUid] && show_field" :class="compDisabled ? 'disabled-row' : ''">
         <v-col cols="4">
             <span>{{ nameOrCURIE(localPropertyShape, shapesDS.data.prefixes, true) }}<span v-if="isRequired" style="color: red;"> *</span>:
                 <v-tooltip activator="parent" location="right" max-width="400px" max-height="400px">
@@ -21,6 +21,7 @@
                                 :node_idx="localNodeIdx"
                                 :triple_uid="my_uid"
                                 :triple_idx="triple_idx"
+                                :disabled="compDisabled"
                                 >
                             </component>
                         </Suspense>
@@ -34,6 +35,7 @@
                                 icon="mdi-delete-outline"
                                 @click="formData.removeObject(localNodeUid, localNodeIdx, my_uid, triple_idx)"
                                 density="comfortable"
+                                :disabled="compDisabled"
                             ></v-btn>
                             &nbsp;
                             <!-- Add button -->
@@ -43,6 +45,7 @@
                                 icon="mdi-plus-circle-outline"
                                 @click="formData.addObject(localNodeUid, localNodeIdx, my_uid)"
                                 density="comfortable"
+                                :disabled="compDisabled"
                             ></v-btn>
                     </v-col>
                 </v-row>
@@ -55,7 +58,7 @@
     import { ref, onMounted, onBeforeMount, computed, inject, onBeforeUpdate, onBeforeUnmount, watch, toRaw} from 'vue'
     import { SHACL } from '../modules/namespaces'
     import { useRules } from '../composables/rules'
-    import { nameOrCURIE, addCodeTagsToText} from '../modules/utils';
+    import { nameOrCURIE, addCodeTagsToText, isObject} from '../modules/utils';
     
     // ----- //
     // Props //
@@ -81,18 +84,53 @@
     const defaultEditor = inject('defaultEditor');
     const formData = inject('formData');
     const shapesDS = inject('shapesDS');
+    const allPrefixes = inject('allPrefixes');
     const show_all_fields = inject('show_all_fields');
     const { isRequired } = useRules(localPropertyShape.value)
+    const configVarsMain = inject('configVarsMain')
+    const ID_IRI = inject('ID_IRI');
+    const compDisabled = ref(false)
 
     // ----------------- //
     // Lifecycle methods //
     // ----------------- //
 
     onMounted(() => {
-        if (formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value]) {
-            return;
+        // Autogenerate value for idi_iri if required
+        if (my_uid.value == ID_IRI.value &&
+            isObject(configVarsMain.idAutogenerate) &&
+            Object.keys(configVarsMain.idAutogenerate).includes(localNodeUid.value)
+        ) {
+            // if the object value is already in formdata, dont autogenerate and don't add,
+            // but still disable the field
+            if (formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value]) {
+                compDisabled.value = true
+                return;
+            } else {
+                var new_id_val = ""
+                var cfg = configVarsMain.idAutogenerate[localNodeUid.value]
+                // Start with prefix uri
+                if (cfg["id_autogenerate_prefix"]) {
+                    if (allPrefixes.hasOwnProperty(cfg["id_autogenerate_prefix"])) {
+                        new_id_val += allPrefixes[cfg["id_autogenerate_prefix"]]
+                    }
+                }
+                // Then prepend
+                if (cfg["id_autogenerate_prepend"]) {
+                    new_id_val += cfg["id_autogenerate_prepend"]
+                }
+                // then random uuid
+                new_id_val += crypto.randomUUID()
+                // then add to formdata
+                formData.addPredicate(localNodeUid.value, localNodeIdx.value, my_uid.value, [new_id_val])
+                compDisabled.value = true
+            }
+        } else {
+            if (formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value]) {
+                return;
+            }
+            formData.addPredicate(localNodeUid.value, localNodeIdx.value, my_uid.value)
         }
-        formData.addPredicate(localNodeUid.value, localNodeIdx.value, my_uid.value)
     })
 
 
@@ -174,6 +212,15 @@
 
 
 </script>
+
+<style scoped>
+
+    .disabled-row {
+        opacity: 0.5;
+        /* color: grey; */
+    }
+
+</style>
 
 
 <style>

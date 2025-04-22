@@ -15,7 +15,7 @@
                                 <v-list-item  value="data"><h4>Data Types</h4></v-list-item>
                                 <!-- <v-text-field variant="outlined" append-inner-icon="mdi-magnify" density="compact"></v-text-field> -->
                                 <v-list-item
-                                    v-for="node in idFilteredNodeShapeNames"
+                                    v-for="node in filteredNodeShapeNames"
                                     :prepend-icon="getClassIcon(shapesDS.data.nodeShapeNames[node])"
                                     :title="node"
                                     @click="selectType(shapesDS.data.nodeShapeNames[node], true)">
@@ -33,7 +33,7 @@
                                         
                                         <span v-if="selectedIRI">
                                             <h2 class="mx-4 mb-4 truncate-heading">
-                                                {{ toCURIE(selectedIRI, allPrefixes) }}
+                                                {{ getDisplayName(selectedIRI, configVarsMain, allPrefixes) }}
                                                 &nbsp;&nbsp; <v-btn icon="mdi-plus" size="x-small" variant="tonal" @click="addInstanceItem()"></v-btn>
                                             </h2>
 
@@ -66,7 +66,7 @@
                                                 :value="'panel' + (i+1).toString()"
                                                 :disabled="f.disabled"
                                             >
-                                                <v-expansion-panel-title> <h2><em>Editing: {{ toCURIE(f.shapeIRI, allPrefixes) }} </em></h2></v-expansion-panel-title>
+                                                <v-expansion-panel-title> <h2><em>Editing: {{ getDisplayName(f.shapeIRI, configVarsMain, allPrefixes) }} </em></h2></v-expansion-panel-title>
                                                 <v-expansion-panel-text density="compact">
                                                     <span v-if="idRecordLoading">
                                                         <v-skeleton-loader type="list-item-avatar"></v-skeleton-loader>
@@ -108,7 +108,7 @@
 <script setup>
     import { effect, ref, computed, provide, watch, reactive, onBeforeUpdate, nextTick, toRaw} from 'vue'
     import { useConfig } from '@/composables/configuration';
-    import { adjustHexColor, findObjectByKey, addCodeTagsToText, getSuperClasses} from '../modules/utils';
+    import { adjustHexColor, findObjectByKey, addCodeTagsToText, getSuperClasses, getDisplayName} from '../modules/utils';
     import {toCURIE, toIRI} from 'shacl-tulip'
     import editorMatchers from '@/modules/editors';
     import defaultEditor from '@/components/UnknownEditor.vue';
@@ -299,6 +299,20 @@
                 SHACL.path.value,
                 ID_IRI.value)
             ) {
+                shapeNames.push(n)
+            }
+        }
+        return shapeNames
+    })
+    const filteredNodeShapeNames = computed(() =>{
+        var names = idFilteredNodeShapeNames.value
+        console.log(names)
+        if (configVarsMain.hideClasses.length == 0) {
+            return names
+        }
+        var shapeNames = []
+        for (var n of names) {
+            if (configVarsMain.hideClasses.indexOf(shapesDS.data.nodeShapeNames[n]) < 0) {
                 shapeNames.push(n)
             }
         }

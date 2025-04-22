@@ -9,4 +9,6 @@ export const XSD = rdf.namespace('http://www.w3.org/2001/XMLSchema#');
 export const DLDIST = rdf.namespace('https://concepts.datalad.org/s/distribution/unreleased/');
 export const DLTHING = rdf.namespace('https://concepts.datalad.org/s/thing/unreleased/');
 export const DLTHINGS = rdf.namespace('https://concepts.datalad.org/s/things/v1/');
+export const DLTYPES = rdf.namespace('https://concepts.datalad.org/s/types/unreleased/');
 export const DLCO = rdf.namespace('https://concepts.datalad.org/');
+export const SKOS = rdf.namespace('http://www.w3.org/2004/02/skos/core#');

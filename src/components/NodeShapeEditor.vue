@@ -25,14 +25,14 @@
         </v-card>
     </span>
     <span v-else>
-        <h3>Properties from: {{ toCURIE(localShapeIri, allPrefixes) }}</h3>
+        <h3>Properties from: <code class="code-style">{{ getDisplayName(localShapeIri, configVarsMain, allPrefixes) }}</code></h3>
         <br>
         <span v-for="property in classProperties[localShapeIri]" :key="localShapeIri + '-' + localNodeIdx + '-' + property">
             <PropertyShapeEditor :property_shape="propertyShapes[property]" :node_uid="localShapeIri" :node_idx="localNodeIdx"/>
         </span>
         
         <span v-for="c in superClasses[localShapeIri]">
-            <h3>Properties from: {{ toCURIE(c, allPrefixes) }}</h3>
+            <h3>Properties from: <code class="code-style">{{ getDisplayName(c, configVarsMain, allPrefixes) }}</code></h3>
             <br>
             <span v-for="property in classProperties[c]" :key="localShapeIri + '-' + localNodeIdx + '-' + property[SHACL.path.value]">
                 <PropertyShapeEditor :property_shape="propertyShapes[property]" :node_uid="localShapeIri" :node_idx="localNodeIdx"/>
@@ -60,8 +60,7 @@
 <script setup>
     import { ref, onBeforeUpdate, onBeforeMount, onBeforeUnmount, onMounted, inject, shallowRef} from 'vue'
     import {SHACL, RDF, RDFS, DLTHING} from '../modules/namespaces'
-    import { orderArrayOfObjects } from '../modules/utils';
-    import {toCURIE, toIRI} from 'shacl-tulip'
+    import { orderArrayOfObjects, getDisplayName} from '../modules/utils';
 
     // ----- //
     // Props //
@@ -83,6 +82,7 @@
     const shapesDS = inject('shapesDS')
     const superClasses = inject('superClasses')
     const allPrefixes = inject('allPrefixes')
+    const configVarsMain = inject('configVarsMain')
     const shape_obj = shapesDS.data.nodeShapes[localShapeIri.value]
     const ready = ref(false)
     var tab = ref(null)

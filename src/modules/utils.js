@@ -1,4 +1,4 @@
-import { SHACL, RDFS, DLTHINGS} from '../modules/namespaces'
+import { SHACL, RDFS, DLTHINGS, SKOS} from '../modules/namespaces'
 import rdf from 'rdf-ext';
 import { toCURIE, toIRI } from 'shacl-tulip';
 
@@ -111,9 +111,21 @@ export function getPrefLabel(node, graphDataset, allPrefixes, from) {
   // console.log("Inside getPrefLabel")
   // console.log(allPrefixes)
   var prefLabel = ""
-  // Get quads related to a subject, and then isolate those that are 'DLTHINGS.annotations'
+  // Get quads related to a subject
   node.value = toIRI(node.value, allPrefixes)
   var relatedQuads = graphDataset.getSubjectTriples(node)
+  
+  // Isolate first quad with predicate 'skos:prefLabel'
+  var prefLabelQuad = relatedQuads.find((q) => {
+      return q.predicate.value == SKOS.prefLabel.value &&
+      q.object.termType === "Literal"
+  })
+
+  if (prefLabelQuad) {
+    return prefLabelQuad.object.value
+  }
+
+  // Isolate quads that are 'DLTHINGS.annotations'
   var annotationQuads = relatedQuads.filter((q) => {
       return q.predicate.value == DLTHINGS.annotations.value &&
       q.object.termType === "BlankNode"
@@ -167,6 +179,14 @@ export function adjustHexColor(hexColor, amount) {
   colorInt = Math.max(0, Math.min(0xFFFFFF, colorInt + amount));
   // Convert back to hex and ensure it's always 6 digits
   return `#${colorInt.toString(16).padStart(6, '0')}`;
+}
+
+export function getDisplayName(uri, configVarsMain, prefixes) {
+  if (configVarsMain.classNameDisplay == "curie") {
+    return toCURIE(uri, prefixes)
+  } else {
+    return toCURIE(uri, prefixes, "parts").property
+  }
 }
 
 export function getSuperClasses(class_uri, graph) {
