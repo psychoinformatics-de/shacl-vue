@@ -1,7 +1,7 @@
 <template>
   <v-sheet class="pa-4 scaled-sheet" border rounded elevation="2">
     <div style="display: flex; position: relative; ">
-      <h3>{{ toCURIE(localShapeIri, allPrefixes) }}</h3>
+      <h3>{{ getDisplayName(localShapeIri, configVarsMain, allPrefixes) }}</h3>
 
       <div style="display: flex; margin-left: auto;">
             <v-btn
@@ -68,7 +68,7 @@
   import { ref, onMounted, onBeforeMount, onBeforeUnmount, provide, inject, reactive, computed, toRaw} from 'vue'
   import { SHACL } from '../modules/namespaces'
   import { toCURIE } from 'shacl-tulip'
-  import { addCodeTagsToText } from '../modules/utils';
+  import { addCodeTagsToText, getDisplayName} from '../modules/utils';
 
   // ----- //
   // Props //
@@ -100,6 +100,7 @@
   const formValid = ref(null)
   const fieldMap = reactive({}); // Maps element IDs to human-readable labels
   const validationErrors = ref([]);
+  const configVarsMain = inject('configVarsMain')
 
   function registerRef(id, fieldData) {
     fieldMap[id] = fieldData;
