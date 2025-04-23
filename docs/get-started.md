@@ -16,7 +16,7 @@ Think of it as an automatic builder that you just have to feed with a model of y
 
 `shacl-vue` is built with [VueJS 3](https://vuejs.org/), [Vuetify](https://vuetifyjs.com), and [Vite](https://vitejs.dev/), and was heavily inspired by the WC3 Draft: [Form Generation using SHACL and DASH](https://datashapes.org/forms.html).
 
-:rocket: Try out a live demo at https://psychoinformatics-de.github.io/shacl-vue/
+:rocket: Try out a live demo at https://psychoinformatics-de.github.io/shacl-vue/app
 
 
 
