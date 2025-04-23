@@ -11,7 +11,7 @@ hero:
   actions:
     - theme: brand
       text: Try it out!
-      link: https://psychoinformatics-de.github.io/shacl-vue
+      link: https://psychoinformatics-de.github.io/shacl-vue/app
     - theme: alt
       text: User Docs
       link: /get-started
