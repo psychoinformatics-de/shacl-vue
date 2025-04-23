@@ -46,7 +46,11 @@ export default defineConfig({
       {
         text: 'Contributing',
         link: '/contributing'
-      }
+      },
+      {
+	text: 'Acknowledgements',
+	link: '/acknowledgements'
+	}
     ],
 
     socialLinks: [
