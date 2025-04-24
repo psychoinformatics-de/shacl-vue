@@ -3,15 +3,19 @@
         <v-card-title class="text-h6">
             <v-icon>{{ getClassIcon(props.classIRI) }}</v-icon>&nbsp;
             <TextOrLinkViewer :textVal="record.title" :prefLabel="record.prefLabel"></TextOrLinkViewer>&nbsp;
+        </v-card-title>
+        <v-card-subtitle>
             <v-btn
                 icon="mdi-pencil"
                 variant="tonal"
                 size="x-small"
                 class="rounded-lg"
                 @click="editInstanceItem(record)"
+                :disabled="props.formOpen"
             ></v-btn>
-        </v-card-title>
-        <v-card-subtitle>{{ toCURIE(record.subtitle, allPrefixes) }}</v-card-subtitle>
+            &nbsp;
+            Type: <em>{{ toCURIE(record.subtitle, allPrefixes) }}</em>
+        </v-card-subtitle>
         <v-card-text v-if="!props.formOpen">
             <!-- literal and named nodes -->
             <span v-for="tt of ['Literal', 'NamedNode']">
