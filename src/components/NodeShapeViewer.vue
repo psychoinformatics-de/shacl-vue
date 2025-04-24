@@ -11,6 +11,7 @@
                 size="x-small"
                 class="rounded-lg"
                 @click="editInstanceItem(record)"
+                :disabled="props.formOpen"
             ></v-btn>
             &nbsp;
             Type: <em>{{ toCURIE(record.subtitle, allPrefixes) }}</em>
