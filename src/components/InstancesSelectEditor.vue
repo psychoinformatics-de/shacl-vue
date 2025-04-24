@@ -19,16 +19,24 @@
             return-object
             ref="editorComp"
             lines="two"
+            :custom-filter="filterListItems"
         >
 
         <template v-slot:selection="data">
-            <div style="transform: scale(0.6); margin: 0; padding: 0;">
-                <span v-for="(value, key, index) in data.item.props">
-                    <span v-if="['title', 'subtitle', 'name', 'value', RDF.type.value, toCURIE(RDF.type.value, allPrefixes)].indexOf(key) < 0">
-                        {{ key }}: {{ value }} <br>
+            
+            <span v-if="data.item.props.hasPrefLabel">
+                {{ data.item.props[toCURIE(SKOS.prefLabel.value, allPrefixes)] }}
+            </span>
+            <span v-else>
+                <div style="transform: scale(0.6); margin: 0; padding: 0;">
+                    <span v-for="(value, key, index) in data.item.props">
+                        <span v-if="['title', 'subtitle', 'name', 'value', RDF.type.value, toCURIE(RDF.type.value, allPrefixes)].indexOf(key) < 0">
+                            {{ key }}: {{ value }} <br>
+                        </span>
                     </span>
-                </span>
-            </div>
+                </div>
+            </span>
+            
         </template>
 
             <template v-slot:item="data">
@@ -56,11 +64,16 @@
                         <template v-slot:prepend>
                             <v-icon>{{ getClassIcon(toIRI(data.item.props[toCURIE(RDF.type.value, allPrefixes)], allPrefixes)) }}</v-icon>
                         </template>
-                        <span v-for="(value, key, index) in data.item.props">
-                            <v-row no-gutters v-if="['title', 'subtitle', 'name', 'value', RDF.type.value, toCURIE(RDF.type.value, allPrefixes)].indexOf(key) < 0">
-                                <v-col cols="6"><small>{{ key }}</small></v-col>
-                                <v-col><small>{{ value }}</small></v-col>
-                            </v-row>
+                        <span v-if="data.item.props.hasPrefLabel">
+                            {{ data.item.props[toCURIE(SKOS.prefLabel.value, allPrefixes)] }}
+                        </span>
+                        <span v-else>
+                            <span v-for="(value, key, index) in data.item.props">
+                                <v-row no-gutters v-if="['title', 'subtitle', 'name', 'value', RDF.type.value, toCURIE(RDF.type.value, allPrefixes)].indexOf(key) < 0">
+                                    <v-col cols="6"><small>{{ key }}</small></v-col>
+                                    <v-col><small>{{ value }}</small></v-col>
+                                </v-row>
+                            </span>
                         </span>
                     </v-list-item>
                     <v-divider></v-divider>
@@ -75,7 +88,7 @@
     import { inject, watch, onBeforeMount, onMounted, ref, provide, computed, nextTick} from 'vue'
     import { useRules } from '../composables/rules'
     import rdf from 'rdf-ext'
-    import { SHACL, RDF, RDFS } from '@/modules/namespaces'
+    import { SHACL, RDF, RDFS, SKOS } from '@/modules/namespaces'
     import { findObjectByKey } from '../modules/utils';
     import { toCURIE, toIRI } from 'shacl-tulip'
     import { useRegisterRef } from '../composables/refregister';
@@ -286,6 +299,12 @@
         }
     }
 
+    function filterListItems(itemTitle, queryText, item) {
+        const searchText = queryText.toLowerCase()
+        return item.raw.props.hasPrefLabel &&
+            item.raw.props[toCURIE(SKOS.prefLabel.value, allPrefixes)].toLowerCase().indexOf(searchText) > -1
+    }
+
     function getItemsToList() {
         // ---
         // The goal of this method is to populate the list of items for the
@@ -331,10 +350,13 @@
             var item = {
                 title: quad.subject.value + extra,
                 value: quad.subject.value,
-                props: { subtitle: toCURIE(quad.object.value, allPrefixes) },
+                props: { subtitle: toCURIE(quad.object.value, allPrefixes), hasPrefLabel: false },
             }
             relatedTrips.forEach(quad => {
                 item.props[toCURIE(quad.predicate.value, allPrefixes)] = toCURIE(quad.object.value, allPrefixes)
+                if (quad.predicate.value == SKOS.prefLabel.value) {
+                    item.props.hasPrefLabel = true
+                } 
             })
             itemsToListArr.push(item)
         });
