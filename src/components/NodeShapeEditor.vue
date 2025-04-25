@@ -28,27 +28,18 @@
         <h3>Properties from: <code class="code-style">{{ getDisplayName(localShapeIri, configVarsMain, allPrefixes) }}</code></h3>
         <br>
         <span v-for="property in classProperties[localShapeIri]" :key="localShapeIri + '-' + localNodeIdx + '-' + property">
-            <PropertyShapeEditor :property_shape="propertyShapes[property]" :node_uid="localShapeIri" :node_idx="localNodeIdx"/>
+            <PropertyShapeEditor :property_shape="propertyShapes[property]" :node_uid="localShapeIri" :node_idx="localNodeIdx" :top_level_prop="true"/>
         </span>
         
         <span v-for="c in superClasses[localShapeIri]">
-            <h3>Properties from: <code class="code-style">{{ getDisplayName(c, configVarsMain, allPrefixes) }}</code></h3>
-            <br>
-            <span v-for="property in classProperties[c]" :key="localShapeIri + '-' + localNodeIdx + '-' + property[SHACL.path.value]">
-                <PropertyShapeEditor :property_shape="propertyShapes[property]" :node_uid="localShapeIri" :node_idx="localNodeIdx"/>
-            </span>
-        </span>
-        <!-- <span v-for="group in orderArrayOfObjects([...Object.values(usedPropertyGroups)], SHACL.order.value) ">
-            <span v-if="group['own_properties'].length">
-                <h3>{{ group[RDFS.label.value] }}</h3>
-                <p><em>{{ group[RDFS.comment.value] }}</em></p>
+            <span v-if="groupHasVisibleProps(c)">
+                <h3>Properties from: <code class="code-style">{{ getDisplayName(c, configVarsMain, allPrefixes) }}</code></h3>
                 <br>
-                <span v-for="property in orderArrayOfObjects(group['own_properties'], SHACL.order.value)" :key="localShapeIri + '-' + localNodeIdx + '-' + property[SHACL.path.value]">
-                    <PropertyShapeEditor :property_shape="property" :node_uid="localShapeIri" :node_idx="localNodeIdx"/>
+                <span v-for="property in classProperties[c]" :key="localShapeIri + '-' + localNodeIdx + '-' + property[SHACL.path.value]">
+                    <PropertyShapeEditor :property_shape="propertyShapes[property]" :node_uid="localShapeIri" :node_idx="localNodeIdx" :top_level_prop="false"/>
                 </span>
             </span>
-            <br>
-        </span> -->
+        </span>
     </span>
     
         
@@ -58,8 +49,8 @@
 
 
 <script setup>
-    import { ref, onBeforeUpdate, onBeforeMount, onBeforeUnmount, onMounted, inject, shallowRef} from 'vue'
-    import {SHACL, RDF, RDFS, DLTHING} from '../modules/namespaces'
+    import { ref, onBeforeUpdate, onBeforeMount, onBeforeUnmount, onMounted, inject, shallowRef, toRaw} from 'vue'
+    import {SHACL, RDF, RDFS, DLCO} from '../modules/namespaces'
     import { orderArrayOfObjects, getDisplayName} from '../modules/utils';
 
     // ----- //
@@ -83,6 +74,7 @@
     const superClasses = inject('superClasses')
     const allPrefixes = inject('allPrefixes')
     const configVarsMain = inject('configVarsMain')
+    const show_all_fields = inject('show_all_fields');
     const shape_obj = shapesDS.data.nodeShapes[localShapeIri.value]
     const ready = ref(false)
     var tab = ref(null)
@@ -177,7 +169,21 @@
                 }
             }
         }
-        return classProps
+
+        const sortedClassProps = {};
+        for (const classIRI in classProps) {
+            // Get the array of properties for the current class
+            const properties = classProps[classIRI];
+            // Sort the properties based on the sh:order value in propertyShapes
+            const sortedProperties = properties.slice().sort((a, b) => {
+            const orderA = parseInt(propertyShapes[a]?.["http://www.w3.org/ns/shacl#order"] ?? Infinity, 10);
+            const orderB = parseInt(propertyShapes[b]?.["http://www.w3.org/ns/shacl#order"] ?? Infinity, 10);
+            return orderA - orderB;
+            });
+            // Assign sorted array back to the new object
+            sortedClassProps[classIRI] = sortedProperties;
+        }
+        return sortedClassProps;
     }
 
     function removeArrayElement(arr, el) {
@@ -233,5 +239,23 @@
     // --------- //
     // Functions //
     // --------- //
+    function groupHasVisibleProps(c) {
+
+        for (var p of classProperties[c]) {
+            var currShape = propertyShapes[p]
+            if (show_all_fields.value) {
+                return true
+            } else {
+                if (currShape[SHACL.minCount?.value] > 0) {
+                    return true
+                }
+                if (currShape.hasOwnProperty(DLCO.recommended.value) && currShape[DLCO.recommended.value] == "true") {
+                    return true
+                }
+                return false
+            }
+        }
+        return false
+    }
 
 </script>
