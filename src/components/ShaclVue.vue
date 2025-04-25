@@ -44,7 +44,27 @@
                                             </span>
                                             <span v-else>
                                                 <div v-if="instanceItemsComp.length">
-                                                    <span v-for="r in instanceItemsComp">
+                                                    <v-row v-if="instanceItemsComp.length > 3">
+                                                        <v-col cols="7">
+                                                            <v-text-field
+                                                                v-model="searchText"
+                                                                density="compact"
+                                                                variant="outlined"
+                                                                label="Enter search text"
+                                                                hide-details="auto"
+                                                                style="margin: 1em;"
+                                                            >
+                                                                <template #append>
+                                                                    <v-btn variant="outlined" @click="toggleOrder" :append-icon="orderIcon">Order</v-btn>
+                                                                </template>
+                                                            </v-text-field>
+                                                        </v-col>
+                                                        <v-col>
+                                                            
+                                                        </v-col>
+                                                    </v-row>
+                                                    
+                                                    <span v-for="r in filteredInstanceItemsComp">
                                                         <NodeShapeViewer :classIRI="selectedIRI" :quad="r.props.quad" :key="selectedIRI + '-' + r.title + '-' + itemsTrigger" :formOpen="formOpen" :variant="r.title == queried_id ? 'outlined' : 'tonal'"></NodeShapeViewer>
                                                     </span>
                                                 </div>
@@ -117,7 +137,7 @@
     import { useShapes } from '@/composables/useShapes';
     import { useForm } from '@/composables/useForm';
     import rdf from 'rdf-ext'
-    import {SHACL, RDF, RDFS, DLTHINGS, XSD} from '@/modules/namespaces'
+    import {SHACL, RDF, RDFS, DLTHINGS, XSD, SKOS} from '@/modules/namespaces'
 
     const props = defineProps({
         configUrl: String
@@ -169,6 +189,7 @@
     provide('submitFormData', submitFormData)
     const superClasses = reactive({})
     provide('superClasses', superClasses)
+    const searchText = ref("")
 
     // ---------------------------------------------- //
     // ONCE ALL SHAPES/CLASSES/DATA/FORMS ARE LOADED:
@@ -321,6 +342,7 @@
     watch(rdfDS.data.graph, () => {
         console.log("Graphdata UPDATED SHACLVUE")
         itemsTrigger.value = !itemsTrigger.value
+        classRecordsLoading.value = false
     }, { deep: true });
 
     const formattedDescription = computed(() => {
@@ -331,13 +353,17 @@
     })
 
     async function selectType(IRI, fromUser) {
+        searchText.value = ""
         selectedIRI.value = IRI
         selectedShape.value = shapesDS.data.nodeShapes[IRI]
         if (config.value.use_service) {
             classRecordsLoading.value = true
+            await nextTick();
             // First fetch rdf data from configured service
-            await fetchFromService('get-records', IRI, allPrefixes)
-            classRecordsLoading.value = false
+            var test = await fetchFromService('get-records', IRI, allPrefixes)
+            if (test === "skipped") {
+                classRecordsLoading.value = false
+            }
             // Then continue with the rest
             await nextTick();
         }
@@ -494,10 +520,36 @@
                     item.props[quad.predicate.value].push(quad.object.value)
                 }
             })
+            item.props._prefLabel = ""
+            if (item.props.hasOwnProperty(SKOS.prefLabel.value)){
+                item.props._prefLabel = item.props[SKOS.prefLabel.value][0]
+            }
             instanceItemsArr.push(item)
         });
         return instanceItemsArr
     })
+
+    const filteredInstanceItemsComp = computed(() =>{
+        var c = orderTopDown.value ? 1 : -1
+        if (!instanceItemsComp.value.length) return []
+        return [...instanceItemsComp.value].filter((item) =>{
+            if (searchText.value.length == 0) return true
+            return item.props._prefLabel.toLowerCase().includes(searchText.value.toLowerCase())
+        }).sort((a, b) => c * a.props._prefLabel.toLowerCase().localeCompare(b.props._prefLabel.toLowerCase()));
+    });
+
+    const orderIcon = ref("mdi-arrow-down-thick")
+    const orderTopDown = ref(true)
+
+    function toggleOrder() {
+        orderTopDown.value = !orderTopDown.value;
+        if (orderTopDown.value) {
+            orderIcon.value = "mdi-arrow-down-thick"
+        } else {
+            orderIcon.value = "mdi-arrow-up-thick"
+        }
+
+    }
 
     const openForms = reactive([])
     const currentOpenForm = computed(() => {

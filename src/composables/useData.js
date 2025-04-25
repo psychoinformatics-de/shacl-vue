@@ -78,7 +78,7 @@ export function useData(config) {
         var getURL = `${serviceBaseURL}${query_string}`
         if (fetchedRequests.has(getURL)) {
             console.log(`Skipping request: Data previously fetched from ${getURL}`);
-            return;
+            return 'skipped';
         }
 
         fetchedRequests.add(getURL);
