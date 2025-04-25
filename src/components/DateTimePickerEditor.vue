@@ -67,7 +67,10 @@
     function valueCombiner(values) {
         if (values.picked_date) {
             try {
-                return values.picked_date.toISOString().split('T')[0]
+                var y = values.picked_date.getFullYear()
+                var m = ('0' + (parseInt(values.picked_date.getMonth())+1)).slice(-2)
+                var d = ('0' + values.picked_date.getDate()).slice(-2)
+                return `${y}-${m}-${d}`
             }
             catch (error) {
                 console.log(error)
