@@ -56,7 +56,7 @@
 
 <script setup>
     import { ref, onMounted, onBeforeMount, computed, inject, onBeforeUpdate, onBeforeUnmount, watch, toRaw} from 'vue'
-    import { SHACL } from '../modules/namespaces'
+    import { SHACL, DLCO} from '../modules/namespaces'
     import { useRules } from '../composables/rules'
     import { nameOrCURIE, addCodeTagsToText, isObject} from '../modules/utils';
     
@@ -68,6 +68,7 @@
         property_shape: Object,
         node_uid: String,
         node_idx: String,
+        top_level_prop: Boolean,
     })
 
     // ---- //
@@ -80,6 +81,7 @@
     const localPropertyShape = ref(props.property_shape)
     const localNodeUid = ref(props.node_uid)
     const localNodeIdx = ref(props.node_idx)
+    const localTopLevelProp = ref(props.top_level_prop)
     const editorMatchers = inject('editorMatchers');
     const defaultEditor = inject('defaultEditor');
     const formData = inject('formData');
@@ -159,15 +161,18 @@
         // and derived logic:
         // - show if the switch to "show_all_fields" is true
         // - show if the switch to "show_all_fields" is false, but the field is required
-        // - show if the switch to "show_all_fields" is false, but the field has a sh:name attribute in the shape
+        // - show if the switch to "show_all_fields" is false, but the field has a sv:recommended attribute in the shape
         //   (which means it was likely annotated and therefore likely important)
         if (show_all_fields.value) {
             return true
         } else {
+            if (localTopLevelProp.value) {
+                return true
+            }
             if (isRequired.value) {
                 return true
             }
-            if (localPropertyShape.value.hasOwnProperty(SHACL.name.value)) {
+            if (localPropertyShape.value.hasOwnProperty(DLCO.recommended.value) && localPropertyShape.value[DLCO.recommended.value] == "true") {
                 return true
             }
             return false
