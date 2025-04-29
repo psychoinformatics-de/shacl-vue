@@ -25,10 +25,12 @@
         </v-card>
     </span>
     <span v-else>
-        <h3>Properties from: <code class="code-style">{{ getDisplayName(localShapeIri, configVarsMain, allPrefixes) }}</code></h3>
-        <br>
-        <span v-for="property in classProperties[localShapeIri]" :key="localShapeIri + '-' + localNodeIdx + '-' + property">
-            <PropertyShapeEditor :property_shape="propertyShapes[property]" :node_uid="localShapeIri" :node_idx="localNodeIdx" :top_level_prop="true"/>
+        <span v-if="classProperties[localShapeIri].length > 0">
+            <h3>Properties from: <code class="code-style">{{ getDisplayName(localShapeIri, configVarsMain, allPrefixes) }}</code></h3>
+            <br>
+            <span v-for="property in classProperties[localShapeIri]" :key="localShapeIri + '-' + localNodeIdx + '-' + property">
+                <PropertyShapeEditor :property_shape="propertyShapes[property]" :node_uid="localShapeIri" :node_idx="localNodeIdx" :top_level_prop="true"/>
+            </span>
         </span>
         
         <span v-for="c in superClasses[localShapeIri]">
@@ -97,6 +99,7 @@
             propertyShapes[p[SHACL.path.value]] = p
         }
         classProperties = orderProperties(propertyShapes)
+        console.log(classProperties)
         ready.value = true;
     })
 
@@ -240,7 +243,9 @@
     // Functions //
     // --------- //
     function groupHasVisibleProps(c) {
-
+        if (classProperties[c].length == 0) {
+            return false
+        }
         for (var p of classProperties[c]) {
             var currShape = propertyShapes[p]
             if (show_all_fields.value) {
@@ -252,7 +257,6 @@
                 if (currShape.hasOwnProperty(DLCO.recommended.value) && currShape[DLCO.recommended.value] == "true") {
                     return true
                 }
-                return false
             }
         }
         return false

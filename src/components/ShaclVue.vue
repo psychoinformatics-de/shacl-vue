@@ -103,7 +103,7 @@
                         </v-main>
                     </v-layout>
                 </v-card>
-                <v-dialog v-model="submitDialog" max-width="500">
+                <v-dialog v-model="submitDialog" max-width="800">
                     <SubmitComp></SubmitComp>
                 </v-dialog>
                 <v-dialog v-model="noSubmitDialog" max-width="500" @click:outside="noSubmitDialog = false">
@@ -136,6 +136,7 @@
     import { useClasses } from '@/composables/useClasses';
     import { useShapes } from '@/composables/useShapes';
     import { useForm } from '@/composables/useForm';
+    import { useToken } from '@/composables/tokens';
     import rdf from 'rdf-ext'
     import {SHACL, RDF, RDFS, DLTHINGS, XSD, SKOS} from '@/modules/namespaces'
 
@@ -152,6 +153,7 @@
     const { classDS, getClassData } = useClasses(config)
     const { shapesDS, getSHACLschema } = useShapes(config)
     const { formData, submitFormData } = useForm(config)
+    const { token, setToken, clearToken } = useToken()
     const ID_IRI = ref("")
     watch(configFetched, async (newValue) => {
         if (newValue) {
@@ -222,13 +224,21 @@
                 if (config.value.service_fetch_before["get-record"]?.length > 0) {
                     for (var iri of config.value.service_fetch_before["get-record"]) {
                         console.log(`fetching record upfront: ${iri}`)
-                        await fetchFromService('get-record', iri, allPrefixes)
+                        var result = await fetchFromService('get-record', iri, allPrefixes)
+                        console.log(result)
+                        if (!result.success) {
+                            console.error(`Failed to fetch from ${result.url}: ${result.message}`)
+                        }
                     }
                 }
                 if (config.value.service_fetch_before["get-records"]?.length > 0) {
                     for (var iri of config.value.service_fetch_before["get-records"]) {
                         console.log(`fetching recordS upfront: ${iri}`)
-                        await fetchFromService('get-records', iri, allPrefixes)
+                        var result = await fetchFromService('get-records', iri, allPrefixes)
+                        console.log(result)
+                        if (!result.success) {
+                            console.error(`Failed to fetch from ${result.url}: ${result.message}`)
+                        }
                     }
                 }                
             }
@@ -239,6 +249,8 @@
             for (var uri of shapesDS.data.nodeShapeIRIs) {
                 superClasses[uri] = getSuperClasses(uri, classDS.data.graph)
             }
+            console.log("SUPERCLASSES:")
+            console.log(toRaw(superClasses))
         }
     }, {immediate: true });
 
@@ -353,6 +365,7 @@
     })
 
     async function selectType(IRI, fromUser) {
+        console.log(`Selecting type: ${IRI}`)
         searchText.value = ""
         selectedIRI.value = IRI
         selectedShape.value = shapesDS.data.nodeShapes[IRI]
@@ -360,19 +373,26 @@
             classRecordsLoading.value = true
             await nextTick();
             // First fetch rdf data from configured service
-            var test = await fetchFromService('get-records', IRI, allPrefixes)
-            if (test === "skipped") {
+            var result = await fetchFromService('get-records', IRI, allPrefixes)
+            if (!result.success) {
+                console.error(result.error)
                 classRecordsLoading.value = false
             }
-            // Then continue with the rest
+            if (result.success || result.skipped) {
+                classRecordsLoading.value = false
+                // Optionally trigger UI error state or notification
+            }
             await nextTick();
         }
         if (fromUser) updateURL(IRI)
     }
 
-    function updateURL(IRI) {
+    function updateURL(IRI, edit) {
         var curie = toCURIE(IRI, allPrefixes)
         var queryParams = `?${encodeURIComponent("sh:NodeShape")}=${encodeURIComponent(curie)}`
+        if (edit) {
+            queryParams += '&edit=true'
+        }
         history.replaceState(null, '', window.location.pathname + queryParams)
     }
 
@@ -385,6 +405,12 @@
         const qparams = getQueryParams()
         const nodeShape = qparams.get("sh:NodeShape")
         const instance_id = qparams.get("id")
+        const token = qparams.get("token")
+        const edit = qparams.get("edit")
+
+        if (token) {
+            setToken(token)
+        }
 
         if (instance_id) {
             console.log("Queried ID FOUND")
@@ -399,6 +425,10 @@
             var nodeShapeIRI = toIRI(nodeShape, allPrefixes)
             if (shapesDS.data.nodeShapes[nodeShapeIRI]) {
                 await selectType(nodeShapeIRI)
+                if (edit) {
+                    addInstanceItem()
+                    updateURL(nodeShapeIRI, true)
+                }
             } else {
                 console.log("Queried nodeshape not found in shacl schema")
             }
@@ -427,6 +457,7 @@
         formOpen.value = true
         drawer.value = false
         canSubmit.value = false
+        updateURL(selectedIRI.value, true)
     }
 
     async function editInstanceItem(instance) {
@@ -585,6 +616,8 @@
             drawer.value = true
             canSubmit.value = true
             editMode.form = editMode.graph = false
+            updateURL(selectedIRI.value, false)
+            classRecordsLoading.value = false
         }
     }
     provide('addForm', addForm)

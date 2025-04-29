@@ -199,8 +199,15 @@ export function getSuperClasses(class_uri, graph) {
       if (sC == null) {
           endReached = true
       } else {
+          for (var el of sC) {
+            superClasses.push(el.object.value)
+          }
+          if (sC.length == 2) {
+            sC = sC[1]
+          } else {
+            sC = sC[0]
+          }
           uri = sC.object.value
-          superClasses.push(uri)
       }
   }
   return superClasses
@@ -211,6 +218,9 @@ export function getSuperClass(class_uri, graph) {
       .hasIn(rdf.namedNode(RDFS.subClassOf.value), rdf.namedNode(class_uri))
       .quads()
   )
-  if (superClass) return superClass[0]
+  if (superClass.length > 0) {
+    // this is an array which will most likely have a single element, but could have multiple
+    return superClass.reverse()
+  }
   return null
 }

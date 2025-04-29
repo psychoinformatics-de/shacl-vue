@@ -32,6 +32,31 @@
                 <v-icon v-if="responseSuccess" style="color:green">mdi-check-circle</v-icon>
                 <v-icon v-if="responseFailure" style="color:red">mdi-alert-circle</v-icon>
                 {{ responseText }}
+
+                <br>
+                <br>
+
+                <v-btn v-if="responseFailure" density="compact" @click="toggleFailureResponse()" :prepend-icon="failureToggleIcon">
+                    Error details:
+                </v-btn>
+
+                <span v-if="responseFailure && showCompleteFailure">
+                    <br><br>
+                    <span v-for="(e, i) in responseErrors">
+                        <strong>Error {{ i+1 }}</strong> <br>
+                        <strong>Status: </strong>{{e.error.status}} <br>
+                        <strong>Message: </strong>{{e.message}} <br>
+                        <strong>Stack: </strong> <br>
+                        <small>
+                            <pre class="error-stack">{{e.error.stack}}</pre>
+                        </small>
+
+                    </span>
+                    
+                </span>
+
+
+
             </span>
 
         </v-card-text>
@@ -69,7 +94,22 @@
     const responseReceived = ref(false)
     const responseSuccess = ref(false)
     const responseFailure = ref(false)
+
+    const showCompleteFailure = ref(false)
     const responseText = ref("")
+    const responseTextFull = ref("")
+    const responseErrors = ref([])
+
+    const failureToggleIcon = ref("mdi-chevron-right")
+
+    function toggleFailureResponse() {
+        showCompleteFailure.value = !showCompleteFailure.value;
+        if (showCompleteFailure.value) {
+            failureToggleIcon.value = "mdi-chevron-down"
+        } else {
+            failureToggleIcon.value = "mdi-chevron-right"
+        }
+    }
 
     const rules = [
         value => {
@@ -93,7 +133,7 @@
         console.log("submit_result")
         console.log(submit_result)
 
-        if (submit_result.ok) {
+        if (submit_result.success) {
             responseSuccess.value = true;
             responseFailure.value = false;
             responseText.value = "Your metadata submission was successful!"
@@ -101,6 +141,14 @@
             responseSuccess.value = false;
             responseFailure.value = true;
             responseText.value = "There was an error during metadata submission, please try again or report this to your administrator if the problem persists."
+            if (submit_result.error && Array.isArray(submit_result.error) && submit_result.error.length > 0) {
+                responseErrors.value = []
+                for (var e of submit_result.error) {
+                    console.error(e.error)
+                    responseErrors.value.push(e)
+                }
+                // responseTextFull.value += "\n\nDetails:\n" + submit_result.details.join("\n\n");
+            }
         }
         responseReceived.value = true
         awaitingResponse.value = false
@@ -117,3 +165,15 @@
         }
     })
 </script>
+
+<style scoped>
+
+.error-stack {
+    border: 1px solid rgb(255, 112, 112);
+    border-radius: 8px;
+    background-color: #efefef;
+    overflow-x: scroll;
+    padding: 0.5em;
+}
+
+</style>

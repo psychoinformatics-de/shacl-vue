@@ -13,31 +13,35 @@ export function useForm(config) {
     const formData = new FormBase(null, reactive({}))
 
     async function submitFormData(shapesDS, id_iri, prefixes, config, rdfDS) {
-        console.log("inside submitFormData function")
-        console.log(toRaw(formData.content))
-        if (Object.keys(formData.content).length == 0) {
-            console.log("submitFormData: no edited formData to submit; returning.")
-            return
-        }
-        const endpoint = 'post-record'
-        const serviceBaseURL = config.value.service_base_url
-        const serviceEndpoints = config.value.service_endpoints
-        if (!(serviceBaseURL || serviceEndpoints)) {
-            console.error("Service base URL and/or service endpoints not included in configuration.\nPosting data to an endpoint will not be possible.")
-            return
-        }
-        if (Object.keys(serviceEndpoints).indexOf(endpoint) < 0) {
-            console.log(`Unknown endpoint '${endpoint}' provided; Posting data to an endpoint will not be possible. Returning.`)
-            return
-        }
-        const { token } = useToken();
-        
-        var headers = {}
-        if (token.value !== null && token.value !== "null") {
-            headers['X-DumpThings-Token'] = token.value;
-        }
 
         try {
+            console.log("inside submitFormData function")
+            console.log(toRaw(formData.content))
+            if (Object.keys(formData.content).length == 0) {
+                var msg = "submitFormData: no edited formData to submit; returning."
+                console.log(msg)
+                return {
+                    success: true,
+                    skipped: true,
+                    message: msg
+                };
+            }
+            const endpoint = 'post-record'
+            const serviceBaseURL = config.value.service_base_url
+            const serviceEndpoints = config.value.service_endpoints
+            if (!(serviceBaseURL || serviceEndpoints)) {
+                throw new Error("Service base URL and/or service endpoints not included in configuration.\nPosting data to an endpoint will not be possible.")
+            }
+            if (Object.keys(serviceEndpoints).indexOf(endpoint) < 0) {
+                throw new Error(`Unknown endpoint '${endpoint}' provided; Posting data to an endpoint will not be possible. Returning.`)
+            }
+
+            const { token } = useToken();
+            var headers = {}
+            if (token.value !== null && token.value !== "null") {
+                headers['X-DumpThings-Token'] = token.value;
+            }
+
             // collect all POST requests as Promises
             let postPromises = [];
             for (var class_uri of Object.keys(formData.content)) {
@@ -78,25 +82,27 @@ export function useForm(config) {
                     // await postRDF(postURL, ds,'text/turtle', headers, prefixes)
                 }
             }
-             // wait until all POST requests settle.
+            // wait until all POST requests settle.
             const results = await Promise.allSettled(postPromises);
-            const failed = results.filter(result => result.status === "rejected");
+            const failed = results.filter(result => result.value.success === false).map(r => {return r.value});
+
             if (failed.length > 0) {
-                console.error("Some POST requests failed:", failed);
                 return {
-                    ok: false,
-                    error: "One or more POST requests failed."
+                    success: false,
+                    error: failed,
+                    message: "One or more POSTS failed",
                 };
             } else {
                 return {
-                    ok: true,
+                    success: true,
                 };
             }
         } catch (error) {
-            console.error("submitFormData error:", error);
             return {
-                ok: false,
-                error: error.message };
+                success: false,
+                error,
+                message: error.message,
+            };
         }
     }
 
