@@ -22,6 +22,7 @@ const rdfPretty = rdf.clone()
 rdfPretty.formats.import(formatsPretty)
 
 export async function postRDF(endpoint, dataset, format = 'text/turtle', headers = {}, prefixes) {
+    const url = endpoint
     try {
         // Ensure we have the correct content-type
         headers['Content-Type'] = format;
@@ -29,7 +30,7 @@ export async function postRDF(endpoint, dataset, format = 'text/turtle', headers
         // Serialize the dataset to the desired format
         const body = await rdfPretty.io.dataset.toText('text/turtle', dataset)
 
-        const response = await fetch(endpoint, {
+        const response = await fetch(url, {
             method: 'POST',
             formats, 
             headers,
@@ -38,12 +39,26 @@ export async function postRDF(endpoint, dataset, format = 'text/turtle', headers
         });
 
         if (!response.ok) {
-            throw new Error(`postRDF error: ${response.statusText}`);
+            // throw new Error(`readRDF error: ${res.statusText}`)
+            const code = response.status || 'Unknown';
+            const error = new Error(`postRDF error: HTTP ${code} from ${url}`);
+            error.status = code;
+            error.url = url;
+            error.response = response;
+            throw error
         }
 
-        return response;
+        return {
+            success: true,
+            url: url,
+            message: 'RDF data POSTed successfully',
+        };
     } catch (error) {
-        console.error('postRDF error:', error);
-        throw error;
+        return {
+            success: false,
+            error,
+            url: url,
+            message: error.message,
+        };
     }
 }

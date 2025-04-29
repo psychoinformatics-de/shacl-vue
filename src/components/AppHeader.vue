@@ -82,7 +82,7 @@
                 <br><br>
 
                 Below you can enter/update your personal token:
-                <v-form ref="tokenForm">
+                <v-form ref="tokenForm" validate-on="submit lazy" @submit.prevent>
                     <v-text-field
                         v-model="tokenval"
                         :rules="rules"
@@ -93,11 +93,13 @@
                         prepend-inner-icon="mdi-lock-outline"
                         variant="outlined"
                         @click:append-inner="visible = !visible"
+
                     ></v-text-field>
                 </v-form>
             </v-card-text>
             <v-card-actions>
-                <v-btn  @click="cancel()"><v-icon>mdi-cancel</v-icon> Cancel</v-btn>
+                <v-btn  @click="cancel()"><v-icon>mdi-close</v-icon> Cancel</v-btn>
+                <v-btn @click="reset()"><v-icon>mdi-undo</v-icon> Reset</v-btn>
                 <v-btn type="submit" @click="save()"><v-icon>mdi-check-circle-outline</v-icon> Save</v-btn>
             </v-card-actions>
         </v-card>
@@ -149,6 +151,11 @@
 
     function cancel() {
         tokenDialog.value = false
+    }
+
+    function reset() {
+        tokenval.value = "";
+        clearToken()
     }
 
     async function save() {
