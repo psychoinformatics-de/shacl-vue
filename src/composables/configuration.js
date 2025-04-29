@@ -24,6 +24,8 @@ const mainVarsToLoad = {
         "logo": "shacl_vue_logo.svg",
     },
     "use_token": false,
+    "token_info": false,
+    "token_info_url": "",
     "use_service": false,
     "class_name_display": "name"
 }

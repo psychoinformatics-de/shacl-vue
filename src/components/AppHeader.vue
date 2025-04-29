@@ -77,9 +77,11 @@
                 A token is required to submit new/updated metadata records to the server,
                 or to view previously submitted metadata records. <br><br>
                 
-                Please read the <a href="https://docs.trr379.de/rdm/metadata-edit/index.html">metadata management docs</a> to find out how to acquire a token.
-
-                <br><br>
+                <span v-if=configVarsMain.tokenInfoUrl>
+                    Please read the <a :href="configVarsMain.tokenInfoUrl">metadata management docs</a> to find out how to acquire a token.
+                    <br><br>
+                </span>
+                
 
                 Below you can enter/update your personal token:
                 <v-form ref="tokenForm" validate-on="submit lazy" @submit.prevent>

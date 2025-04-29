@@ -33,6 +33,7 @@
     "use_service": false,
     "use_token": false,
     "token_info": false,
+    "token_info_url": "",
     "service_base_url": "",
     "service_endpoints":  {},
     "prefixes": {
