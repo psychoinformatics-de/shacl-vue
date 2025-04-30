@@ -618,6 +618,7 @@
             editMode.form = editMode.graph = false
             updateURL(selectedIRI.value, false)
             classRecordsLoading.value = false
+            itemsTrigger.value = !itemsTrigger.value
         }
     }
     provide('addForm', addForm)
