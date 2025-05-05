@@ -9,7 +9,7 @@
                             theme="dark"
                             :color="configVarsMain.appTheme.panel_color"
                             v-model="drawer"
-                            permanent
+                            style="overflow-y: auto;"
                         >
                             <v-list nav selectable :disabled="formOpen" v-model:selected="selectedItem">
                                 <v-list-item  value="data"><h4>Data Types</h4></v-list-item>
@@ -22,7 +22,7 @@
                                 </v-list-item>
                             </v-list>
                         </v-navigation-drawer>
-                        <v-main style="min-height: 90vh">
+                        <v-main style="height: 100vh; overflow-y: auto;">
                             <v-container fluid>
                                 <v-row>
                                     <v-col
@@ -30,7 +30,7 @@
                                         class="transition-all"
                                         :class="formOpen ? 'opacity-column' : ''"
                                     >
-                                        
+
                                         <span v-if="selectedIRI">
                                             <h2 class="mx-4 mb-4 truncate-heading">
                                                 {{ getDisplayName(selectedIRI, configVarsMain, allPrefixes) }}
@@ -38,7 +38,7 @@
                                             </h2>
 
                                             <p class="mx-4 mb-4" v-html="formattedDescription"></p>
-                                            
+
                                             <span v-if="classRecordsLoading">
                                                 <v-skeleton-loader type="list-item-avatar"></v-skeleton-loader>
                                             </span>
@@ -60,10 +60,10 @@
                                                             </v-text-field>
                                                         </v-col>
                                                         <v-col>
-                                                            
+
                                                         </v-col>
                                                     </v-row>
-                                                    
+
                                                     <span v-for="r in filteredInstanceItemsComp">
                                                         <NodeShapeViewer :classIRI="selectedIRI" :quad="r.props.quad" :key="selectedIRI + '-' + r.title + '-' + itemsTrigger" :formOpen="formOpen" :variant="r.title == queried_id ? 'outlined' : 'tonal'"></NodeShapeViewer>
                                                     </span>
@@ -240,7 +240,7 @@
                             console.error(`Failed to fetch from ${result.url}: ${result.message}`)
                         }
                     }
-                }                
+                }
             }
             setViewFromQuery()
             page_ready.value = true;
@@ -283,7 +283,7 @@
         }
     }, { immediate: true });
 
-    
+
 
 
     const activatedInstancesSelectEditor = ref(null)
@@ -421,7 +421,7 @@
         if (nodeShape) {
             console.log("Queried nodeshape FOUND")
             // this could be a curie or iri
-            // check if iri is in 
+            // check if iri is in
             var nodeShapeIRI = toIRI(nodeShape, allPrefixes)
             if (shapesDS.data.nodeShapes[nodeShapeIRI]) {
                 await selectType(nodeShapeIRI)
