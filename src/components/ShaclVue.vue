@@ -22,7 +22,7 @@
                                 </v-list-item>
                             </v-list>
                         </v-navigation-drawer>
-                        <v-main style="height: 100vh; overflow-y: auto;">
+                        <v-main ref="mainContent" style="height: 90vh; overflow-y: auto;">
                             <v-container fluid>
                                 <v-row>
                                     <v-col
@@ -147,6 +147,7 @@
     // ---------------------------------------------------- //
     // CONFIGURATION, AND LOADING SHAPES/CLASSES/DATA/FORMS //
     // ---------------------------------------------------- //
+    const mainContent = ref(null)
     const config_ready = ref(false)
     const { config, configFetched, configError, configVarsMain, loadConfigVars} = useConfig(props.configUrl);
     const { rdfDS, getRdfData, fetchFromService } = useData(config)
@@ -384,6 +385,10 @@
             }
             await nextTick();
         }
+        nextTick(() => {
+            const el = mainContent.value?.$el || mainContent.value
+            if (el) el.scrollTop = 0
+        })
         if (fromUser) updateURL(IRI)
     }
 
