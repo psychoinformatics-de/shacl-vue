@@ -83,27 +83,55 @@ export function useData(config) {
             if (Object.keys(serviceEndpoints).indexOf(endpoint) < 0) {
                 throw new Error(`Unknown endpoint '${endpoint}' provided; continuing without making a request to configured service`)
             }
+
+            // Handle two possibilities:
+            // - serviceBaseURL is a string (backwards compatible)
+            // - serviceBaseURL is an Array (latest feature)
+            const baseUrls = Array.isArray(serviceBaseURL) ? serviceBaseURL.map(entry => entry.url) : [serviceBaseURL];
+
             const query_string = replaceServiceIdentifier(arg, serviceEndpoints[endpoint], prefixes)
-            var getURL = `${serviceBaseURL}${query_string}`
-            if (fetchedRequests.has(getURL)) {
-                console.log(`Skipping request: Data previously fetched from ${getURL}`);
-                return {
-                    success: true,
-                    skipped: true,
-                    url: getURL
-                };
+
+            const results = [];
+            let allFailed = true;
+            let anyFailed = false;
+
+            for (const baseUrl of baseUrls) {
+                const getURL = `${baseUrl}${query_string}`;
+                if (fetchedRequests.has(getURL)) {
+                    console.log(`Skipping request: Data previously fetched from ${getURL}`);
+                    // Add result to array, then continue to next baseUrl
+                    results.push({
+                        success: true,
+                        skipped: true,
+                        url: getURL
+                    });
+                    continue;
+                }
+
+                fetchedRequests.add(getURL);
+                const result = await getRdfData(getURL);
+                if (!result.success) {
+                    fetchedRequests.delete(getURL); // Allow retry
+                    results.push({
+                        url: getURL,
+                        success: false,
+                        message: result.message || "Failed to fetch RDF data."
+                    });
+                    anyFailed = true;
+                } else {
+                    results.push({
+                        url: getURL,
+                        success: true,
+                    });
+                    allFailed = false;
+                }
             }
-
-            fetchedRequests.add(getURL);
-
-            const result = await getRdfData(getURL);
-            if (!result.success) {
-                fetchedRequests.delete(getURL); // Allow retry later
-                throw new Error(result.message || "Failed to fetch RDF data.");
+            if (anyFailed) {
+                throw new Error("One or more RDF data fetch attempts failed.");
             }
             return {
                 success: true,
-                url: getURL
+                url: results
             };
         } catch (error) {
             return {
