@@ -6,7 +6,12 @@
   <link rel="icon" href="/favicon.ico" />
   <link rel="stylesheet" type="text/css" href="src/assets/style.css"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to shacl-vue!</title>
+  <title> </title>
+    <script>
+        fetch("public/config.json")
+        .then(response => response.json())
+        .then(data => document.title = data.page_title)
+    </script>
 </head>
 
 <body>
