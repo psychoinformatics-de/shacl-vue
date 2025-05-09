@@ -15,15 +15,6 @@
     "use_default_data": false,
     "class_url": "dlschemas_owl.ttl",
     "use_default_classes": false,
-    "group_layout": "",
-    "defaultPropertyGroup": {
-        "key": "https://concepts.datalad.org/DefaultPropertyGroup",
-        "value": {
-            "http://www.w3.org/2000/01/rdf-schema#comment": "",
-            "http://www.w3.org/2000/01/rdf-schema#label": "Default Properties",
-            "http://www.w3.org/ns/shacl#order": 100
-        }
-    },
     "id_iri": "https://concepts.datalad.org/s/things/v1/pid",
     "id_autogenerate": {},
     "show_shapes_wo_id": false,

@@ -36,6 +36,24 @@ export function useForm(config) {
                 throw new Error(`Unknown endpoint '${endpoint}' provided; Posting data to an endpoint will not be possible. Returning.`)
             }
 
+            if (Object.keys(serviceEndpoints).indexOf(endpoint) < 0) {
+                throw new Error(`Unknown endpoint '${endpoint}' provided; Posting data to an endpoint will not be possible. Returning.`)
+            }
+
+            // Handle two possibilities:
+            // - serviceBaseURL is a string, assume type write
+            // - serviceBaseURL is an Array (latest feature)
+            // Error if no write urls are found or if more than 1 are found
+            const writeUrls = Array.isArray(serviceBaseURL)
+            ? serviceBaseURL.filter(el => el.type === "write")
+            : [{"url": serviceBaseURL, "type": "write"}];
+            if (writeUrls.length === 0) {
+                throw new Error("No service base URL with type 'write' was found in the configuration; Posting data to an endpoint will not be possible. Returning.");
+            }
+            if (writeUrls.length > 1) {
+                throw new Error("Multiple service base URLs with type 'write' were found; only one is allowed to post data. Returning");
+            }
+
             const { token } = useToken();
             var headers = {}
             if (token.value !== null && token.value !== "null") {
@@ -75,7 +93,7 @@ export function useForm(config) {
                     });
                     // A POST replaceServiceIdentifier(class_uri, serviceEndpoints[endpoint], prefixes)
                     const query_string = replaceServiceIdentifier(class_uri, serviceEndpoints[endpoint], prefixes)
-                    var postURL = `${serviceBaseURL}${query_string}`
+                    var postURL = `${writeUrls[0].url}${query_string}`
                     console.log("POSTing to the following URL:")
                     console.log(postURL)
                     postPromises.push(postRDF(postURL, ds, 'text/turtle', headers, prefixes));
