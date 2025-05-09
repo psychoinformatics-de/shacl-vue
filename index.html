@@ -7,10 +7,26 @@
   <link rel="stylesheet" type="text/css" href="src/assets/style.css"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title> </title>
+    <!-- add custom title from config, if it is defined -->
     <script>
-        fetch("public/config.json")
-        .then(response => response.json())
-        .then(data => document.title = data.page_title)
+          fetch("config.json")
+          .then((response) => {
+               if (response.ok) {
+                 return response.json();
+               } else {
+                 console.log(response.text());
+                 return Promise.reject(`Something went wrong! Status: ${response.status}`);
+               }})
+               .then((json) => {
+                    if (json.page_title) {
+                        document.title = json.page_title
+                    } else if (json.app_name) {
+                        document.title = json.app_name
+                    } else {
+                        document.title = "Welcome to shacl-vue!"
+               }}).catch((error) => {
+                    document.title = "Welcome to shacl-vue!";
+          });
     </script>
 </head>
 
