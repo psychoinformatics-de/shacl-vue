@@ -63,10 +63,25 @@
 
                                                         </v-col>
                                                     </v-row>
-
-                                                    <span v-for="r in filteredInstanceItemsComp">
-                                                        <NodeShapeViewer :classIRI="selectedIRI" :quad="r.props.quad" :key="selectedIRI + '-' + r.title + '-' + itemsTrigger" :formOpen="formOpen" :variant="r.title == queried_id ? 'outlined' : 'tonal'"></NodeShapeViewer>
-                                                    </span>
+                                                    <DynamicScroller
+                                                        :items="filteredInstanceItemsComp"
+                                                        :min-item-size="50"
+                                                        key-field="title"
+                                                        class="virtual-scroller"
+                                                        >
+                                                        <template v-slot="{ item, index, active }">
+                                                            <DynamicScrollerItem :item="item" :active="active" class="scroller-item">
+                                                                
+                                                                <NodeShapeViewer
+                                                                :classIRI="selectedIRI"
+                                                                :quad="item.props.quad"
+                                                                :key="selectedIRI + '-' + item.title + '-' + itemsTrigger"
+                                                                :formOpen="formOpen"
+                                                                :variant="item.title == queried_id ? 'outlined' : 'tonal'"
+                                                                />
+                                                            </DynamicScrollerItem>
+                                                        </template>
+                                                    </DynamicScroller>
                                                 </div>
                                                 <div v-else style="margin-top: 1em; margin-left: 1em;">
                                                     <em>No items</em>
@@ -126,7 +141,7 @@
 
 
 <script setup>
-    import { effect, ref, computed, provide, watch, reactive, onBeforeUpdate, nextTick, toRaw} from 'vue'
+    import { effect, ref, computed, provide, watch, reactive, onBeforeUpdate, nextTick, toRaw, defineAsyncComponent} from 'vue'
     import { useConfig } from '@/composables/configuration';
     import { adjustHexColor, findObjectByKey, addCodeTagsToText, getSuperClasses, getDisplayName} from '../modules/utils';
     import {toCURIE, toIRI} from 'shacl-tulip'
@@ -139,6 +154,10 @@
     import { useToken } from '@/composables/tokens';
     import rdf from 'rdf-ext'
     import {SHACL, RDF, RDFS, DLTHINGS, XSD, SKOS} from '@/modules/namespaces'
+
+    import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
+    import { RecycleScroller, DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
+    
 
     const props = defineProps({
         configUrl: String
@@ -355,7 +374,6 @@
     watch(rdfDS.data.graph, () => {
         console.log("Graphdata UPDATED SHACLVUE")
         itemsTrigger.value = !itemsTrigger.value
-        classRecordsLoading.value = false
     }, { deep: true });
 
     const formattedDescription = computed(() => {
@@ -372,7 +390,6 @@
         selectedShape.value = shapesDS.data.nodeShapes[IRI]
         if (config.value.use_service) {
             classRecordsLoading.value = true
-            await nextTick();
             // First fetch rdf data from configured service
             var result = await fetchFromService('get-records', IRI, allPrefixes)
             if (!result.success) {
@@ -383,7 +400,6 @@
                 classRecordsLoading.value = false
                 // Optionally trigger UI error state or notification
             }
-            await nextTick();
         }
         nextTick(() => {
             const el = mainContent.value?.$el || mainContent.value
@@ -511,7 +527,10 @@
         formOpen.value = true
         drawer.value = false
         canSubmit.value = false
-        window.scrollTo(0,0);
+        nextTick(() => {
+            const el = mainContent.value?.$el || mainContent.value
+            if (el) el.scrollTop = 0
+        })
     }
     provide('editInstanceItem', editInstanceItem)
 
@@ -633,6 +652,13 @@
 </script>
 
 <style>
+    .virtual-scroller {
+        height: auto;
+        overflow-y: auto;
+    }
+    .scroller-item {
+        padding-bottom: 3px;
+    }
     .code-style {
         color: #ff0000;
         background-color: #f5f5f5;
