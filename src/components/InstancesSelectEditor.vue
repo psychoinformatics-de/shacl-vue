@@ -24,6 +24,7 @@
                     @click.stop="openMenu()"
                     :append-inner-icon="menu ? 'mdi-chevron-down': 'mdi-chevron-right'"
                     :prepend-inner-icon="selectedItemIcon"
+                    :loading="fetchingRecordLoader"
                 >
                 <template v-slot:append-inner>
                     <v-icon v-if="showClearIcon" class="mr-2" @click.stop="clearField()" @mousedown.stop.prevent >
@@ -139,6 +140,7 @@
 
     const itemsToList = ref([]);
     const fetchingDataLoader = ref(false)
+    const fetchingRecordLoader = ref(false)
     const rdfDS = inject('rdfDS');
     const allPrefixes = inject('allPrefixes');
     const classDS = inject('classDS');
@@ -240,34 +242,30 @@
     })
 
     onBeforeMount(async () => {
-
         if (props.modelValue) {
+            fetchingRecordLoader.value = true
             await fetchFromService('get-record', props.modelValue, allPrefixes)
             getItemsToList()
             setSelectedValue()
             scrollToSelectedItem()
+            fetchingRecordLoader.value = false
         }
-
     })
 
     
 
     async function populateList() {
-        if (itemsToList.value.length > 0) {
-            
-        } else {
-            fetchingDataLoader.value = true
-            if (config.value.use_service) {
-                try {
-                    await getAllRecordsFromService(allclass_array)
-                    getItemsToList()
-                } finally {
-                    fetchingDataLoader.value = false
-                }
-            } else {
+        fetchingDataLoader.value = true
+        if (config.value.use_service) {
+            try {
+                await getAllRecordsFromService(allclass_array)
                 getItemsToList()
+            } finally {
                 fetchingDataLoader.value = false
             }
+        } else {
+            getItemsToList()
+            fetchingDataLoader.value = false
         }
         setSelectedValue()
         scrollToSelectedItem()
