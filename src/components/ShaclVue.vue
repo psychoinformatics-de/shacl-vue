@@ -55,6 +55,11 @@
                                                                 style="margin: 1em;"
                                                                 :disabled="openForms.length > 0"
                                                             >
+                                                            <template v-slot:append-inner>
+                                                                <v-icon v-if="searchText" class="mr-2" @click.stop="clearField()" @mousedown.stop.prevent >
+                                                                    mdi-close-circle
+                                                                </v-icon>
+                                                            </template>
                                                                 <template #append>
                                                                     <v-btn variant="outlined" @click="toggleOrder" :append-icon="orderIcon" :disabled="openForms.length > 0">Order</v-btn>
                                                                 </template>
@@ -382,6 +387,10 @@
             return addCodeTagsToText(selectedShape.value[SHACL.description])
         } else { return '-'}
     })
+
+    function clearField() {
+        searchText.value = ""
+    }
 
     async function selectType(IRI, fromUser) {
         console.log(`Selecting type: ${IRI}`)
