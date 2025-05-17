@@ -1,4 +1,4 @@
-import { reactive } from 'vue'
+import { reactive, ref} from 'vue'
 import { RdfDataset } from "shacl-tulip";
 import rdf from 'rdf-ext'
 
@@ -6,6 +6,7 @@ export class ReactiveRdfDataset extends RdfDataset {
     constructor(data = reactive({})) {
         console.log("Running: ReactiveRdfDataset constructor")
         super(data)
+        this.data.graphChanged = ref(0)
         this.data.batchMode = false;
     }
 
@@ -56,6 +57,7 @@ export class ReactiveRdfDataset extends RdfDataset {
 
     triggerReactivity() {
         // Toggle the dummy property to trigger reactivity
+        this.data.graphChanged++;
         this.data.graph._dummy = !this.data.graph._dummy;
     }
 }

@@ -5,48 +5,44 @@
         ref="fieldRef"
         :id="inputId"
         hide-details="auto"
-        style="margin-bottom: 1em;"
     >
-        <v-autocomplete
-            v-model="subValues.selectedInstance"
-            variant="outlined"
-            hide-details="auto"
-            label="select an item"
-            :items="itemsToList"
-            validate-on="lazy input"
-            item-value="value"
-            item-title="title"
-            return-object
-            ref="editorComp"
-            lines="two"
-            :custom-filter="filterListItems"
+        <v-menu
+        
+            v-model="menu"
+            location="bottom"
         >
+            <template #activator="{ props }">
 
-        <template v-slot:selection="data">
-            
-            <span v-if="data.item.props.hasPrefLabel">
-                {{ data.item.props[toCURIE(SKOS.prefLabel.value, allPrefixes)] }}
-            </span>
-            <span v-else>
-                <div style="transform: scale(0.6); margin: 0; padding: 0;">
-                    <span v-for="(value, key, index) in data.item.props">
-                        <span v-if="['title', 'subtitle', 'name', 'value', RDF.type.value, toCURIE(RDF.type.value, allPrefixes)].indexOf(key) < 0">
-                            {{ key }}: {{ value }} <br>
-                        </span>
-                    </span>
-                </div>
-            </span>
-            
-        </template>
-
-            <template v-slot:item="data">
-                <!-- Show the "Add Item" button first -->
-                <div v-if="data.item.props.isButton">
+                <v-text-field
+                    v-model="queryText"
+                    v-bind="props"
+                    variant="outlined"
+                    placeholder="select an item"
+                    style="margin-bottom: 0;"
+                    :label="queryLabel"
+                    ref="inputRef"
+                    @click.stop="openMenu()"
+                    :append-inner-icon="menu ? 'mdi-chevron-down': 'mdi-chevron-right'"
+                    :prepend-inner-icon="selectedItemIcon"
+                >
+                <template v-slot:append-inner>
+                    <v-icon v-if="showClearIcon" class="mr-2" @click.stop="clearField()" @mousedown.stop.prevent >
+                        mdi-close-circle
+                    </v-icon>
+                </template>
+                </v-text-field>
+            </template>
+            <v-card style="margin-top: 0;">
+                <span v-if="fetchingDataLoader">
+                    <v-list-item><em>Fetching items (this might take a while)</em></v-list-item>
+                    <v-skeleton-loader type="list-item-avatar"></v-skeleton-loader>
+                </span>
+                <span v-else>
                     <v-list-item @click.stop :active="false">
                         <v-list-item-title>
-                            <v-menu v-model="menu" location="end">
+                            <v-menu v-model="addItemMenu" location="end">
                                 <template v-slot:activator="{ props }">
-                                    <v-btn variant="tonal" v-bind="props">{{ data.item.title }} &nbsp;&nbsp; <v-icon icon="item.icon">mdi-play</v-icon></v-btn>
+                                    <v-btn variant="tonal" v-bind="props">Add new item &nbsp;&nbsp; <v-icon icon="item.icon">mdi-play</v-icon></v-btn>
                                 </template>
 
                                 <v-list ref="addItemList">
@@ -57,30 +53,49 @@
                             </v-menu>
                         </v-list-item-title>
                     </v-list-item>
-                </div>
-                <!-- Then show all other items -->
-                <div v-else>
-                    <v-list-item @click.stop="selectItem(data.item)" rounded :active="subValues.selectedInstance?.value == data.item.value" class="myInstancesList">
-                        <template v-slot:prepend>
-                            <v-icon>{{ getClassIcon(toIRI(data.item.props[toCURIE(RDF.type.value, allPrefixes)], allPrefixes)) }}</v-icon>
-                        </template>
-                        <span v-if="data.item.props.hasPrefLabel">
-                            {{ data.item.props[toCURIE(SKOS.prefLabel.value, allPrefixes)] }}
-                        </span>
-                        <span v-else>
-                            <span v-for="(value, key, index) in data.item.props">
-                                <v-row no-gutters v-if="['title', 'subtitle', 'name', 'value', RDF.type.value, toCURIE(RDF.type.value, allPrefixes)].indexOf(key) < 0">
-                                    <v-col cols="6"><small>{{ key }}</small></v-col>
-                                    <v-col><small>{{ value }}</small></v-col>
-                                </v-row>
-                            </span>
-                        </span>
-                    </v-list-item>
-                    <v-divider></v-divider>
-                    <v-divider></v-divider>
-                </div>
-            </template>
-        </v-autocomplete>
+                    <span v-if="itemsToList.length">
+                        <DynamicScroller
+                            style="max-height: 200px; overflow-y: auto;"
+                            :items="filteredItems"
+                            :min-item-size="10"
+                            overflow-y
+                            key-field="value"
+                            class="virtual-scroller"
+                            ref="scrollerRef"
+                            >
+                            <template v-slot="{ item, index, active }">
+                                <DynamicScrollerItem :item="item" :active="active" class="scroller-item">
+                                    <v-list-item @click.stop="selectItem(item)" rounded :active="subValues.selectedInstance?.value == item.value" class="myInstancesList">
+                                        <template v-slot:prepend>
+                                            <v-icon>{{ getClassIcon(toIRI(item.props[toCURIE(RDF.type.value, allPrefixes)], allPrefixes)) }}</v-icon>
+                                        </template>
+                                        <span v-if="item.props.hasPrefLabel">
+                                            {{ item.props[toCURIE(SKOS.prefLabel.value, allPrefixes)] }}
+                                        </span>
+                                        <span v-else>
+                                            <span v-for="(value, key, index) in item.props">
+                                                <v-row no-gutters v-if="['title', 'subtitle', 'name', 'value', RDF.type.value, toCURIE(RDF.type.value, allPrefixes)].indexOf(key) < 0">
+                                                    <v-col cols="6"><small>{{ key }}</small></v-col>
+                                                    <v-col><small>{{ value }}</small></v-col>
+                                                </v-row>
+                                            </span>
+                                        </span>
+                                    </v-list-item>
+                                    <v-divider></v-divider>
+                                    <v-divider></v-divider>
+                                </DynamicScrollerItem>
+                            </template>
+                        </DynamicScroller>
+                    </span>
+                    <span v-else>
+                        <v-card-text>
+                            No items
+                        </v-card-text>
+                    </span>
+
+                </span>
+            </v-card>
+        </v-menu>
     </v-input>
 </template>
 
@@ -93,6 +108,8 @@
     import { toCURIE, toIRI } from 'shacl-tulip'
     import { useRegisterRef } from '../composables/refregister';
     import { useBaseInput } from '@/composables/base';
+    import { debounce } from 'lodash-es'
+    import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 
     // ----- //
     // Props //
@@ -111,7 +128,17 @@
     // ---- //
     // Data //
     // ---- //
+
+    const inputRef = ref(null)
+    const queryText = ref("")
+    const queryLabel = ref("")
+    const menu = ref(false)
+    const addItemMenu = ref(false)
+    const scrollerRef = ref(null)
+
+
     const itemsToList = ref([]);
+    const fetchingDataLoader = ref(false)
     const rdfDS = inject('rdfDS');
     const allPrefixes = inject('allPrefixes');
     const classDS = inject('classDS');
@@ -120,11 +147,13 @@
     const localPropertyShape = ref(props.property_shape)
     const propClass = ref(null)
     propClass.value = localPropertyShape.value[SHACL.class.value] ?? false
-    if (config.value.use_service) {
-        const allclass_array = getAllClasses(propClass.value)
-        await getAllRecordsFromService(allclass_array)
-    }
-    getItemsToList()
+    const allclass_array = getAllClasses(propClass.value)
+    const propClassList = allclass_array.map((cl) => {
+        return {
+            title: toCURIE(cl, allPrefixes),
+            value: cl
+        }
+    })
     const editorComp = ref(null)
     const { rules } = useRules(localPropertyShape.value)
     const inputId = `input-${Date.now()}`;
@@ -139,10 +168,9 @@
 
     const newNodeIdx = ref(null)
     const addItemList = ref(null)
-    const menu = ref(false)
+    
     const selectedAddItemShapeIRI = ref(null)
     const addForm = inject('addForm');
-    const removeForm = inject('removeForm');
     const getClassIcon = inject('getClassIcon')
     // const activatedInstancesSelectEditor = inject('activatedInstancesSelectEditor')
     const lastSavedNode = inject('lastSavedNode')
@@ -158,6 +186,92 @@
         newNodeIdx.value = null
     };
     provide('saveFormHandler', saveDialogForm);
+
+
+    const openMenu = () => {
+        populateList()
+        menu.value = true
+    }
+
+    const showClearIcon = computed(() => {
+        if (queryText.value || subValues.value.selectedInstance) {
+            return true
+        }
+        return false
+    })
+
+    function clearField() {
+        menu.value = false
+        queryText.value = ""
+        queryLabel.value = ""
+        subValues.value.selectedInstance = null
+    }
+
+    function setSelectedValue() {
+        // Set selected value if the prop has a value
+        if (props.modelValue) {
+            var inst = findObjectByKey(itemsToList.value, "value", props.modelValue)
+            if (inst) {
+                subValues.value.selectedInstance = inst
+                queryLabel.value = subValues.value.selectedInstance.props._prefLabel ? subValues.value.selectedInstance.props._prefLabel : "(selected item name unknown)"   
+            } else {
+                subValues.value.selectedInstance = null
+                queryLabel.value = ""
+            }
+        }
+    }
+
+    function scrollToSelectedItem() {
+        if (!subValues.value.selectedInstance) return;
+
+        var index = filteredItems.value.findIndex(
+            item => item.value === subValues.value.selectedInstance.value
+        );
+
+        if (index !== -1 && scrollerRef.value) {
+            scrollerRef.value.scrollToItem(index);
+        }
+    }
+
+
+
+    onMounted(async () => {
+        
+    })
+
+    onBeforeMount(async () => {
+
+        if (props.modelValue) {
+            await fetchFromService('get-record', props.modelValue, allPrefixes)
+            getItemsToList()
+            setSelectedValue()
+            scrollToSelectedItem()
+        }
+
+    })
+
+    
+
+    async function populateList() {
+        if (itemsToList.value.length > 0) {
+            
+        } else {
+            fetchingDataLoader.value = true
+            if (config.value.use_service) {
+                try {
+                    await getAllRecordsFromService(allclass_array)
+                    getItemsToList()
+                } finally {
+                    fetchingDataLoader.value = false
+                }
+            } else {
+                getItemsToList()
+                fetchingDataLoader.value = false
+            }
+        }
+        setSelectedValue()
+        scrollToSelectedItem()
+    }
 
     // ------------------- //
     // Computed properties //
@@ -204,35 +318,30 @@
     }, {immediate: true });
 
 
-    watch(rdfDS.data.graph, () => {
+
+    const debouncedUpdate = debounce(() => {
         console.log("CHECK: graphdata instanceselecteditor")
         getItemsToList()
-    }, { deep: true });
+    }, 500)
+    watch(() => rdfDS.data.graphChanged, debouncedUpdate, { deep: true })
 
-    const propClassList = computed(() => {
-        var items = []
-        // first add main property class
-        items.push(
-            {
-                title: toCURIE(propClass.value, allPrefixes),
-                value: propClass.value
-            }
-        )
-        const subClasses = rdf.grapoi({ dataset: classDS.data.graph })
-            .hasOut(rdf.namedNode(RDFS.subClassOf.value), rdf.namedNode(propClass.value))
-            .quads();
-        
-        Array.from(subClasses).forEach(quad => {
-            items.push(
-                {
-                    title: toCURIE(quad.subject.value, allPrefixes),
-                    value: quad.subject.value
-                }
-            )
-        });
-        return items
-    })
+    const selectedItemIcon = computed(() => {
+        if (subValues.value.selectedInstance) {
+            return getClassIcon(toIRI(subValues.value.selectedInstance.props[toCURIE(RDF.type.value, allPrefixes)], allPrefixes))
+        } else {
+            return null
+        }
+    });
 
+
+    const filteredItems = computed(() =>{
+        if (!itemsToList.value.length) return []
+        const searchText = queryText.value.toLowerCase()
+        return [...itemsToList.value].filter((item) =>{
+            if (searchText.length == 0) return true
+            return item.props._prefLabel.toLowerCase().includes(searchText.toLowerCase())
+        }).sort((a, b) => a.props._prefLabel?.toLowerCase().localeCompare(b.props._prefLabel?.toLowerCase()));
+    });
     
 
     // --------- //
@@ -254,8 +363,11 @@
     }
 
     function selectItem(item) {
+        console.log(item)
         subValues.value.selectedInstance = item;
-        editorComp.value.blur();
+        queryLabel.value = subValues.value.selectedInstance.props._prefLabel ? subValues.value.selectedInstance.props._prefLabel : "(selected item name unknown)"
+        queryText.value = "";
+        menu.value = false;
     }
 
     function handleAddItemClick(item) {
@@ -271,7 +383,7 @@
         console.log(selectedAddItemShapeIRI.value)
         console.log("New form node IRI")
         console.log(newNodeIdx.value)
-        menu.value = false;
+        addItemMenu.value = false;
         addForm(selectedAddItemShapeIRI.value, newNodeIdx.value, 'new')
     }
 
@@ -294,9 +406,11 @@
     }
 
     async function getAllRecordsFromService(iri_array) {
-        for (const iri of iri_array) {
-            const result = await fetchFromService('get-records', iri, allPrefixes)
-        }
+        const fetchPromises = iri_array.map(iri =>
+            fetchFromService('get-records', iri, allPrefixes)
+        )
+        const results = await Promise.allSettled(fetchPromises)
+        return results
     }
 
     function filterListItems(itemTitle, queryText, item) {
@@ -335,12 +449,6 @@
         const combinedQuads = quads.concat(myArr);
         // Finally, create list items from quads
         var itemsToListArr = []
-        itemsToListArr.push(
-            {
-                title: "Add New Item",
-                props: { isButton: true, },
-            }
-        )
         combinedQuads.forEach(quad => {
             var extra = ''
             if (quad.subject.termType === 'BlankNode') {
@@ -356,11 +464,12 @@
                 item.props[toCURIE(quad.predicate.value, allPrefixes)] = toCURIE(quad.object.value, allPrefixes)
                 if (quad.predicate.value == SKOS.prefLabel.value) {
                     item.props.hasPrefLabel = true
+                    item.props._prefLabel = quad.object.value;
                 } 
             })
             itemsToListArr.push(item)
         });
-        itemsToList.value = itemsToListArr
+        itemsToList.value = itemsToListArr;
     }
 </script>
 

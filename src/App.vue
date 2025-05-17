@@ -6,5 +6,5 @@
 
 
 <script setup>
-  const confURL = 'config.json'
+  const confURL = 'configinm7.json'
 </script>
