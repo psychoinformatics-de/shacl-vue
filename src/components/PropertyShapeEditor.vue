@@ -13,17 +13,22 @@
                 <v-row no-gutters v-for="(triple, triple_idx) in formData.content[localNodeUid][localNodeIdx][my_uid]" :key="localNodeUid + '-' + my_uid + '-' + triple_idx">
                     <v-col cols="9">
                         <Suspense>
-                            <component
-                                v-model="formData.content[localNodeUid][localNodeIdx][my_uid][triple_idx]"
-                                :is="matchedComponent"
-                                :property_shape="localPropertyShape"
-                                :node_uid="localNodeUid"
-                                :node_idx="localNodeIdx"
-                                :triple_uid="my_uid"
-                                :triple_idx="triple_idx"
-                                :disabled="compDisabled"
-                                >
-                            </component>
+                            <template #default>
+                                <component
+                                    v-model="formData.content[localNodeUid][localNodeIdx][my_uid][triple_idx]"
+                                    :is="matchedComponent"
+                                    :property_shape="localPropertyShape"
+                                    :node_uid="localNodeUid"
+                                    :node_idx="localNodeIdx"
+                                    :triple_uid="my_uid"
+                                    :triple_idx="triple_idx"
+                                    :disabled="compDisabled"
+                                    >
+                                </component>
+                            </template>
+                            <template #fallback>
+                                <v-skeleton-loader :elevation="2" type="list-item-avatar"></v-skeleton-loader>
+                            </template>
                         </Suspense>
                     </v-col>
                     <v-col>
