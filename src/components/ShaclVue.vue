@@ -71,7 +71,7 @@
                                                         >
                                                         <template v-slot="{ item, index, active }">
                                                             <DynamicScrollerItem :item="item" :active="active" class="scroller-item">
-                                                                
+
                                                                 <NodeShapeViewer
                                                                 :classIRI="selectedIRI"
                                                                 :quad="item.props.quad"
@@ -101,7 +101,14 @@
                                                 :value="'panel' + (i+1).toString()"
                                                 :disabled="f.disabled"
                                             >
-                                                <v-expansion-panel-title> <h2><em>Editing: {{ getDisplayName(f.shapeIRI, configVarsMain, allPrefixes) }} </em></h2></v-expansion-panel-title>
+                                                <v-expansion-panel-title>
+                                                  <h2>
+                                                    <em>
+                                                      {{ f.formType === 'new' ? 'Adding' : 'Editing' }}:
+                                                       {{ getDisplayName(f.shapeIRI, configVarsMain, allPrefixes) }}
+                                                    </em>
+                                                   </h2>
+                                                 </v-expansion-panel-title>
                                                 <v-expansion-panel-text density="compact">
                                                     <span v-if="idRecordLoading">
                                                         <v-skeleton-loader type="list-item-avatar"></v-skeleton-loader>
@@ -157,7 +164,7 @@
 
     import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
     import { RecycleScroller, DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
-    
+
 
     const props = defineProps({
         configUrl: String
