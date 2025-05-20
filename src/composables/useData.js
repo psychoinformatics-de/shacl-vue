@@ -57,17 +57,12 @@ export function useData(config) {
                 url: getURL
             };
         }
-        await rdfDS.updateSerializedGraph()
         rdfDS.triggerReactivity()
         return {
             success: true,
             url: getURL
         }
     }
-
-    watch(rdfDS.data.graph, async () => {
-        await rdfDS.updateSerializedGraph();
-    }, { deep: true });
 
     async function fetchFromService(endpoint, arg, prefixes) {
         // endpoint: the name of the endpoint defined in the config
@@ -127,7 +122,13 @@ export function useData(config) {
                 }
             }
             if (anyFailed) {
-                throw new Error("One or more RDF data fetch attempts failed.");
+                var error = new Error("One or more RDF data fetch attempts failed.");
+                return {
+                    success: false,
+                    message: error.message,
+                    error: error,
+                    url: results
+                };
             }
             return {
                 success: true,

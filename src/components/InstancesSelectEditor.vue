@@ -103,7 +103,7 @@
 <script setup>
     import { inject, watch, onBeforeMount, onMounted, ref, provide, computed, nextTick} from 'vue'
     import { useRules } from '../composables/rules'
-    import rdf from 'rdf-ext'
+    import { DataFactory } from 'n3';
     import { SHACL, RDF, RDFS, SKOS } from '@/modules/namespaces'
     import { findObjectByKey } from '../modules/utils';
     import { toCURIE, toIRI } from 'shacl-tulip'
@@ -111,6 +111,7 @@
     import { useBaseInput } from '@/composables/base';
     import { debounce } from 'lodash-es'
     import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
+    const { namedNode, literal } = DataFactory;
 
     // ----- //
     // Props //
@@ -204,11 +205,12 @@
 
     function clearField() {
         menu.value = false
+        subValues.value.selectedInstance = null
         queryText.value = ""
         queryLabel.value = ""
-        subValues.value.selectedInstance = null
-    }
 
+        
+    }
     function setSelectedValue() {
         // Set selected value if the prop has a value
         if (props.modelValue) {
@@ -242,14 +244,17 @@
     })
 
     onBeforeMount(async () => {
+
         if (props.modelValue) {
             fetchingRecordLoader.value = true
-            await fetchFromService('get-record', props.modelValue, allPrefixes)
+            const results = await fetchFromService('get-record', props.modelValue, allPrefixes)
             getItemsToList()
+            await nextTick()
             setSelectedValue()
             scrollToSelectedItem()
             fetchingRecordLoader.value = false
         }
+        
     })
 
     
@@ -320,6 +325,7 @@
     const debouncedUpdate = debounce(() => {
         console.log("CHECK: graphdata instanceselecteditor")
         getItemsToList()
+        setSelectedValue()
     }, 500)
     watch(() => rdfDS.data.graphChanged, debouncedUpdate, { deep: true })
 
@@ -329,16 +335,6 @@
         } else {
             return null
         }
-    });
-
-
-    const filteredItems = computed(() =>{
-        if (!itemsToList.value.length) return []
-        const searchText = queryText.value.toLowerCase()
-        return [...itemsToList.value].filter((item) =>{
-            if (searchText.length == 0) return true
-            return item.props._prefLabel.toLowerCase().includes(searchText.toLowerCase())
-        }).sort((a, b) => a.props._prefLabel?.toLowerCase().localeCompare(b.props._prefLabel?.toLowerCase()));
     });
     
 
@@ -393,11 +389,9 @@
     function getSubClasses(main_class) {
         // Find quads in the subclass datasetnodes with predicate rdfs:subClassOf
         // object main_class, and return as an array of terms
-        const subClasses = rdf.grapoi({ dataset: classDS.data.graph })
-            .hasOut(rdf.namedNode(RDFS.subClassOf.value), rdf.namedNode(main_class))
-            .quads();
+        const subClasses = classDS.data.graph.getQuads(null, namedNode(RDFS.subClassOf.value), namedNode(main_class), null);
         var myArr = []
-        Array.from(subClasses).forEach(quad => {
+        subClasses.forEach(quad => {
             myArr.push(quad.subject.value)
         });
         return myArr
@@ -411,11 +405,7 @@
         return results
     }
 
-    function filterListItems(itemTitle, queryText, item) {
-        const searchText = queryText.toLowerCase()
-        return item.raw.props.hasPrefLabel &&
-            item.raw.props[toCURIE(SKOS.prefLabel.value, allPrefixes)].toLowerCase().indexOf(searchText) > -1
-    }
+    
 
     function getItemsToList() {
         // ---
@@ -425,22 +415,20 @@
         // console.log("(Re)calculating instance items")
         // find nodes with predicate rdf:type and object being the property class
         // console.log("find nodes with predicate rdf:type and object being the property class:")
-        var quads = rdfDS.getLiteralAndNamedNodes(rdf.namedNode(RDF.type), propClass.value, allPrefixes)
+        var quads = rdfDS.getLiteralAndNamedNodes(namedNode(RDF.type.value), propClass.value, allPrefixes)
         // then find nodes with predicate rdfs:subClassOf and object being the property class
         // TODO: here we are only using a named node for the object because this is how the
         // tools/gen_owl_minimal.py script outputs the triples in the ttl file. This should be
         // generalised
-        const subClasses = rdf.grapoi({ dataset: classDS.data.graph })
-            .hasOut(rdf.namedNode(RDFS.subClassOf.value), rdf.namedNode(propClass.value))
-            .quads();
+        const subClasses = classDS.data.graph.getQuads(null, namedNode(RDFS.subClassOf.value), namedNode(propClass.value), null);
         // For each subclass, find the quads in graphData that has the class name as object
         // and RDF.type as predicate
         var myArr = []
-        Array.from(subClasses).forEach(quad => {
+        subClasses.forEach(quad => {
             const cl = quad.subject.value
             // console.log(`\t - getting quads with class: ${cl}`)
             // console.log(`\t - (size of data graph: ${graphData.size})`)
-            myArr = myArr.concat(rdfDS.getLiteralAndNamedNodes(rdf.namedNode(RDF.type), cl, allPrefixes))
+            myArr = myArr.concat(rdfDS.getLiteralAndNamedNodes(namedNode(RDF.type.value), cl, allPrefixes))
         });
         // Then combine all quad arrays
         // const combinedQuads = quads.concat(savedQuads).concat(myArr);
@@ -469,6 +457,16 @@
         });
         itemsToList.value = itemsToListArr;
     }
+
+    // filter and sort
+    const filteredItems = computed(() =>{
+        if (!itemsToList.value.length) return []
+        const searchText = queryText.value.toLowerCase()
+        return [...itemsToList.value].filter((item) =>{
+            if (searchText.length == 0) return true
+            return item.props._prefLabel.toLowerCase().includes(searchText.toLowerCase())
+        }).sort((a, b) => a.props._prefLabel?.toLowerCase().localeCompare(b.props._prefLabel?.toLowerCase()));
+    });
 </script>
 
 <!-- Component matching logic -->

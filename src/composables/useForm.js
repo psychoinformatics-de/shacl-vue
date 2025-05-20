@@ -1,12 +1,12 @@
 // formdata.js
 
 import { reactive, toRaw} from 'vue'
-import rdf from 'rdf-ext';
 import { SHACL } from '@/modules/namespaces';
 import { replaceServiceIdentifier} from '@/modules/utils';
 import { postRDF } from '@/modules/io'
 import { useToken } from '@/composables/tokens'
 import { FormBase } from 'shacl-tulip' 
+import { Store } from 'n3';
 
 export function useForm(config) {
 
@@ -87,7 +87,7 @@ export function useForm(config) {
                         }
                     });
                     // Create an rdf dataset per record
-                    var ds = rdf.dataset()
+                    var ds = new Store()
                     quads.forEach(quad => {
                         ds.add(quad)
                     });

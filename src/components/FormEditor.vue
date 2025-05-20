@@ -146,7 +146,7 @@
   const formattedDescription = computed(() => {
     // For the class description, use a regular expression to replace text between backticks with <code> tags
     if (shape_obj) {
-        return addCodeTagsToText(shape_obj[SHACL.description])
+        return addCodeTagsToText(shape_obj[SHACL.description.value])
     } else { return '-'}
     })
 

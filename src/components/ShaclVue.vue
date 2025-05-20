@@ -160,11 +160,12 @@
     import { useShapes } from '@/composables/useShapes';
     import { useForm } from '@/composables/useForm';
     import { useToken } from '@/composables/tokens';
-    import rdf from 'rdf-ext'
-    import {SHACL, RDF, RDFS, DLTHINGS, XSD, SKOS} from '@/modules/namespaces'
+    import { DataFactory } from 'n3';
+    import {SHACL, RDF, SKOS} from '@/modules/namespaces'
     import { debounce } from 'lodash-es'
     import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
     import { RecycleScroller, DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
+    const { namedNode } = DataFactory;
     
 
     const props = defineProps({
@@ -384,7 +385,7 @@
     const formattedDescription = computed(() => {
         // For the class description, use a regular expression to replace text between backticks with <code> tags
         if (selectedShape.value) {
-            return addCodeTagsToText(selectedShape.value[SHACL.description])
+            return addCodeTagsToText(selectedShape.value[SHACL.description.value])
         } else { return '-'}
     })
 
@@ -549,7 +550,7 @@
             return []
         }
         // find nodes with triple predicate == rdf:type, and triple object == the selected class
-        var quads = rdfDS.getLiteralAndNamedNodes(rdf.namedNode(RDF.type), selectedIRI.value, allPrefixes)
+        var quads = rdfDS.getLiteralAndNamedNodes(namedNode(RDF.type.value), selectedIRI.value, allPrefixes)
         // Create list items from quads
         var instanceItemsArr = []
         quads.forEach(quad => {

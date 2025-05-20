@@ -10,16 +10,7 @@
 
 import formats from '@rdfjs/formats-common'
 import fetch from '@rdfjs/fetch-lite'
-import formatsPretty from '@rdfjs/formats/pretty.js'
-import rdf from 'rdf-ext'
-import N3 from 'n3';
-
-import { toRaw } from 'vue';
-
-// clone the default environment
-const rdfPretty = rdf.clone()
-// import pretty print serializers
-rdfPretty.formats.import(formatsPretty)
+import { Writer } from 'n3';
 
 export async function postRDF(endpoint, dataset, format = 'text/turtle', headers = {}, prefixes) {
     const url = endpoint
@@ -28,7 +19,14 @@ export async function postRDF(endpoint, dataset, format = 'text/turtle', headers
         headers['Content-Type'] = format;
 
         // Serialize the dataset to the desired format
-        const body = await rdfPretty.io.dataset.toText('text/turtle', dataset)
+        const body = await new Promise((resolve, reject) => {
+            const writer = new Writer({ prefixes: prefixes });
+            writer.addQuads(dataset.getQuads(null, null, null, null));
+            writer.end((error, result) => {
+                if (error) reject(error);
+                else resolve(result.trim());
+            });
+        });
 
         const response = await fetch(url, {
             method: 'POST',

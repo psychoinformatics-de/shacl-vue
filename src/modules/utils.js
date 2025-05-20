@@ -1,6 +1,8 @@
 import { SHACL, RDFS, DLTHINGS, SKOS} from '../modules/namespaces'
-import rdf from 'rdf-ext';
 import { toCURIE, toIRI } from 'shacl-tulip';
+import { DataFactory } from 'n3';
+const { namedNode } = DataFactory;
+
 
 export function nameOrCURIE(shape, prefixes, readable=false) {
   if (shape.hasOwnProperty(SHACL.name.value)) {
@@ -112,7 +114,7 @@ export function getPrefLabel(node, graphDataset, allPrefixes, from) {
   // console.log(allPrefixes)
   var prefLabel = ""
   // Get quads related to a subject
-  node.value = toIRI(node.value, allPrefixes)
+  // node.value = toIRI(node.value, allPrefixes)
   var relatedQuads = graphDataset.getSubjectTriples(node)
   
   // Isolate first quad with predicate 'skos:prefLabel'
@@ -214,10 +216,7 @@ export function getSuperClasses(class_uri, graph) {
 }
 
 export function getSuperClass(class_uri, graph) {
-  const superClass = Array.from(rdf.grapoi({ dataset: graph })
-      .hasIn(rdf.namedNode(RDFS.subClassOf.value), rdf.namedNode(class_uri))
-      .quads()
-  )
+  const superClass = graph.getQuads(namedNode(class_uri), namedNode(RDFS.subClassOf.value), null, null)
   if (superClass.length > 0) {
     // this is an array which will most likely have a single element, but could have multiple
     return superClass.reverse()

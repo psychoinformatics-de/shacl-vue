@@ -1,6 +1,6 @@
 import { reactive, ref} from 'vue'
 import { RdfDataset } from "shacl-tulip";
-import rdf from 'rdf-ext'
+import { Store } from 'n3';
 
 export class ReactiveRdfDataset extends RdfDataset {
     constructor(data = reactive({})) {
@@ -18,8 +18,7 @@ export class ReactiveRdfDataset extends RdfDataset {
         this.data.batchMode = true;
     }
 
-    async onDataEndFn() {
-        await this.updateSerializedGraph()
+    onDataEndFn() {
         this.data.graphLoaded = true
         this.data.batchMode = false;
         this.triggerReactivity();
@@ -33,12 +32,12 @@ export class ReactiveRdfDataset extends RdfDataset {
 
     createReactiveDataset() {
         console.log("Running: ReactiveRdfDataset createReactiveDataset()")
-        const dataset = rdf.dataset();
+        const dataset = new Store();
         const self = this;
         const proxy = new Proxy(dataset, {
             get(target, prop, receiver) {
                 const value = Reflect.get(target, prop, receiver);
-                if (typeof value === 'function' && ['add', 'delete', 'deleteMatches', 'toCanonical', 'toStream', 'toString'].includes(prop)) {
+                if (typeof value === 'function' && ['add', 'addQuad', 'delete', 'removeQuad', 'removeMatches'].includes(prop)) {
                     return function (...args) {
                         const result = value.apply(target, args);
                         if (!self.data.batchMode) {

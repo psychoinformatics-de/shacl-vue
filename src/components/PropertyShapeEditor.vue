@@ -193,11 +193,11 @@
         // if there is no maxCount, allowMultiple = true
         // if the maxCount is 1, allowMultiple = false
         // if the maxCount > 1, allowMultiple = true
-        if (localPropertyShape.value.hasOwnProperty(SHACL.maxCount)) {
-            if (localPropertyShape.value[SHACL.maxCount] == 1) {
+        if (localPropertyShape.value.hasOwnProperty(SHACL.maxCount.value)) {
+            if (localPropertyShape.value[SHACL.maxCount.value] == 1) {
                 return false
-            } else if (localPropertyShape.value[SHACL.maxCount] > 1
-                        && formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value].length < localPropertyShape.value[SHACL.maxCount]
+            } else if (localPropertyShape.value[SHACL.maxCount.value] > 1
+                        && formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value].length < localPropertyShape.value[SHACL.maxCount.value]
                         && formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value].length == idx + 1
             ) {
                 return true
