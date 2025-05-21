@@ -13,17 +13,22 @@
                 <v-row no-gutters v-for="(triple, triple_idx) in formData.content[localNodeUid][localNodeIdx][my_uid]" :key="localNodeUid + '-' + my_uid + '-' + triple_idx">
                     <v-col cols="9">
                         <Suspense>
-                            <component
-                                v-model="formData.content[localNodeUid][localNodeIdx][my_uid][triple_idx]"
-                                :is="matchedComponent"
-                                :property_shape="localPropertyShape"
-                                :node_uid="localNodeUid"
-                                :node_idx="localNodeIdx"
-                                :triple_uid="my_uid"
-                                :triple_idx="triple_idx"
-                                :disabled="compDisabled"
-                                >
-                            </component>
+                            <template #default>
+                                <component
+                                    v-model="formData.content[localNodeUid][localNodeIdx][my_uid][triple_idx]"
+                                    :is="matchedComponent"
+                                    :property_shape="localPropertyShape"
+                                    :node_uid="localNodeUid"
+                                    :node_idx="localNodeIdx"
+                                    :triple_uid="my_uid"
+                                    :triple_idx="triple_idx"
+                                    :disabled="compDisabled"
+                                    >
+                                </component>
+                            </template>
+                            <template #fallback>
+                                <v-skeleton-loader :elevation="2" type="list-item-avatar"></v-skeleton-loader>
+                            </template>
                         </Suspense>
                     </v-col>
                     <v-col>
@@ -188,11 +193,11 @@
         // if there is no maxCount, allowMultiple = true
         // if the maxCount is 1, allowMultiple = false
         // if the maxCount > 1, allowMultiple = true
-        if (localPropertyShape.value.hasOwnProperty(SHACL.maxCount)) {
-            if (localPropertyShape.value[SHACL.maxCount] == 1) {
+        if (localPropertyShape.value.hasOwnProperty(SHACL.maxCount.value)) {
+            if (localPropertyShape.value[SHACL.maxCount.value] == 1) {
                 return false
-            } else if (localPropertyShape.value[SHACL.maxCount] > 1
-                        && formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value].length < localPropertyShape.value[SHACL.maxCount]
+            } else if (localPropertyShape.value[SHACL.maxCount.value] > 1
+                        && formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value].length < localPropertyShape.value[SHACL.maxCount.value]
                         && formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value].length == idx + 1
             ) {
                 return true

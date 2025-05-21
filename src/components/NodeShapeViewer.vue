@@ -31,13 +31,18 @@
                 </span>
             </span>
             <!-- Blank nodes -->
-            <span v-for="(v, k, index) in record.triples['BlankNode']">
-                <strong>{{ makeReadable(toCURIE(k, allPrefixes, "parts").property) }}</strong>:
-                <br>
-                <span v-for="(el, i) in v">
-                    <div>
-                        <BlankNodeViewer :node="el"></BlankNodeViewer>
-                    </div>
+             <br>
+            <v-btn no-gutters v-if="Object.keys(record.triples['BlankNode']).length > 0" @click="showHideBlankNodes()" density="compact" :append-icon="showBlankNodes ? 'mdi-chevron-down': 'mdi-chevron-right'">More details</v-btn>
+            <span v-if="showBlankNodes">
+                <br><br>
+                <span v-for="(v, k, index) in record.triples['BlankNode']">
+                    <strong>{{ makeReadable(toCURIE(k, allPrefixes, "parts").property) }}</strong>:
+                    <br>
+                    <span v-for="(el, i) in v">
+                        <div>
+                            <BlankNodeViewer :node="el"></BlankNodeViewer>
+                        </div>
+                    </span>
                 </span>
             </span>
         </v-card-text>
@@ -47,7 +52,7 @@
 </template>
 
 <script setup>
-    import { reactive, onBeforeMount, inject, onUpdated} from 'vue'
+    import { reactive, onBeforeMount, inject, onUpdated, ref, nextTick} from 'vue'
     import { toCURIE } from 'shacl-tulip'
     import { makeReadable, getPrefLabel} from '../modules/utils';
     import { RDF } from '@/modules/namespaces';
@@ -64,6 +69,7 @@
     const getClassIcon = inject('getClassIcon')
     const rdfDS = inject('rdfDS')
     const record = reactive({})
+    const showBlankNodes = ref(false)
 
     onBeforeMount(() => {
         updateRecord()
@@ -72,6 +78,10 @@
     onUpdated(() => {
         updateRecord()
     })
+
+    function showHideBlankNodes() {
+        showBlankNodes.value = !showBlankNodes.value
+    }
 
     function updateRecord() {
         record.title = props.quad.subject.value

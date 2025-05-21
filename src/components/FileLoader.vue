@@ -48,7 +48,6 @@
   
   <script setup>
   import { ref, computed } from 'vue'
-  import rdf from 'rdf-ext'
   
   // Allowed RDF file MIME types
   const allowedMimeTypes = [
@@ -144,7 +143,6 @@
     reader.onload = (e) => {
       const content = e.target.result
       try {
-        rdf.dataset() // Dummy usage of rdf-ext; actual validation logic can be added here if necessary.
         // If the file is valid, process and store it
         fileData.value = {
           name: file.name,

@@ -34,7 +34,7 @@
                                         <span v-if="selectedIRI">
                                             <h2 class="mx-4 mb-4 truncate-heading">
                                                 {{ getDisplayName(selectedIRI, configVarsMain, allPrefixes) }}
-                                                &nbsp;&nbsp; <v-btn icon="mdi-plus" size="x-small" variant="tonal" @click="addInstanceItem()"></v-btn>
+                                                &nbsp;&nbsp; <v-btn icon="mdi-plus" size="x-small" variant="tonal" @click="addInstanceItem()" :disabled="openForms.length > 0"></v-btn>
                                             </h2>
 
                                             <p class="mx-4 mb-4" v-html="formattedDescription"></p>
@@ -53,9 +53,15 @@
                                                                 label="Enter search text"
                                                                 hide-details="auto"
                                                                 style="margin: 1em;"
+                                                                :disabled="openForms.length > 0"
                                                             >
+                                                            <template v-slot:append-inner>
+                                                                <v-icon v-if="searchText" class="mr-2" @click.stop="clearField()" @mousedown.stop.prevent >
+                                                                    mdi-close-circle
+                                                                </v-icon>
+                                                            </template>
                                                                 <template #append>
-                                                                    <v-btn variant="outlined" @click="toggleOrder" :append-icon="orderIcon">Order</v-btn>
+                                                                    <v-btn variant="outlined" @click="toggleOrder" :append-icon="orderIcon" :disabled="openForms.length > 0">Order</v-btn>
                                                                 </template>
                                                             </v-text-field>
                                                         </v-col>
@@ -70,15 +76,16 @@
                                                         class="virtual-scroller"
                                                         >
                                                         <template v-slot="{ item, index, active }">
-                                                            <DynamicScrollerItem :item="item" :active="active" class="scroller-item">
-
-                                                                <NodeShapeViewer
-                                                                :classIRI="selectedIRI"
-                                                                :quad="item.props.quad"
-                                                                :key="selectedIRI + '-' + item.title + '-' + itemsTrigger"
-                                                                :formOpen="formOpen"
-                                                                :variant="item.title == queried_id ? 'outlined' : 'tonal'"
-                                                                />
+                                                            <DynamicScrollerItem :item="item" :index="index" :active="active" class="scroller-item" :ref="itemRefs[index]">
+                                                                <template #default>
+                                                                    <NodeShapeViewer
+                                                                    :classIRI="selectedIRI"
+                                                                    :quad="item.props.quad"
+                                                                    :key="selectedIRI + '-' + item.title "
+                                                                    :formOpen="formOpen"
+                                                                    :variant="item.title == queried_id ? 'outlined' : 'tonal'"
+                                                                    />
+                                                                </template>
                                                             </DynamicScrollerItem>
                                                         </template>
                                                     </DynamicScroller>
@@ -91,6 +98,7 @@
                                         <span v-else style="margin-top: 1em; margin-left: 1em;">
                                             <em>Select a data type</em>
                                         </span>
+                                        
 
                                     </v-col>
                                     <v-col v-if="formOpen" cols="9">
@@ -159,12 +167,12 @@
     import { useShapes } from '@/composables/useShapes';
     import { useForm } from '@/composables/useForm';
     import { useToken } from '@/composables/tokens';
-    import rdf from 'rdf-ext'
-    import {SHACL, RDF, RDFS, DLTHINGS, XSD, SKOS} from '@/modules/namespaces'
-
+    import { DataFactory } from 'n3';
+    import {SHACL, RDF, SKOS} from '@/modules/namespaces'
+    import { debounce } from 'lodash-es'
     import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
     import { RecycleScroller, DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
-
+    const { namedNode } = DataFactory;
 
     const props = defineProps({
         configUrl: String
@@ -175,6 +183,7 @@
     // ---------------------------------------------------- //
     const mainContent = ref(null)
     const config_ready = ref(false)
+    const itemRefs = ref([])
     const { config, configFetched, configError, configVarsMain, loadConfigVars} = useConfig(props.configUrl);
     const { rdfDS, getRdfData, fetchFromService } = useData(config)
     const { classDS, getClassData } = useClasses(config)
@@ -255,24 +264,17 @@
             ) {
                 console.log("service_fetch_before!")
                 if (config.value.service_fetch_before["get-record"]?.length > 0) {
-                    for (var iri of config.value.service_fetch_before["get-record"]) {
-                        console.log(`fetching record upfront: ${iri}`)
-                        var result = await fetchFromService('get-record', iri, allPrefixes)
-                        console.log(result)
-                        if (!result.success) {
-                            console.error(`Failed to fetch from ${result.url}: ${result.message}`)
-                        }
-                    }
+                    const fetchRPromises = config.value.service_fetch_before["get-record"].map(iri =>
+                        fetchFromService('get-record', iri, allPrefixes)
+                    )
+                    var results = await Promise.allSettled(fetchRPromises)
                 }
                 if (config.value.service_fetch_before["get-records"]?.length > 0) {
-                    for (var iri of config.value.service_fetch_before["get-records"]) {
-                        console.log(`fetching recordS upfront: ${iri}`)
-                        var result = await fetchFromService('get-records', iri, allPrefixes)
-                        console.log(result)
-                        if (!result.success) {
-                            console.error(`Failed to fetch from ${result.url}: ${result.message}`)
-                        }
-                    }
+
+                    const fetchRsPromises = config.value.service_fetch_before["get-records"].map(iri =>
+                        fetchFromService('get-records', iri, allPrefixes)
+                    )
+                    var results = await Promise.allSettled(fetchRsPromises)
                 }
             }
             setViewFromQuery()
@@ -316,9 +318,6 @@
         }
     }, { immediate: true });
 
-
-
-
     const activatedInstancesSelectEditor = ref(null)
     provide('activatedInstancesSelectEditor', activatedInstancesSelectEditor)
     const lastSavedNode = ref(null)
@@ -354,6 +353,15 @@
         editShapeIRI.value = null
     })
 
+
+    const debouncedUpdate = debounce(() => {
+        if (openForms.length == 0) {
+            console.log("CHECK: graphdata shaclvue")
+            getInstanceItems()
+        }
+    }, 500)
+    watch(() => rdfDS.data.graphChanged, debouncedUpdate, { deep: true })
+
     const idFilteredNodeShapeNames = computed(() =>{
         if (configVarsMain.showShapesWoID === true) {
             return shapesDS.data.nodeShapeNamesArray
@@ -384,17 +392,18 @@
         }
         return shapeNames
     })
-    watch(rdfDS.data.graph, () => {
-        console.log("Graphdata UPDATED SHACLVUE")
-        itemsTrigger.value = !itemsTrigger.value
-    }, { deep: true });
+    
 
     const formattedDescription = computed(() => {
         // For the class description, use a regular expression to replace text between backticks with <code> tags
         if (selectedShape.value) {
-            return addCodeTagsToText(selectedShape.value[SHACL.description])
+            return addCodeTagsToText(selectedShape.value[SHACL.description.value])
         } else { return '-'}
     })
+
+    function clearField() {
+        searchText.value = ""
+    }
 
     async function selectType(IRI, fromUser) {
         console.log(`Selecting type: ${IRI}`)
@@ -414,6 +423,7 @@
                 // Optionally trigger UI error state or notification
             }
         }
+        getInstanceItems()
         nextTick(() => {
             const el = mainContent.value?.$el || mainContent.value
             if (el) el.scrollTop = 0
@@ -512,17 +522,6 @@
         }
         editItemIdx.value = instance.value // this is the id
 
-        // See: https://hub.datalad.org/datalink/annotate-trr379-demo/issues/32
-        // leaving the following commented out for now:
-        // if (config.value.use_service) {
-        //     idRecordLoading.value = true
-        //     // First fetch rdf data from configured service
-        //     await fetchFromService('get-record', editItemIdx.value, allPrefixes)
-        //     idRecordLoading.value = false
-        //     // Then continue with the rest
-        //     await nextTick();
-        // }
-
         // if the node is already in the formData, edit that
         if (formData.content[editShapeIRI.value]?.[editItemIdx.value]) {
             console.log("The node is already in the formData, we will edit that")
@@ -548,10 +547,14 @@
     provide('editInstanceItem', editInstanceItem)
 
 
-    const instanceItemsComp = computed(() =>{
+    const instanceItemsComp = ref([])
+
+
+    function getInstanceItems() {
         // ---
         // The goal of this method is to populate the list of data objects of the selected type
         // ---
+        console.log("(re)calculating shaclvue list of records")
 
         var x = itemsTrigger.value
 
@@ -559,7 +562,7 @@
             return []
         }
         // find nodes with triple predicate == rdf:type, and triple object == the selected class
-        var quads = rdfDS.getLiteralAndNamedNodes(rdf.namedNode(RDF.type), selectedIRI.value, allPrefixes)
+        var quads = rdfDS.getLiteralAndNamedNodes(namedNode(RDF.type.value), selectedIRI.value, allPrefixes)
         // Create list items from quads
         var instanceItemsArr = []
         quads.forEach(quad => {
@@ -594,8 +597,8 @@
             }
             instanceItemsArr.push(item)
         });
-        return instanceItemsArr
-    })
+        instanceItemsComp.value = instanceItemsArr
+    }
 
     const filteredInstanceItemsComp = computed(() =>{
         var c = orderTopDown.value ? 1 : -1
@@ -655,7 +658,9 @@
             editMode.form = editMode.graph = false
             updateURL(selectedIRI.value, false)
             classRecordsLoading.value = false
-            itemsTrigger.value = !itemsTrigger.value
+            if (savedNode) {
+                getInstanceItems()
+            }
         }
     }
     provide('addForm', addForm)
