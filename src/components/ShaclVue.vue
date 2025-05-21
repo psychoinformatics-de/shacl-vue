@@ -109,7 +109,14 @@
                                                 :value="'panel' + (i+1).toString()"
                                                 :disabled="f.disabled"
                                             >
-                                                <v-expansion-panel-title> <h2><em>Editing: {{ getDisplayName(f.shapeIRI, configVarsMain, allPrefixes) }} </em></h2></v-expansion-panel-title>
+                                                <v-expansion-panel-title>
+                                                  <h2>
+                                                    <em>
+                                                      {{ f.formType === 'new' ? 'Adding' : 'Editing' }}:
+                                                       {{ getDisplayName(f.shapeIRI, configVarsMain, allPrefixes) }}
+                                                    </em>
+                                                   </h2>
+                                                 </v-expansion-panel-title>
                                                 <v-expansion-panel-text density="compact">
                                                     <span v-if="idRecordLoading">
                                                         <v-skeleton-loader type="list-item-avatar"></v-skeleton-loader>
@@ -166,7 +173,6 @@
     import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
     import { RecycleScroller, DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
     const { namedNode } = DataFactory;
-    
 
     const props = defineProps({
         configUrl: String
@@ -198,11 +204,17 @@
             document.documentElement.style.setProperty("--hover-color", configVarsMain.appTheme.hover_color);
             document.documentElement.style.setProperty("--visited-color", adjustHexColor(configVarsMain.appTheme.link_color, -1));
             document.documentElement.style.setProperty("--active-color", configVarsMain.appTheme.active_color);
+            // Set html document title from config variables
+            if (configVarsMain.pageTitle) {
+                document.title = configVarsMain.pageTitle
+            } else if (configVarsMain.appName) {
+                document.title = configVarsMain.appName
+            } else {
+                document.title = "shacl-vue"
+            }
             config_ready.value = true
-
             formData.ID_IRI = ID_IRI.value
-            console.log("vkljhgvkcf")
-            console.log(toRaw(formData.content))
+
             await getRdfData()
             await getClassData()
             await getSHACLschema()
