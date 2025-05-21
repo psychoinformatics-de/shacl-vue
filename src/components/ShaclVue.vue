@@ -169,11 +169,17 @@
             document.documentElement.style.setProperty("--hover-color", configVarsMain.appTheme.hover_color);
             document.documentElement.style.setProperty("--visited-color", adjustHexColor(configVarsMain.appTheme.link_color, -1));
             document.documentElement.style.setProperty("--active-color", configVarsMain.appTheme.active_color);
+            // Set html document title from config variables
+            if (configVarsMain.pageTitle) {
+                document.title = configVarsMain.pageTitle
+            } else if (configVarsMain.appName) {
+                document.title = configVarsMain.appName
+            } else {
+                document.title = "shacl-vue"
+            }
             config_ready.value = true
-
             formData.ID_IRI = ID_IRI.value
-            console.log("vkljhgvkcf")
-            console.log(toRaw(formData.content))
+
             await getRdfData()
             await getClassData()
             await getSHACLschema()

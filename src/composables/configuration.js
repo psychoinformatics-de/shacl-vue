@@ -8,12 +8,13 @@ import { ref, onMounted, reactive } from 'vue'
 const basePath = import.meta.env.BASE_URL || '/';
 
 const mainVarsToLoad = {
+    "app_name": "shacl-vue",
+    "page_title": "shacl-vue",
     "show_shapes_wo_id": true,
     "hide_classes": [],
     "id_autogenerate": {},
     "prefixes": {},
     "class_icons": {},
-    "app_name": "shacl-vue",
     "documentation_url": "https://psychoinformatics-de.github.io/shacl-vue/docs/",
     "source_code_url": "https://github.com/psychoinformatics-de/shacl-vue",
     "app_theme": {
