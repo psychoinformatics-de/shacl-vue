@@ -38,8 +38,8 @@ export function useRules(propShape) {
       ? String(propShape[SHACL.message.value])
       : `Value must match pattern: /${patternStr}/`
 
-    // Required rule -> “Field cant be empty”
-    //Pattern rule -> “Field doesnt match the regex”
+    // Required rule -> “Field can't be empty”
+    //Pattern rule -> “Field doesn't match the regex”
     rules.value.push(v => {
       if (!v) return true           // let “required” handle emptiness
       return regex.test(v) || message
