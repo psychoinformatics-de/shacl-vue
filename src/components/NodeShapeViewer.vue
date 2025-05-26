@@ -24,7 +24,7 @@
                         <strong>{{ nameOrCURIE(propertyShapes[k], shapesDS.data.prefixes, true) }}</strong>:
                         <span v-for="(el, i) in v">
                             <span v-if="v.length > 1"><br>&nbsp;- </span>
-                            &nbsp;<TextOrLinkViewer :textVal="el.value" :prefLabel="getPrefLabel(el, rdfDS, allPrefixes)"></TextOrLinkViewer>
+                            &nbsp;<TextOrLinkViewer v-if="el.value" :textVal="el.value" :prefLabel="getPrefLabel(el, rdfDS, allPrefixes)"></TextOrLinkViewer>
                         </span>
                         <br>
                     </span>
