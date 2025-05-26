@@ -21,7 +21,7 @@
             <span v-for="tt of ['Literal', 'NamedNode']">
                 <span v-for="(v, k, index) in record.triples[tt]">
                     <span v-if="k != RDF.type.value ">
-                        <strong>{{ makeReadable(toCURIE(k, allPrefixes, "parts").property) }}</strong>:
+                        <strong>{{ nameOrCURIE(propertyShapes[k], shapesDS.data.prefixes, true) }}</strong>:
                         <span v-for="(el, i) in v">
                             <span v-if="v.length > 1"><br>&nbsp;- </span>
                             &nbsp;<TextOrLinkViewer :textVal="el.value" :prefLabel="getPrefLabel(el, rdfDS, allPrefixes)"></TextOrLinkViewer>
@@ -54,8 +54,8 @@
 <script setup>
     import { reactive, onBeforeMount, inject, onUpdated, ref, nextTick} from 'vue'
     import { toCURIE } from 'shacl-tulip'
-    import { makeReadable, getPrefLabel} from '../modules/utils';
-    import { RDF } from '@/modules/namespaces';
+    import { makeReadable, getPrefLabel, nameOrCURIE} from '../modules/utils';
+    import { RDF, SHACL} from '@/modules/namespaces';
     // Define component properties
     const props = defineProps({
         classIRI: String,
@@ -68,8 +68,14 @@
     const allPrefixes = inject('allPrefixes')
     const getClassIcon = inject('getClassIcon')
     const rdfDS = inject('rdfDS')
+    const shapesDS = inject('shapesDS')
     const record = reactive({})
     const showBlankNodes = ref(false)
+    const shape_obj = shapesDS.data.nodeShapes[props.classIRI]
+    const propertyShapes = {}
+    for (var p of shape_obj.properties) {
+        propertyShapes[p[SHACL.path.value]] = p
+    }
 
     onBeforeMount(() => {
         updateRecord()
