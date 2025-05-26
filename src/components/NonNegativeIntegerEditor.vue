@@ -8,11 +8,14 @@
         style="margin-bottom: 1em;"
     >
         <v-text-field
-            v-model="subValues.text"
+            v-model="subValues.intVal"
+            type="number"
             density="compact"
             variant="outlined"
-            label="add text"
+            label="add integer value"
             hide-details="auto"
+            @input="onInput"
+            ref="inputRef"
         >
         </v-text-field>
     </v-input>
@@ -22,6 +25,7 @@
     import { useRules } from '../composables/rules'
     import { useRegisterRef } from '../composables/refregister';
     import { useBaseInput } from '@/composables/base';
+    import { ref } from 'vue';
 
     const props = defineProps({
         modelValue: String,
@@ -31,7 +35,16 @@
         triple_uid: String,
         triple_idx: Number
     })
+    const inputRef = ref(null)
     const { rules } = useRules(props.property_shape)
+    rules.value.push(
+        value => {
+            const num = Number(value)
+            if (value === '' || value === null || value === undefined) return true
+            if (Number.isInteger(num) && num >= 0) return true
+            return 'Value should be a non-negative integer'
+        }
+    )
     const inputId = `input-${Date.now()}`;
     const { fieldRef } = useRegisterRef(inputId, props);
     const emit = defineEmits(['update:modelValue']);
@@ -45,19 +58,25 @@
     function valueParser(value) {
         // Parsing internalValue into ref values for separate subcomponent(s)
         return {
-            text: value,
+            intVal: value,
         }
     }
 
     function valueCombiner(values) {
         // Determine internalValue from subvalues/subcomponents
-        return values.text
+        return values.intVal
+    }
+    
+    function onInput(event) {
+        if (internalValue.value === '') {
+            event.target.value = ''
+        }
     }
 
 </script>
 
 <script>
-    import { SHACL, DASH, XSD, DLDIST} from '../modules/namespaces'
+    import { SHACL, XSD} from '../modules/namespaces'
     export const matchingLogic = (shape) => {
         // sh:nodeKind exists
         if ( shape.hasOwnProperty(SHACL.nodeKind.value) ) {
@@ -65,14 +84,9 @@
             if ( shape[SHACL.nodeKind.value] == SHACL.Literal.value ) {
                 // sh:datatype exists
                 if ( shape.hasOwnProperty(SHACL.datatype.value) ) {
-                    // sh:datatype == xsd:string
-                    if ( shape[SHACL.datatype.value] == XSD.string.value) {
-                        // text field or text area
-                        if (shape.hasOwnProperty(DASH.singleLine.value) && shape[DASH.singleLine.value] == "false") {
-                            return false
-                        } else {
-                            return true
-                        }   
+                    // sh:datatype == xsd:nonNegativeInteger
+                    if ( shape[SHACL.datatype.value] == XSD.nonNegativeInteger.value) {
+                        return true
                     }
                     return false
                 }
@@ -80,14 +94,9 @@
         }
         // sh:nodeKind does not exist BUT sh:datatype exists
         if ( shape.hasOwnProperty(SHACL.datatype.value) ) {
-            // sh:datatype == xsd:string
-            if ( shape[SHACL.datatype.value] == XSD.string.value) {
-                // text field or text area
-                if (shape.hasOwnProperty(DASH.singleLine.value) && shape[DASH.singleLine.value] == "false") {
-                    return false
-                } else {
-                    return true
-                }   
+            // sh:datatype == xsd:nonNegativeInteger
+            if ( shape[SHACL.datatype.value] == XSD.nonNegativeInteger.value) {
+                return true
             }
             return false
         }
