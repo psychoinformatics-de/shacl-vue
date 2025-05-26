@@ -89,6 +89,7 @@ export function useData(config) {
             const results = [];
             let allFailed = true;
             let anyFailed = false;
+            let allSkipped = true;
 
             for (const baseUrl of baseUrls) {
                 const getURL = `${baseUrl}${query_string}`;
@@ -110,6 +111,7 @@ export function useData(config) {
                     results.push({
                         url: getURL,
                         success: false,
+                        skipped: false,
                         message: result.message || "Failed to fetch RDF data."
                     });
                     anyFailed = true;
@@ -117,6 +119,7 @@ export function useData(config) {
                     results.push({
                         url: getURL,
                         success: true,
+                        skipped: false,
                     });
                     allFailed = false;
                 }
@@ -130,8 +133,15 @@ export function useData(config) {
                     url: results
                 };
             }
+            for (var r of results) {
+                if (!r.skipped) {
+                    allSkipped = false
+                    break;
+                }
+            }
             return {
                 success: true,
+                skipped: allSkipped,
                 url: results
             };
         } catch (error) {
