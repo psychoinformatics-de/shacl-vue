@@ -234,6 +234,8 @@
     const superClasses = reactive({})
     provide('superClasses', superClasses)
     const searchText = ref("")
+    const instanceItemsComp = ref([])
+    var newTypeSelected = false
 
     // ---------------------------------------------- //
     // ONCE ALL SHAPES/CLASSES/DATA/FORMS ARE LOADED:
@@ -362,6 +364,16 @@
     }, 500)
     watch(() => rdfDS.data.graphChanged, debouncedUpdate, { deep: true })
 
+    watch(instanceItemsComp, (newVal, oldVal) => {
+        if (newTypeSelected) {
+            newTypeSelected = false
+            return
+        }
+        if (classRecordsLoading.value) {
+            classRecordsLoading.value = false;
+        }
+    }, { deep: true });
+
     const idFilteredNodeShapeNames = computed(() =>{
         if (configVarsMain.showShapesWoID === true) {
             return shapesDS.data.nodeShapeNamesArray
@@ -407,6 +419,7 @@
 
     async function selectType(IRI, fromUser) {
         console.log(`Selecting type: ${IRI}`)
+        newTypeSelected = true;
         searchText.value = ""
         selectedIRI.value = IRI
         selectedShape.value = shapesDS.data.nodeShapes[IRI]
@@ -416,11 +429,9 @@
             var result = await fetchFromService('get-records', IRI, allPrefixes)
             if (!result.success) {
                 console.error(result.error)
-                classRecordsLoading.value = false
             }
-            if (result.success || result.skipped) {
+            if (result.success && result.skipped) {
                 classRecordsLoading.value = false
-                // Optionally trigger UI error state or notification
             }
         }
         getInstanceItems()
@@ -547,8 +558,6 @@
     provide('editInstanceItem', editInstanceItem)
 
 
-    const instanceItemsComp = ref([])
-
 
     function getInstanceItems() {
         // ---
@@ -597,7 +606,7 @@
             }
             instanceItemsArr.push(item)
         });
-        instanceItemsComp.value = instanceItemsArr
+        instanceItemsComp.value = [...instanceItemsArr]
     }
 
     const filteredInstanceItemsComp = computed(() =>{
@@ -657,10 +666,10 @@
             canSubmit.value = true
             editMode.form = editMode.graph = false
             updateURL(selectedIRI.value, false)
-            classRecordsLoading.value = false
             if (savedNode) {
                 getInstanceItems()
             }
+            classRecordsLoading.value = false
         }
     }
     provide('addForm', addForm)

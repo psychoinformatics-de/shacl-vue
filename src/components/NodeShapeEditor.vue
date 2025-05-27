@@ -102,6 +102,10 @@
         // Get all properties of the current class as a new array
         var propertyPaths = Object.keys(propertyShapes)
         classProps[localShapeIri.value] = propertyPaths
+        // Upfront removal of properties that should be excluded
+        for (var ip of ignoredProperties) {
+            removeArrayElement(propertyPaths, ip)
+        }
         // Get superclasses
         var currentSuperClasses = superClasses[localShapeIri.value]
         // If the class has no superclasses, all of the properties are from the single class
@@ -113,9 +117,10 @@
         var superClassPropRefs = {}
         for (var c of currentSuperClasses) {
             classProps[c] = []
-            superClassPropRefs[c] = shapesDS.data.nodeShapes[c].properties.map(function(shape_prop) {
-                return shape_prop[SHACL.path.value];
-            });
+            // do not include properties that should be excluded
+            superClassPropRefs[c] = shapesDS.data.nodeShapes[c].properties
+                .filter(shape_prop => ignoredProperties.indexOf(shape_prop[SHACL.path.value]) < 0)
+                .map(shape_prop => shape_prop[SHACL.path.value]);
         }
         // Now loop through all the properties and divide them into their top-most-level originating class
         // note: creating a copy via json so that we don't modify the array that is being looped through
@@ -168,20 +173,14 @@
                 // Otherwise we need to do the assignment and removal
                 if (changedSuperClass != localShapeIri.value) {
                     removeArrayElement(propertyPaths, p)
-                    // Only add property to firstSuperClass group if it should not be ignored
-                    if (ignoredProperties.indexOf(p) < 0) {
-                        classProps[changedSuperClass].push(p)
-                    }
+                    classProps[changedSuperClass].push(p)
                 }
             }
             // If nothing was changed, we have to put the property into the "firstSuperClass"
             // group and remove the property from the current class group
             else {
                 removeArrayElement(propertyPaths, p)
-                // Only add property to firstSuperClass group if it should not be ignored
-                if (ignoredProperties.indexOf(p) < 0) {
-                    classProps[firstSuperClass].push(p)
-                }
+                classProps[firstSuperClass].push(p)
             }
         }
 
