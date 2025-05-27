@@ -26,25 +26,23 @@ export function useRules(propShape) {
     let regex
     try {
       regex = new RegExp(anchored)
+      // If propertyShape has an sh:message key, it is assumed to be the content
+      // to show upon validation error, and then displayed. If not, display default message.
+      const message = propShape.hasOwnProperty(SHACL.message.value) 
+        ? String(propShape[SHACL.message.value])
+        : "Regular expression matching failed"
+      // Required rule -> “Field can't be empty”
+      // Pattern rule -> “Field doesn't match the regex”
+      // Let “required” handle emptiness
+      rules.value.push(v => {
+        if (!v) return true           
+        return regex.test(v) || message
+      })
     } catch (err) {
-      console.error(`Invalid SHACL pattern “${patternStr}”:`, err)
-      return { isRequired, rules }
+        console.error(`Invalid SHACL pattern “${patternStr}”:`, err)
     }
-
-
-    // TODO please review if custom messaging is required.
-    // TODO successful submit is not checked, only pattern matching is checked.
-    const message = propShape[SHACL.message?.value]
-      ? String(propShape[SHACL.message.value])
-      : `Value must match pattern: /${patternStr}/`
-
-    // Required rule -> “Field can't be empty”
-    //Pattern rule -> “Field doesn't match the regex”
-    rules.value.push(v => {
-      if (!v) return true           // let “required” handle emptiness
-      return regex.test(v) || message
-    })
   }
+  
   return {
     isRequired,
     rules
