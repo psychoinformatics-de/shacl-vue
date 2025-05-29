@@ -427,10 +427,19 @@
             classRecordsLoading.value = true
             // First fetch rdf data from configured service
             var result = await fetchFromService('get-records', IRI, allPrefixes)
-            if (!result.success) {
+            console.log("fetchFromService results status:")
+            console.log(result.status)
+            // If there was an actual error during the try statement
+            // before making the requests, relay error and deactivate loader
+            if (result.status === null) {
                 console.error(result.error)
+                classRecordsLoading.value = false
             }
-            if (result.success && result.skipped) {
+            // If any of the results were successful, don't set classRecordsLoading to false
+            // because it will be set during the watch event for instanceItemsComp
+            if (result.status.length && result.status.indexOf("success") >= 0 ) {
+                // do nothing   
+            } else {
                 classRecordsLoading.value = false
             }
         }
