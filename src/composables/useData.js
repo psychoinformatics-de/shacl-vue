@@ -90,6 +90,7 @@ export function useData(config) {
             let allFailed = true;
             let anyFailed = false;
             let allSkipped = true;
+            const results_status = []
 
             for (const baseUrl of baseUrls) {
                 const getURL = `${baseUrl}${query_string}`;
@@ -101,6 +102,7 @@ export function useData(config) {
                         skipped: true,
                         url: getURL
                     });
+                    results_status.push("skipped")
                     continue;
                 }
 
@@ -114,6 +116,7 @@ export function useData(config) {
                         skipped: false,
                         message: result.message || "Failed to fetch RDF data."
                     });
+                    results_status.push("failed")
                     anyFailed = true;
                 } else {
                     results.push({
@@ -122,13 +125,17 @@ export function useData(config) {
                         skipped: false,
                     });
                     allFailed = false;
+                    results_status.push("success")
                 }
             }
+            // Now we have an array of results
+            // Process all
             if (anyFailed) {
                 var error = new Error("One or more RDF data fetch attempts failed.");
                 return {
                     success: false,
                     message: error.message,
+                    status: Array.from(new Set(results_status)),
                     error: error,
                     url: results
                 };
@@ -142,12 +149,14 @@ export function useData(config) {
             return {
                 success: true,
                 skipped: allSkipped,
+                status: Array.from(new Set(results_status)),
                 url: results
             };
         } catch (error) {
             return {
                 success: false,
                 message: error.message,
+                status: null,
                 error: error,
                 url: null
             };
