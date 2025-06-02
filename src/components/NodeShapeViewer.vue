@@ -2,7 +2,10 @@
     <v-card class="mx-4 mb-4" :variant="props.variant">
         <v-card-title class="text-h6">
             <v-icon>{{ getClassIcon(props.classIRI) }}</v-icon>&nbsp;
-            <TextOrLinkViewer :textVal="record.title" :prefLabel="record.prefLabel"></TextOrLinkViewer>&nbsp;
+            {{ record.prefLabel ? record.prefLabel : record.title }}
+            <span v-if="resolveExternally">
+                <sup><a class="inline-icon-btn" :href="toIRI(record.title, allPrefixes)" target="_blank"><v-icon>mdi-arrow-top-right-thick</v-icon></a></sup>
+            </span>
         </v-card-title>
         <v-card-subtitle>
             <v-btn
@@ -17,14 +20,35 @@
             Type: <em>{{ toCURIE(record.subtitle, allPrefixes) }}</em>
         </v-card-subtitle>
         <v-card-text v-if="!props.formOpen">
-            <!-- literal and named nodes -->
-            <span v-for="tt of ['Literal', 'NamedNode']">
-                <span v-for="(v, k, index) in record.triples[tt]">
+
+            <strong>Persistent Identifier</strong>:
+            &nbsp;{{ record.title }}<br>
+            <!-- Literal nodes -->
+            <span v-for="(v, k, index) in record.triples['Literal']">
+                <strong>{{ nameOrCURIE(propertyShapes[k], shapesDS.data.prefixes, true) }}</strong>:
+                <span v-for="(el, i) in v">
+                    <span v-if="v.length > 1"><br>&nbsp;- </span>
+                    &nbsp;<LiteralNodeViewer v-if="el.value" :textVal="el.value" ></LiteralNodeViewer>
+                </span>
+                <br>
+            </span>
+            <!-- Named nodes -->
+            <span v-if="fetchingRecords">
+                <v-skeleton-loader type="paragraph"></v-skeleton-loader>
+            </span>
+            <span v-else>
+                <span v-for="(v, k, index) in record.triples['NamedNode']">
                     <span v-if="k != RDF.type.value ">
                         <strong>{{ nameOrCURIE(propertyShapes[k], shapesDS.data.prefixes, true) }}</strong>:
                         <span v-for="(el, i) in v">
                             <span v-if="v.length > 1"><br>&nbsp;- </span>
-                            &nbsp;<TextOrLinkViewer v-if="el.value" :textVal="el.value" :prefLabel="getPrefLabel(el, rdfDS, allPrefixes)"></TextOrLinkViewer>
+                            &nbsp;<NamedNodeViewer
+                                v-if="el.value"
+                                :textVal="el.value"
+                                :prefLabel="getPrefLabel(el, rdfDS, allPrefixes)"
+                                :quad="getPidQuad(el.value, rdfDS.data.graph)"
+                                :targetClass="propertyShapes[k][SHACL.class.value]">
+                            </NamedNodeViewer>
                         </span>
                         <br>
                     </span>
@@ -52,9 +76,9 @@
 </template>
 
 <script setup>
-    import { reactive, onBeforeMount, inject, onUpdated, ref, nextTick} from 'vue'
-    import { toCURIE } from 'shacl-tulip'
-    import { makeReadable, getPrefLabel, nameOrCURIE} from '../modules/utils';
+    import { reactive, onBeforeMount, inject, onUpdated, ref, nextTick, toRaw, provide} from 'vue'
+    import { toCURIE, toIRI } from 'shacl-tulip'
+    import { makeReadable, getPrefLabel, nameOrCURIE, getPidQuad} from '../modules/utils';
     import { RDF, SHACL} from '@/modules/namespaces';
     // Define component properties
     const props = defineProps({
@@ -65,31 +89,47 @@
     })
 
     const editInstanceItem = inject('editInstanceItem')
+    const configVarsMain = inject('configVarsMain')
     const allPrefixes = inject('allPrefixes')
+    const fetchFromService = inject('fetchFromService')
     const getClassIcon = inject('getClassIcon')
     const rdfDS = inject('rdfDS')
     const shapesDS = inject('shapesDS')
     const record = reactive({})
     const showBlankNodes = ref(false)
     const shape_obj = shapesDS.data.nodeShapes[props.classIRI]
+    const resolveExternally = ref(false)
     const propertyShapes = {}
     for (var p of shape_obj.properties) {
         propertyShapes[p[SHACL.path.value]] = p
     }
 
-    onBeforeMount(() => {
-        updateRecord()
+    const fetchingRecords = ref(false)
+
+    const emit = defineEmits(['namedNodeSelected'])
+    function selectNamedNode(recordClass, recordPID) {
+        emit('namedNodeSelected', { recordClass, recordPID })
+    }
+    provide('selectNamedNode', selectNamedNode)
+
+    onBeforeMount(async() => {
+        fetchingRecords.value = true
+        await updateRecord(true)
+        fetchingRecords.value = false
+        if (configVarsMain["idResolvesExternally"].indexOf(props.classIRI) >= 0) {
+            resolveExternally.value = true;
+        }
     })
 
     onUpdated(() => {
-        updateRecord()
+        updateRecord(false)
     })
 
     function showHideBlankNodes() {
         showBlankNodes.value = !showBlankNodes.value
     }
 
-    function updateRecord() {
+    async function updateRecord(fetchData) {
         record.title = props.quad.subject.value
         record.quad = props.quad
         record.value = props.quad.subject.value
@@ -101,13 +141,17 @@
             "BlankNode": {},
             "NamedNode": {},
         }
-        record.relatedQuads.forEach((rQ) => {
-            addRecordProperty(rQ)
-        })
+        for (const rQ of record.relatedQuads) {
+            await addRecordProperty(rQ, fetchData)
+        }
     }
 
-    function addRecordProperty(quad) {
+    async function addRecordProperty(quad, fetchData) {
         var termType = quad.object.termType
+
+        if (termType === "NamedNode" && quad.predicate.value != RDF.type.value && fetchData) {
+            const results = await fetchFromService('get-record', quad.object.value, allPrefixes)
+        }
         if (!record.triples[termType].hasOwnProperty(quad.predicate.value)) {
             record.triples[termType][quad.predicate.value] = []
         }

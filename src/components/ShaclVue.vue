@@ -18,6 +18,7 @@
                                     v-for="node in filteredNodeShapeNames"
                                     :prepend-icon="getClassIcon(shapesDS.data.nodeShapeNames[node])"
                                     :title="node"
+                                    :value="shapesDS.data.nodeShapeNames[node]"
                                     @click="selectType(shapesDS.data.nodeShapeNames[node], true)">
                                 </v-list-item>
                             </v-list>
@@ -33,6 +34,11 @@
 
                                         <span v-if="selectedIRI">
                                             <h2 class="mx-4 mb-4 truncate-heading">
+                                                <span v-if="internalHistory.length">
+                                                    <v-btn icon="mdi-chevron-left" density="compact" variant="outlined" @click="goBack()"></v-btn>
+                                                    &nbsp;
+                                                </span>
+                                                
                                                 {{ getDisplayName(selectedIRI, configVarsMain, allPrefixes) }}
                                                 &nbsp;&nbsp; <v-btn icon="mdi-plus" size="x-small" variant="tonal" @click="addInstanceItem()" :disabled="openForms.length > 0"></v-btn>
                                             </h2>
@@ -44,7 +50,7 @@
                                             </span>
                                             <span v-else>
                                                 <div v-if="instanceItemsComp.length">
-                                                    <v-row v-if="instanceItemsComp.length > 3">
+                                                    <v-row v-if="instanceItemsComp.length">
                                                         <v-col cols="7">
                                                             <v-text-field
                                                                 v-model="searchText"
@@ -84,6 +90,7 @@
                                                                     :key="selectedIRI + '-' + item.title "
                                                                     :formOpen="formOpen"
                                                                     :variant="item.title == queried_id ? 'outlined' : 'tonal'"
+                                                                    @namedNodeSelected="handleInternalNavigation"
                                                                     />
                                                                 </template>
                                                             </DynamicScrollerItem>
@@ -150,6 +157,7 @@
                 <v-skeleton-loader type="article"></v-skeleton-loader>
             </span>
         </v-container>
+        {{ selectedItem }}
     </v-main>
     <AppFooter />
 </template>
@@ -181,6 +189,8 @@
     // ---------------------------------------------------- //
     // CONFIGURATION, AND LOADING SHAPES/CLASSES/DATA/FORMS //
     // ---------------------------------------------------- //
+    const internalHistory = ref([])
+    const firstNavigationDone = ref(false)
     const mainContent = ref(null)
     const config_ready = ref(false)
     const itemRefs = ref([])
@@ -417,9 +427,16 @@
         searchText.value = ""
     }
 
-    async function selectType(IRI, fromUser) {
+
+    async function selectType(IRI, fromUser, fromBackButton) {
         console.log(`Selecting type: ${IRI}`)
+        console.log(filteredNodeShapeNames.value)
+        console.log(shapesDS.data.nodeShapeNames)
+        
+        console.log(selectedItem.value)
         newTypeSelected = true;
+        var tempSearchText = searchText.value
+        var tempIRI = selectedIRI.value
         searchText.value = ""
         selectedIRI.value = IRI
         selectedShape.value = shapesDS.data.nodeShapes[IRI]
@@ -448,7 +465,34 @@
             const el = mainContent.value?.$el || mainContent.value
             if (el) el.scrollTop = 0
         })
-        if (fromUser) updateURL(IRI)
+        if (fromUser) {
+            updateURL(IRI)
+        }
+
+        if  (!fromUser || fromBackButton) {
+            selectedItem.value = [IRI]
+        }
+
+
+        if (firstNavigationDone.value) {
+            if (!fromBackButton) {
+                if (IRI != tempIRI) {
+                    internalHistory.value.push({
+                        "iri": tempIRI,
+                        "searchText": tempSearchText,
+                    })
+                }
+            }
+        } else {
+            firstNavigationDone.value = true
+        }
+    }
+
+
+    function goBack() {
+        var previousView = internalHistory.value.pop()
+        selectType(previousView.iri, true, true)
+        searchText.value = previousView.searchText
     }
 
     function updateURL(IRI, edit) {
@@ -624,8 +668,15 @@
         return [...instanceItemsComp.value].filter((item) =>{
             if (searchText.value.length == 0) return true
             return item.props._prefLabel.toLowerCase().includes(searchText.value.toLowerCase())
+                || item.title.toLowerCase().includes(searchText.value.toLowerCase())
         }).sort((a, b) => c * a.props._prefLabel.toLowerCase().localeCompare(b.props._prefLabel.toLowerCase()));
     });
+
+    async function handleInternalNavigation({ recordClass, recordPID }) {
+        console.log('Received:', recordClass, recordPID);
+        await selectType(recordClass, true)
+        searchText.value = recordPID
+    }
 
     const orderIcon = ref("mdi-arrow-down-thick")
     const orderTopDown = ref(true)
