@@ -32,3 +32,14 @@
         return
     })
 </script>
+
+
+<style scoped>
+    .inline-icon-btn {
+        margin: 0;
+        padding: 0;
+        height: 5px;
+        line-height: 1;
+        vertical-align: text-top;
+    }
+</style>

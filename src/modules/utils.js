@@ -1,4 +1,4 @@
-import { SHACL, RDFS, DLTHINGS, SKOS} from '../modules/namespaces'
+import { SHACL, RDFS, RDF, DLTHINGS, SKOS} from '../modules/namespaces'
 import { toCURIE, toIRI } from 'shacl-tulip';
 import { DataFactory } from 'n3';
 const { namedNode } = DataFactory;
@@ -223,6 +223,16 @@ export function getSuperClass(class_uri, graph) {
   }
   return null
 }
+
+export function getPidQuad(pid, graph) {
+  const q = graph.getQuads(namedNode(pid), namedNode(RDF.type.value), null, null);
+  if (q && q.length) {
+    return q[0]
+  } else {
+    return undefined
+  }
+}
+
 
 export function objectsEqual(obj1, obj2) {
 

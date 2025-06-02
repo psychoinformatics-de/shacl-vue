@@ -24,6 +24,7 @@ const mainVarsToLoad = {
         "panel_color": "#41b883",
         "logo": "shacl_vue_logo.svg",
     },
+    "id_resolves_externally": [],
     "use_token": false,
     "token_info": "",
     "token_info_url": "",
