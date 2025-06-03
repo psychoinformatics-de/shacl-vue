@@ -186,15 +186,28 @@
     }
 
     function getRecordQuads() {
-        var allQuads = [record.quad].concat(record.relatedQuads)
-        var mainQuads = [...allQuads]
-        mainQuads.forEach(quad => {
-            if (quad.object.termType === "BlankNode") {
-                var moreQuads = rdfDS.getSubjectTriples(quad.object)
-                allQuads = allQuads.concat(Array.from(moreQuads))
+        const visited = new Set();
+        const allQuads = [];
+
+        function addQuadsRecursively(quads) {
+            for (const quad of quads) {
+                if (!allQuads.includes(quad)) {
+                    allQuads.push(quad);
+                    if (quad.object.termType === "BlankNode") {
+                        const id = quad.object.value;
+                        if (!visited.has(id)) {
+                            visited.add(id);
+                            const moreQuads = rdfDS.getSubjectTriples(quad.object);
+                            addQuadsRecursively(Array.from(moreQuads));
+                        }
+                    }
+                }
             }
-        });
-        return allQuads
+        }
+        
+        const baseQuads = record.relatedQuads;
+        addQuadsRecursively(baseQuads);
+        return allQuads;
     }
 
     async function updateRecord(fetchData) {
