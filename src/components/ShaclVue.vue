@@ -662,9 +662,9 @@
         if (!instanceItemsComp.value.length) return []
         return [...instanceItemsComp.value].filter((item) =>{
             if (searchText.value.length == 0) return true
-            return item.props._prefLabel.toLowerCase().includes(searchText.value.toLowerCase())
+            return item.props._prefLabel?.toLowerCase().includes(searchText.value.toLowerCase())
                 || item.title.toLowerCase().includes(searchText.value.toLowerCase())
-        }).sort((a, b) => c * a.props._prefLabel.toLowerCase().localeCompare(b.props._prefLabel.toLowerCase()));
+        }).sort((a, b) => c * a.props._prefLabel?.toLowerCase().localeCompare(b.props._prefLabel?.toLowerCase()));
     });
 
     async function handleInternalNavigation({ recordClass, recordPID }) {

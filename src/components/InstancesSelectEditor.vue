@@ -464,7 +464,7 @@
         const searchText = queryText.value.toLowerCase()
         return [...itemsToList.value].filter((item) =>{
             if (searchText.length == 0) return true
-            return item.props._prefLabel.toLowerCase().includes(searchText.toLowerCase())
+            return item.props._prefLabel?.toLowerCase().includes(searchText.toLowerCase())
         }).sort((a, b) => a.props._prefLabel?.toLowerCase().localeCompare(b.props._prefLabel?.toLowerCase()));
     });
 </script>
