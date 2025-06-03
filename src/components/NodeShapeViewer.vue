@@ -44,7 +44,12 @@
             &nbsp;{{ record.title }}<br>
             <!-- Literal nodes -->
             <span v-for="(v, k, index) in record.triples['Literal']">
-                <strong>{{ nameOrCURIE(propertyShapes[k], shapesDS.data.prefixes, true) }}</strong>:
+                <span v-if="propertyShapes[k]">
+                    <strong>{{ nameOrCURIE(propertyShapes[k], shapesDS.data.prefixes, true) }}</strong>:
+                </span>
+                <span v-else>
+                    <strong>{{ k }}</strong>:
+                </span>
                 <span v-for="(el, i) in v">
                     <span v-if="v.length > 1"><br>&nbsp;- </span>
                     &nbsp;<LiteralNodeViewer v-if="el.value" :textVal="el.value" ></LiteralNodeViewer>
@@ -58,17 +63,27 @@
             <span v-else>
                 <span v-for="(v, k, index) in record.triples['NamedNode']">
                     <span v-if="k != RDF.type.value ">
-                        <strong>{{ nameOrCURIE(propertyShapes[k], shapesDS.data.prefixes, true) }}</strong>:
-                        <span v-for="(el, i) in v">
-                            <span v-if="v.length > 1"><br>&nbsp;- </span>
-                            &nbsp;<NamedNodeViewer
-                                v-if="el.value"
-                                :textVal="el.value"
-                                :prefLabel="getPrefLabel(el, rdfDS, allPrefixes)"
-                                :quad="getPidQuad(el.value, rdfDS.data.graph)"
-                                :targetClass="propertyShapes[k][SHACL.class.value]">
-                            </NamedNodeViewer>
+                        <span v-if="propertyShapes[k]">
+                            <strong>{{ nameOrCURIE(propertyShapes[k], shapesDS.data.prefixes, true) }}</strong>:
+                            <span v-for="(el, i) in v">
+                                <span v-if="v.length > 1"><br>&nbsp;- </span>
+                                &nbsp;<NamedNodeViewer
+                                    v-if="el.value"
+                                    :textVal="el.value"
+                                    :prefLabel="getPrefLabel(el, rdfDS, allPrefixes)"
+                                    :quad="getPidQuad(el.value, rdfDS.data.graph)"
+                                    :targetClass="propertyShapes[k][SHACL.class.value]">
+                                </NamedNodeViewer>
+                            </span>
                         </span>
+                        <span v-else>
+                            <strong>{{ k }}</strong>:
+                            <span v-for="(el, i) in v">
+                                <span v-if="v.length > 1"><br>&nbsp;- </span>
+                                &nbsp;{{ el.value }}
+                            </span>
+                        </span>
+                        
                         <br>
                     </span>
                 </span>
@@ -138,6 +153,8 @@
     for (var p of shape_obj.properties) {
         propertyShapes[p[SHACL.path.value]] = p
     }
+
+    console.log(propertyShapes)
 
     const ttlDialog = ref(false)
     const ttlDialog_icon = ref("")
