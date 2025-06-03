@@ -372,7 +372,7 @@
             predicate_idx: props.triple_idx,
         }
         selectedAddItemShapeIRI.value = item.value
-        newNodeIdx.value = '_:' + crypto.randomUUID()
+        newNodeIdx.value = crypto.randomUUID()
         console.log("New form shape IRI")
         console.log(selectedAddItemShapeIRI.value)
         console.log("New form node IRI")
@@ -464,7 +464,7 @@
         const searchText = queryText.value.toLowerCase()
         return [...itemsToList.value].filter((item) =>{
             if (searchText.length == 0) return true
-            return item.props._prefLabel.toLowerCase().includes(searchText.toLowerCase())
+            return item.props._prefLabel?.toLowerCase().includes(searchText.toLowerCase())
         }).sort((a, b) => a.props._prefLabel?.toLowerCase().localeCompare(b.props._prefLabel?.toLowerCase()));
     });
 </script>

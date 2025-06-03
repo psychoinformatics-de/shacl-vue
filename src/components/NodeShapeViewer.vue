@@ -8,16 +8,35 @@
             </span>
         </v-card-title>
         <v-card-subtitle>
-            <v-btn
-                icon="mdi-pencil"
-                variant="tonal"
-                size="x-small"
-                class="rounded-lg"
-                @click="editInstanceItem(record)"
-                :disabled="props.formOpen"
-            ></v-btn>
-            &nbsp;
             Type: <em>{{ toCURIE(record.subtitle, allPrefixes) }}</em>
+            &nbsp;
+            <v-tooltip text="Edit record" location="bottom">
+                <template v-slot:activator="{ props }">
+                    <v-btn
+                        icon="mdi-pencil"
+                        variant="tonal"
+                        size="x-small"
+                        class="rounded-lg"
+                        @click="editInstanceItem(record)"
+                        :disabled="props.formOpen"
+                        v-bind="props"
+                    ></v-btn>
+                </template>
+            </v-tooltip>
+            &nbsp;
+            <v-tooltip text="View RDF" location="bottom">
+                <template v-slot:activator="{ props }">
+                    <v-btn
+                        icon="mdi-file-eye-outline"
+                        variant="tonal"
+                        size="x-small"
+                        class="rounded-lg"
+                        @click="viewRDF()"
+                        :disabled="props.formOpen"
+                        v-bind="props"
+                    ></v-btn>
+                </template>
+            </v-tooltip>
         </v-card-subtitle>
         <v-card-text v-if="!props.formOpen">
 
@@ -25,7 +44,12 @@
             &nbsp;{{ record.title }}<br>
             <!-- Literal nodes -->
             <span v-for="(v, k, index) in record.triples['Literal']">
-                <strong>{{ nameOrCURIE(propertyShapes[k], shapesDS.data.prefixes, true) }}</strong>:
+                <span v-if="propertyShapes[k]">
+                    <strong>{{ nameOrCURIE(propertyShapes[k], shapesDS.data.prefixes, true) }}</strong>:
+                </span>
+                <span v-else>
+                    <strong>{{ k }}</strong>:
+                </span>
                 <span v-for="(el, i) in v">
                     <span v-if="v.length > 1"><br>&nbsp;- </span>
                     &nbsp;<LiteralNodeViewer v-if="el.value" :textVal="el.value" ></LiteralNodeViewer>
@@ -39,17 +63,27 @@
             <span v-else>
                 <span v-for="(v, k, index) in record.triples['NamedNode']">
                     <span v-if="k != RDF.type.value ">
-                        <strong>{{ nameOrCURIE(propertyShapes[k], shapesDS.data.prefixes, true) }}</strong>:
-                        <span v-for="(el, i) in v">
-                            <span v-if="v.length > 1"><br>&nbsp;- </span>
-                            &nbsp;<NamedNodeViewer
-                                v-if="el.value"
-                                :textVal="el.value"
-                                :prefLabel="getPrefLabel(el, rdfDS, allPrefixes)"
-                                :quad="getPidQuad(el.value, rdfDS.data.graph)"
-                                :targetClass="propertyShapes[k][SHACL.class.value]">
-                            </NamedNodeViewer>
+                        <span v-if="propertyShapes[k]">
+                            <strong>{{ nameOrCURIE(propertyShapes[k], shapesDS.data.prefixes, true) }}</strong>:
+                            <span v-for="(el, i) in v">
+                                <span v-if="v.length > 1"><br>&nbsp;- </span>
+                                &nbsp;<NamedNodeViewer
+                                    v-if="el.value"
+                                    :textVal="el.value"
+                                    :prefLabel="getPrefLabel(el, rdfDS, allPrefixes)"
+                                    :quad="getPidQuad(el.value, rdfDS.data.graph)"
+                                    :targetClass="propertyShapes[k][SHACL.class.value]">
+                                </NamedNodeViewer>
+                            </span>
                         </span>
+                        <span v-else>
+                            <strong>{{ k }}</strong>:
+                            <span v-for="(el, i) in v">
+                                <span v-if="v.length > 1"><br>&nbsp;- </span>
+                                &nbsp;{{ el.value }}
+                            </span>
+                        </span>
+                        
                         <br>
                     </span>
                 </span>
@@ -72,13 +106,29 @@
         </v-card-text>
     </v-card>
 
+    <v-dialog v-model="ttlDialog" max-width="60%" @click:outside="ttlDialog = false">
+        <v-card>
+            <v-card-title>RDF record for: <em>{{ ttlDialog_name }}</em></v-card-title>
+            <v-card-subtitle><v-icon>{{ ttlDialog_icon }}</v-icon> {{ ttlDialog_type }}</v-card-subtitle>
+            <v-card-text>
+                <code><pre style="overflow-x: scroll;">
+                    {{ ttlDialog_content }}
+                </pre></code>
+            </v-card-text>
+            <v-card-actions>
+                <v-btn prepend-icon="mdi-download" @click="downloadTTL()">Download</v-btn>
+                <v-btn prepend-icon="mdi-close-box" @click="ttlDialog = false">Close</v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+
 
 </template>
 
 <script setup>
     import { reactive, onBeforeMount, inject, onUpdated, ref, nextTick, toRaw, provide} from 'vue'
     import { toCURIE, toIRI } from 'shacl-tulip'
-    import { makeReadable, getPrefLabel, nameOrCURIE, getPidQuad} from '../modules/utils';
+    import { makeReadable, getPrefLabel, nameOrCURIE, getPidQuad, dlTTL, toSnakeCase, quadsToTTL} from '../modules/utils';
     import { RDF, SHACL} from '@/modules/namespaces';
     // Define component properties
     const props = defineProps({
@@ -104,6 +154,14 @@
         propertyShapes[p[SHACL.path.value]] = p
     }
 
+    console.log(propertyShapes)
+
+    const ttlDialog = ref(false)
+    const ttlDialog_icon = ref("")
+    const ttlDialog_name = ref("")
+    const ttlDialog_type = ref("")
+    const ttlDialog_content = ref("")
+
     const fetchingRecords = ref(false)
 
     const emit = defineEmits(['namedNodeSelected'])
@@ -125,8 +183,48 @@
         updateRecord(false)
     })
 
+    async function viewRDF() {
+        ttlDialog.value = false; 
+        ttlDialog_icon.value = getClassIcon(props.classIRI);
+        ttlDialog_name.value = record.prefLabel ? record.prefLabel : record.title;
+        ttlDialog_type.value = toCURIE(record.subtitle, allPrefixes);
+        var tmpStr = await quadsToTTL(getRecordQuads(), allPrefixes)
+        ttlDialog_content.value = tmpStr.replace(/^\s+/g, '');
+        ttlDialog_content.value = '\n' + ttlDialog_content.value
+        ttlDialog.value = true;
+    }
+
+    function downloadTTL() {
+        dlTTL(ttlDialog_content.value, toSnakeCase(ttlDialog_name.value) + '.ttl')
+    }
+
     function showHideBlankNodes() {
         showBlankNodes.value = !showBlankNodes.value
+    }
+
+    function getRecordQuads() {
+        const visited = new Set();
+        const allQuads = [];
+
+        function addQuadsRecursively(quads) {
+            for (const quad of quads) {
+                if (!allQuads.includes(quad)) {
+                    allQuads.push(quad);
+                    if (quad.object.termType === "BlankNode") {
+                        const id = quad.object.value;
+                        if (!visited.has(id)) {
+                            visited.add(id);
+                            const moreQuads = rdfDS.getSubjectTriples(quad.object);
+                            addQuadsRecursively(Array.from(moreQuads));
+                        }
+                    }
+                }
+            }
+        }
+        
+        const baseQuads = record.relatedQuads;
+        addQuadsRecursively(baseQuads);
+        return allQuads;
     }
 
     async function updateRecord(fetchData) {

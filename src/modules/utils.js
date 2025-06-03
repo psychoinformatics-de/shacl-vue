@@ -1,6 +1,6 @@
 import { SHACL, RDFS, RDF, DLTHINGS, SKOS} from '../modules/namespaces'
 import { toCURIE, toIRI } from 'shacl-tulip';
-import { DataFactory } from 'n3';
+import { DataFactory, Writer} from 'n3';
 const { namedNode } = DataFactory;
 
 
@@ -41,13 +41,13 @@ export function dlJSON(jsonObject) {
   document.body.removeChild(link);
 }
 
-export function dlTTL(ttlstring) {
+export function dlTTL(ttlstring, filename) {
   // Data
   const blob = new Blob([ttlstring], { type: "text/turtle" });
   // Create a link element
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = "graphdata.ttl";
+  link.download = filename;
   document.body.appendChild(link);
   // Click to download, and remove
   link.click();
@@ -174,6 +174,16 @@ export function snakeToCamel(snakeStr) {
       .join('');
 }
 
+export function toSnakeCase(str) {
+  return str
+    // Insert an underscore before uppercase letters (except at the beginning)
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    // Replace spaces, hyphens, and multiple underscores with a single underscore
+    .replace(/[\s\-]+/g, '_')
+    // Lowercase the entire string
+    .toLowerCase();
+}
+
 export function adjustHexColor(hexColor, amount) {
   // Remove the '#' if present
   let colorInt = parseInt(hexColor.replace('#', ''), 16);
@@ -246,4 +256,38 @@ export function objectsEqual(obj1, obj2) {
     }
   }
   return true
+}
+
+export async function quadsToTTL(allQuads, allPrefixes) {
+  var usedPrefixes = {}
+  allQuads.forEach(quad => {
+      var iris = [quad.subject.value, quad.predicate.value, quad.object.value]
+      if (quad.object.termType == "Literal" && quad.object.datatype?.value) {
+        var lp = toCURIE(quad.object.datatype.value, allPrefixes, 'parts')
+        if (lp == quad.object.datatype.value || !lp) {
+            // means the IRI does not use a known prefix
+        } else {
+            usedPrefixes[lp["prefix"]] = allPrefixes[lp["prefix"]]
+        }
+      }
+      for (var i of iris) {
+          var p = toCURIE(i, allPrefixes, 'parts')
+          if (p == i || !p) {
+              // means the IRI does not use a known prefix
+              continue;
+          } else {
+              usedPrefixes[p["prefix"]] = allPrefixes[p["prefix"]]
+          }
+      }
+  });
+
+  const ttl = await new Promise((resolve, reject) => {
+      const writer = new Writer({ prefixes: usedPrefixes });
+      writer.addQuads(allQuads);
+      writer.end((error, result) => {
+          if (error) reject(error);
+          else resolve(result.trim());
+      });
+  });
+  return ttl
 }

@@ -157,7 +157,6 @@
                 <v-skeleton-loader type="article"></v-skeleton-loader>
             </span>
         </v-container>
-        {{ selectedItem }}
     </v-main>
     <AppFooter />
 </template>
@@ -559,7 +558,7 @@
         newItemIdx.value = null
         editItem.value = false
         addItem.value = false
-        newItemIdx.value = '_:' + crypto.randomUUID()
+        newItemIdx.value = crypto.randomUUID()
         addForm(selectedIRI.value, newItemIdx.value, 'new')
         addItem.value = true
         formOpen.value = true
@@ -603,10 +602,6 @@
         formOpen.value = true
         drawer.value = false
         canSubmit.value = false
-        nextTick(() => {
-            const el = mainContent.value?.$el || mainContent.value
-            if (el) el.scrollTop = 0
-        })
     }
     provide('editInstanceItem', editInstanceItem)
 
@@ -667,9 +662,9 @@
         if (!instanceItemsComp.value.length) return []
         return [...instanceItemsComp.value].filter((item) =>{
             if (searchText.value.length == 0) return true
-            return item.props._prefLabel.toLowerCase().includes(searchText.value.toLowerCase())
+            return item.props._prefLabel?.toLowerCase().includes(searchText.value.toLowerCase())
                 || item.title.toLowerCase().includes(searchText.value.toLowerCase())
-        }).sort((a, b) => c * a.props._prefLabel.toLowerCase().localeCompare(b.props._prefLabel.toLowerCase()));
+        }).sort((a, b) => c * a.props._prefLabel?.toLowerCase().localeCompare(b.props._prefLabel?.toLowerCase()));
     });
 
     async function handleInternalNavigation({ recordClass, recordPID }) {
@@ -709,6 +704,10 @@
             "formType": formType,
             "disabled": false,
             "activatedInstancesSelectEditor": null,
+        })
+        nextTick(() => {
+            const el = mainContent.value?.$el || mainContent.value
+            if (el) el.scrollTop = 0
         })
     }
 
