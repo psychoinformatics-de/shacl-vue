@@ -603,10 +603,6 @@
         formOpen.value = true
         drawer.value = false
         canSubmit.value = false
-        nextTick(() => {
-            const el = mainContent.value?.$el || mainContent.value
-            if (el) el.scrollTop = 0
-        })
     }
     provide('editInstanceItem', editInstanceItem)
 
@@ -709,6 +705,10 @@
             "formType": formType,
             "disabled": false,
             "activatedInstancesSelectEditor": null,
+        })
+        nextTick(() => {
+            const el = mainContent.value?.$el || mainContent.value
+            if (el) el.scrollTop = 0
         })
     }
 
