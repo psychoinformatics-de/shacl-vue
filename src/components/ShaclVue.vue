@@ -559,7 +559,7 @@
         newItemIdx.value = null
         editItem.value = false
         addItem.value = false
-        newItemIdx.value = '_:' + crypto.randomUUID()
+        newItemIdx.value = crypto.randomUUID()
         addForm(selectedIRI.value, newItemIdx.value, 'new')
         addItem.value = true
         formOpen.value = true

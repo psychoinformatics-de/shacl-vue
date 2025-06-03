@@ -372,7 +372,7 @@
             predicate_idx: props.triple_idx,
         }
         selectedAddItemShapeIRI.value = item.value
-        newNodeIdx.value = '_:' + crypto.randomUUID()
+        newNodeIdx.value = crypto.randomUUID()
         console.log("New form shape IRI")
         console.log(selectedAddItemShapeIRI.value)
         console.log("New form node IRI")
