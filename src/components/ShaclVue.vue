@@ -157,7 +157,6 @@
                 <v-skeleton-loader type="article"></v-skeleton-loader>
             </span>
         </v-container>
-        {{ selectedItem }}
     </v-main>
     <AppFooter />
 </template>
