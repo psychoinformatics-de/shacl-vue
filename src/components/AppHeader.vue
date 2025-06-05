@@ -10,7 +10,7 @@
                 ></v-img>
             </a>
         </template>
-        <v-app-bar-title> 
+        <v-app-bar-title>
             <a @click="goToHome()" class="header-button"><code style="font-size: 1em;">{{ configVarsMain.appName }}</code></a>
         </v-app-bar-title>
 
@@ -19,7 +19,7 @@
             <span v-if="configVarsMain.useToken">
                 <v-tooltip text="Token" location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn 
+                        <v-btn
                         icon="mdi-key-variant"
                         @click="tokenFn()"
                         v-bind="props"
@@ -31,12 +31,30 @@
             <span v-if="configVarsMain.useService">
                 <v-tooltip text="Submit" location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn 
-                        icon="mdi-cloud-upload"
-                        @click="submitFn()"
-                        v-bind="props"
-                        :disabled="!canSubmit"
-                        ></v-btn>
+                        <v-badge
+                          v-if="pendingRecordsCount > 0 && !formOpen"
+                          dot
+                          color="success"
+                          overlap
+                          offset-x="3"
+                          offset-y="3"
+                        >
+                        <v-btn
+                          icon="mdi-cloud-upload"
+                          @click="submitFn()"
+                          v-bind="props"
+                          :disabled="!canSubmit"
+                        >
+                        </v-btn>
+                        </v-badge>
+                         <v-btn
+                            v-else
+                            icon="mdi-cloud-upload"
+                            @click="submitFn()"
+                            v-bind="props"
+                            :disabled="!canSubmit"
+                         >
+                         </v-btn>
                     </template>
                 </v-tooltip>
             </span>
@@ -44,7 +62,7 @@
             <span v-if="configVarsMain.documentationUrl">
                 <v-tooltip text="Documentation" location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn 
+                        <v-btn
                         icon="mdi-text-box"
                         :href="configVarsMain.documentationUrl"
                         target="_blank"
@@ -57,7 +75,7 @@
             <span v-if="configVarsMain.sourceCodeUrl">
                 <v-tooltip text="Source code" location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn 
+                        <v-btn
                         icon="mdi-code-not-equal-variant"
                         :href="configVarsMain.sourceCodeUrl"
                         target="_blank"
@@ -76,7 +94,7 @@
             <v-card-text>
                 A token is required to submit new/updated metadata records to the server,
                 or to view previously submitted metadata records. <br><br>
-                
+
                 <span v-if=configVarsMain.tokenInfo>
                     {{ configVarsMain.tokenInfo }}<span v-if=configVarsMain.tokenInfoUrl>: <a target="_blank" :href="configVarsMain.tokenInfoUrl">link</a></span>
                     <br><br>
@@ -107,7 +125,7 @@
     </v-dialog>
 </template>
 <script setup>
-    import { inject, onBeforeMount, ref} from 'vue'
+    import { inject, onBeforeMount, ref, computed} from 'vue'
     import { useToken } from '@/composables/tokens'
 
     const props = defineProps({
@@ -117,6 +135,8 @@
     const { token, setToken, clearToken } = useToken()
     const submitFn = inject('submitFn')
     const canSubmit = inject('canSubmit')
+    const formData = inject('formData')
+    const formOpen = inject('formOpen')
     const configVarsMain = inject('configVarsMain')
     const visible = ref(false)
     const tokenDialog = ref(false)
@@ -129,6 +149,10 @@
             return 'A token is required'
         },
     ]
+    // compute if records are pending to be submittedAdd commentMore actions
+    const pendingRecordsCount = computed(
+      () => Object.keys(formData.content).length
+    )
 
     onBeforeMount(()=>{
         if (token.value !== null && token.value !== "null") {
@@ -163,7 +187,7 @@
         const { valid } = await tokenForm.value.validate();
         if (!valid) {
             console.log("invalid")
-            return 
+            return
         }
         setToken(tokenval.value)
         tokenDialog.value = false

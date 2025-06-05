@@ -38,7 +38,7 @@
                                                     <v-btn icon="mdi-chevron-left" density="compact" variant="outlined" @click="goBack()"></v-btn>
                                                     &nbsp;
                                                 </span>
-                                                
+
                                                 {{ getDisplayName(selectedIRI, configVarsMain, allPrefixes) }}
                                                 &nbsp;&nbsp; <v-btn icon="mdi-plus" size="x-small" variant="tonal" @click="addInstanceItem()" :disabled="openForms.length > 0"></v-btn>
                                             </h2>
@@ -105,7 +105,7 @@
                                         <span v-else style="margin-top: 1em; margin-left: 1em;">
                                             <em>Select a data type</em>
                                         </span>
-                                        
+
 
                                     </v-col>
                                     <v-col v-if="formOpen" cols="9">
@@ -163,7 +163,7 @@
 
 
 <script setup>
-    import { effect, ref, computed, provide, watch, reactive, onBeforeUpdate, nextTick, toRaw, defineAsyncComponent} from 'vue'
+    import { effect, ref, computed, provide, watch, reactive, onBeforeUpdate, nextTick, toRaw, defineAsyncComponent, onMounted, onBeforeUnmount} from 'vue'
     import { useConfig } from '@/composables/configuration';
     import { adjustHexColor, findObjectByKey, addCodeTagsToText, getSuperClasses, getDisplayName} from '../modules/utils';
     import {toCURIE, toIRI} from 'shacl-tulip'
@@ -197,7 +197,14 @@
     const { rdfDS, getRdfData, fetchFromService } = useData(config)
     const { classDS, getClassData } = useClasses(config)
     const { shapesDS, getSHACLschema } = useShapes(config)
-    const { formData, submitFormData } = useForm(config)
+    const { formData, submitFormData: _rawSubmitFormData } = useForm(config)
+    async function submitFormData(...args) {
+      const result = await _rawSubmitFormData(...args)
+      if (result?.success) {
+        Object.keys(formData.content).forEach(k => delete formData.content[k])
+      }
+      return result
+    }
     const { token, setToken, clearToken } = useToken()
     const ID_IRI = ref("")
     watch(configFetched, async (newValue) => {
@@ -240,6 +247,22 @@
     provide('formData', formData)
     provide('fetchFromService', fetchFromService)
     provide('submitFormData', submitFormData)
+    // ACCIDENTAL CLOSE PROTECTION , issue #110
+    // Warn if there are any pending entries in formData.content
+    function handleBeforeUnload(event) {
+      if (Object.keys(formData.content).length > 0) {
+        event.preventDefault()
+        event.returnValue = ""
+        return ""
+      }
+    }
+    onMounted(() => {
+      window.addEventListener("beforeunload", handleBeforeUnload)
+    })
+    onBeforeUnmount(() => {
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+    })
+
     const superClasses = reactive({})
     provide('superClasses', superClasses)
     const searchText = ref("")
@@ -358,6 +381,7 @@
         graph: false,
     })
     provide('editMode', editMode)
+    provide('formOpen', formOpen)
     onBeforeUpdate( () => {
         console.log("onBeforeUpdate ShaclVue")
         editItemIdx.value = null
@@ -413,7 +437,7 @@
         }
         return shapeNames
     })
-    
+
 
     const formattedDescription = computed(() => {
         // For the class description, use a regular expression to replace text between backticks with <code> tags
@@ -431,7 +455,7 @@
         console.log(`Selecting type: ${IRI}`)
         console.log(filteredNodeShapeNames.value)
         console.log(shapesDS.data.nodeShapeNames)
-        
+
         console.log(selectedItem.value)
         newTypeSelected = true;
         var tempSearchText = searchText.value
@@ -454,7 +478,7 @@
             // If any of the results were successful, don't set classRecordsLoading to false
             // because it will be set during the watch event for instanceItemsComp
             if (result.status.length && result.status.indexOf("success") >= 0 ) {
-                // do nothing   
+                // do nothing
             } else {
                 classRecordsLoading.value = false
             }
