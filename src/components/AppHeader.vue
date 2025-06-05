@@ -36,8 +36,8 @@
                           dot
                           color="success"
                           overlap
-                          offset-x="3"
-                          offset-y="3"
+                          offset-x="12"
+                          offset-y="12"
                         >
                         <v-btn
                           icon="mdi-cloud-upload"
