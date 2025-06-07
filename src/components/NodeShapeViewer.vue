@@ -10,33 +10,35 @@
         <v-card-subtitle>
             Type: <em>{{ toCURIE(record.subtitle, allPrefixes) }}</em>
             &nbsp;
-            <v-tooltip text="Edit record" location="bottom">
-                <template v-slot:activator="{ props }">
-                    <v-btn
-                        icon="mdi-pencil"
-                        variant="tonal"
-                        size="x-small"
-                        class="rounded-lg"
-                        @click="editInstanceItem(record)"
-                        :disabled="props.formOpen"
-                        v-bind="props"
-                    ></v-btn>
-                </template>
-            </v-tooltip>
-            &nbsp;
-            <v-tooltip text="View RDF" location="bottom">
-                <template v-slot:activator="{ props }">
-                    <v-btn
-                        icon="mdi-file-eye-outline"
-                        variant="tonal"
-                        size="x-small"
-                        class="rounded-lg"
-                        @click="viewRDF()"
-                        :disabled="props.formOpen"
-                        v-bind="props"
-                    ></v-btn>
-                </template>
-            </v-tooltip>
+            <span v-if="!props.formOpen">
+                <v-tooltip text="Edit record" location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn
+                            icon="mdi-pencil"
+                            variant="tonal"
+                            size="x-small"
+                            class="rounded-lg"
+                            @click="editInstanceItem(record)"
+                            :disabled="props.formOpen"
+                            v-bind="props"
+                        ></v-btn>
+                    </template>
+                </v-tooltip>
+                &nbsp;
+                <v-tooltip text="View RDF" location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn
+                            icon="mdi-file-eye-outline"
+                            variant="tonal"
+                            size="x-small"
+                            class="rounded-lg"
+                            @click="viewRDF()"
+                            :disabled="props.formOpen"
+                            v-bind="props"
+                        ></v-btn>
+                    </template>
+                </v-tooltip>
+            </span>
         </v-card-subtitle>
         <v-card-text v-if="!props.formOpen">
 
