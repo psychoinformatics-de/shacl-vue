@@ -1,8 +1,8 @@
 // formdata.js
 
-import { reactive, toRaw} from 'vue'
+import { reactive, toRaw, ref } from 'vue'
 import { SHACL } from '@/modules/namespaces';
-import { replaceServiceIdentifier} from '@/modules/utils';
+import { replaceServiceIdentifier, findObjectIndexByKey} from '@/modules/utils';
 import { postRDF } from '@/modules/io'
 import { useToken } from '@/composables/tokens'
 import { FormBase } from 'shacl-tulip' 
@@ -11,13 +11,16 @@ import { Store } from 'n3';
 export function useForm(config) {
 
     const formData = new FormBase(null, reactive({}))
+    const savedNodes = ref([])
+    const submittedNodes = ref([])
+    const nodesToSubmit = ref([])
 
     async function submitFormData(shapesDS, id_iri, prefixes, config, rdfDS) {
 
         try {
             console.log("inside submitFormData function")
             console.log(toRaw(formData.content))
-            if (Object.keys(formData.content).length == 0) {
+            if (nodesToSubmit.value.length == 0) {
                 var msg = "submitFormData: no edited formData to submit; returning."
                 console.log(msg)
                 return {
@@ -62,8 +65,9 @@ export function useForm(config) {
 
             // collect all POST requests as Promises
             let postPromises = [];
-            for (var class_uri of Object.keys(formData.content)) {
-                // class_uri: all classes that were edited
+            let toSubmit = [...nodesToSubmit.value]
+            for (var nodeToSubmit of toSubmit) {
+                const class_uri = nodeToSubmit.nodeshape_iri
                 // Get shapes for reference
                 var nodeShape = shapesDS.data.nodeShapes[class_uri]
                 var propertyShapes = nodeShape.properties
@@ -74,35 +78,59 @@ export function useForm(config) {
                     console.log(`Class '${class_uri}' shape does not have an id field, i.e. it will have blank node records, i.e. skipping.`)
                     continue;
                 }
-                for (var record_id of Object.keys(formData.content[class_uri])) {
-                    console.log(`formData for node: ${record_id}`)
-                    console.log(toRaw(formData.content[class_uri][record_id]))
-                    // Turn the record/node into quads
-                    var quads = formData.formNodeToQuads(class_uri, record_id, shapesDS)
-                    // Ne need to resolve blank nodes recursively, and add all to the dataset
-                    quads.forEach(quad => {
-                        if (quad.object.termType === "BlankNode") {
-                            var moreQuads = rdfDS.getSubjectTriples(quad.object)
-                            quads = quads.concat(Array.from(moreQuads))
-                        }
-                    });
-                    // Create an rdf dataset per record
-                    var ds = new Store()
-                    quads.forEach(quad => {
-                        ds.add(quad)
-                    });
-                    // A POST replaceServiceIdentifier(class_uri, serviceEndpoints[endpoint], prefixes)
-                    const query_string = replaceServiceIdentifier(class_uri, serviceEndpoints[endpoint], prefixes)
-                    var postURL = `${writeUrls[0].url}${query_string}`
-                    console.log("POSTing to the following URL:")
-                    console.log(postURL)
-                    postPromises.push(postRDF(postURL, ds, 'text/turtle', headers, prefixes));
-                    // await postRDF(postURL, ds,'text/turtle', headers, prefixes)
-                }
+                const record_id = nodeToSubmit.node_iri
+                console.log(`formData for node: ${record_id}`)
+                console.log(toRaw(formData.content[class_uri][record_id]))
+                // Turn the record/node into quads
+                var quads = formData.formNodeToQuads(class_uri, record_id, shapesDS)
+                // Ne need to resolve blank nodes recursively, and add all to the dataset
+                quads.forEach(quad => {
+                    if (quad.object.termType === "BlankNode") {
+                        var moreQuads = rdfDS.getSubjectTriples(quad.object)
+                        quads = quads.concat(Array.from(moreQuads))
+                    }
+                });
+                // Create an rdf dataset per record
+                var ds = new Store()
+                quads.forEach(quad => {
+                    ds.add(quad)
+                });
+                // A POST replaceServiceIdentifier(class_uri, serviceEndpoints[endpoint], prefixes)
+                const query_string = replaceServiceIdentifier(class_uri, serviceEndpoints[endpoint], prefixes)
+                var postURL = `${writeUrls[0].url}${query_string}`
+                console.log("POSTing to the following URL:")
+                console.log(postURL)
+                postPromises.push(
+                    postRDF(postURL, ds, 'text/turtle', headers, prefixes)
+                    .then(result => ({ nodeshape_iri: class_uri, node_iri: record_id, result }))
+                    .catch(error => ({ nodeshape_iri: class_uri, node_iri: record_id, error }))
+                );
+                // await postRDF(postURL, ds,'text/turtle', headers, prefixes)
             }
             // wait until all POST requests settle.
             const results = await Promise.allSettled(postPromises);
-            const failed = results.filter(result => result.value.success === false).map(r => {return r.value});
+            console.log("POST results:")
+            console.log(results)
+            for (var r of results) {
+                if (r.status === "fulfilled") {
+                    const { nodeshape_iri, node_iri, result } = r.value;
+                    if (result.success) {
+                        submittedNodes.value.push({
+                            nodeshape_iri: nodeshape_iri,
+                            node_iri: node_iri,
+                        })
+                        // also remove from nodesToSubmit.value
+                        var n = findObjectIndexByKey(nodesToSubmit.value, "node_iri", node_iri)
+                        if (n > -1) {
+                            nodesToSubmit.value.splice(n, 1)
+                        }
+                    }
+                } else {
+                    const { nodeshape_iri, node_iri, error } = r.reason;
+                    console.warn(`POST to ${nodeshape_iri} for node ${node_iri} failed:`, error);
+                }
+            }
+            const failed = results.filter(result => result.value.result.success === false).map(r => {return r.value.result});
 
             if (failed.length > 0) {
                 return {
@@ -124,10 +152,12 @@ export function useForm(config) {
         }
     }
 
-
     // expose managed state as return value
     return {
         formData,
         submitFormData,
+        savedNodes,
+        submittedNodes,
+        nodesToSubmit,
     }
 }
