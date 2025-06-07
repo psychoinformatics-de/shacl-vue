@@ -65,10 +65,9 @@
 
 
 <script setup>
-  import { ref, onMounted, onBeforeMount, onBeforeUnmount, provide, inject, reactive, computed, toRaw} from 'vue'
+  import { ref, onMounted, onBeforeMount, onBeforeUnmount, provide, inject, reactive, computed, toRaw, onUpdated} from 'vue'
   import { SHACL } from '../modules/namespaces'
-  import { toCURIE } from 'shacl-tulip'
-  import { addCodeTagsToText, getDisplayName} from '../modules/utils';
+  import { addCodeTagsToText, getDisplayName, findObjectByKey } from '../modules/utils';
 
   // ----- //
   // Props //
@@ -95,13 +94,14 @@
   const saveFormHandler = inject('saveFormHandler')
   const editMode = inject('editMode')
   const removeForm = inject('removeForm')
+  const savedNodes = inject('savedNodes')
+  const nodesToSubmit = inject('nodesToSubmit')
   const shape_obj = shapesDS.data.nodeShapes[localShapeIri.value]
   const form = ref(null)
   const formValid = ref(null)
   const fieldMap = reactive({}); // Maps element IDs to human-readable labels
   const validationErrors = ref([]);
   const configVarsMain = inject('configVarsMain')
-
   function registerRef(id, fieldData) {
     fieldMap[id] = fieldData;
   }
@@ -129,14 +129,12 @@
   })
 
   onBeforeUnmount(() => {
-      console.log("Running onBeforeUnmount for formeditor")
+      console.log(`Running onBeforeUnmount for formeditor: ${props.shape_iri}`)
       localShapeIri.value = null
   });
 
   onMounted(() => {
-    console.log(`the FormEditor component is now mounted.`)
-    // console.log(shape_obj)
-    
+      console.log(`the FormEditor component is now mounted: ${props.shape_iri}`)
   })
 
   // ------------------- //
@@ -203,6 +201,22 @@
           editMode.form || editMode.graph,
           reactiveCloneFunc
         )
+        // saved_node = {
+        //   nodeshape_iri: "",
+        //   node_iri: ""
+        // }
+        savedNodes.value.push(saved_node)
+        // In order for the node to be submitted, it should have a PID
+        // (because blank nodes aren't submitted as such, they are resolved
+        // into named nodes), and it should not already be in nodesToSubmit.value.
+        // Check if node has PID:
+        // if the nodeshape does NOT have a propertyshape with sh:path being equal to ID_IRI,
+        // it means the class's records will be blank nodes these should not be submitted
+        var nodeShape = shapesDS.data.nodeShapes[saved_node.nodeshape_iri]
+        var ps = nodeShape.properties.find((prop) => prop[SHACL.path.value] == ID_IRI.value)
+        if(ps && !findObjectByKey(nodesToSubmit.value, "node_iri", saved_node.node_iri)) {
+          nodesToSubmit.value.push(saved_node)
+        }        
         removeForm(saved_node)
         if (typeof saveFormHandler === 'function') {
           saveFormHandler();

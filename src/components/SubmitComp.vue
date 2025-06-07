@@ -8,6 +8,21 @@
             >
                 <span v-if="!responseReceived">
                     <span v-if="tokenExists">
+
+                        You have edited and saved {{ nodesToSubmit.length }} record{{ nodesToSubmit.length == 1 ? '' : 's' }} for submission:
+                        
+                        <div style="margin-top: 0.7em; margin-bottom: 0.7em;">
+                            <em>
+                                <span v-for="r in nodesToSubmit">
+                                    &nbsp;&nbsp;
+                                    <v-icon>{{ getClassIcon(r.nodeshape_iri) }}</v-icon>&nbsp;
+                                    {{ getDisplayName(r.nodeshape_iri, configVarsMain, allPrefixes) }}:&nbsp;&nbsp;
+                                    {{ r.node_iri }}
+                                    <br>
+                                </span>
+                            </em>
+                        </div>
+
                         Are you sure you want to continue?
                     </span>
                     <span v-else>
@@ -70,6 +85,7 @@
 
 <script setup>
     import { ref, onBeforeMount, inject} from 'vue';
+    import { getDisplayName } from '@/modules/utils'
     import { useToken } from '@/composables/tokens'
 
     const props = defineProps({
@@ -87,8 +103,11 @@
     const tokenExists = ref(false)
     const shapesDS = inject('shapesDS')
     const rdfDS = inject('rdfDS')
+    const nodesToSubmit = inject('nodesToSubmit')
     const ID_IRI = inject('ID_IRI')
     const config = inject('config')
+    const configVarsMain = inject('configVarsMain')
+    const getClassIcon = inject('getClassIcon')
     const allPrefixes = inject('allPrefixes');
     const awaitingResponse = ref(false)
     const responseReceived = ref(false)

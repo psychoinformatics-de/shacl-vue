@@ -32,7 +32,7 @@
                 <v-tooltip text="Submit" location="bottom">
                     <template v-slot:activator="{ props }">
                         <v-badge
-                          v-if="pendingRecordsCount > 0 && !formOpen"
+                          v-if="nodesToSubmit.length > 0 && !formOpen"
                           dot
                           color="success"
                           overlap
@@ -135,7 +135,7 @@
     const { token, setToken, clearToken } = useToken()
     const submitFn = inject('submitFn')
     const canSubmit = inject('canSubmit')
-    const formData = inject('formData')
+    const nodesToSubmit = inject('nodesToSubmit')
     const formOpen = inject('formOpen')
     const configVarsMain = inject('configVarsMain')
     const visible = ref(false)
@@ -149,10 +149,6 @@
             return 'A token is required'
         },
     ]
-    // compute if records are pending to be submittedAdd commentMore actions
-    const pendingRecordsCount = computed(
-      () => Object.keys(formData.content).length
-    )
 
     onBeforeMount(()=>{
         if (token.value !== null && token.value !== "null") {

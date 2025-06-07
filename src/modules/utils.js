@@ -77,6 +77,10 @@ export function findObjectByKey(array, key, value) {
     return array.find(obj => obj[key] === value);
 }
 
+export function findObjectIndexByKey(array, key, value) {
+  return array.findIndex(obj => obj[key] === value);
+}
+
 export function replaceServiceIdentifier(id, arg_string, prefixes) {
   // id: The URI parameter to be formatter
   // arg_string: The formatting instruction "record?id={curie}&format=ttl";

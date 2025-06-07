@@ -197,14 +197,7 @@
     const { rdfDS, getRdfData, fetchFromService } = useData(config)
     const { classDS, getClassData } = useClasses(config)
     const { shapesDS, getSHACLschema } = useShapes(config)
-    const { formData, submitFormData: _rawSubmitFormData } = useForm(config)
-    async function submitFormData(...args) {
-      const result = await _rawSubmitFormData(...args)
-      if (result?.success) {
-        Object.keys(formData.content).forEach(k => delete formData.content[k])
-      }
-      return result
-    }
+    const { formData, submitFormData, savedNodes, submittedNodes, nodesToSubmit } = useForm(config)
     const { token, setToken, clearToken } = useToken()
     const ID_IRI = ref("")
     watch(configFetched, async (newValue) => {
@@ -247,20 +240,22 @@
     provide('formData', formData)
     provide('fetchFromService', fetchFromService)
     provide('submitFormData', submitFormData)
-    // ACCIDENTAL CLOSE PROTECTION , issue #110
-    // Warn if there are any pending entries in formData.content
+    provide('savedNodes', savedNodes)
+    provide('submittedNodes', submittedNodes)
+    provide('nodesToSubmit', nodesToSubmit)
+    // Warn if there are any pending records to submit
     function handleBeforeUnload(event) {
-      if (Object.keys(formData.content).length > 0) {
-        event.preventDefault()
-        event.returnValue = ""
-        return ""
-      }
+        if (nodesToSubmit.value.length > 0) {
+            event.preventDefault()
+            event.returnValue = ""
+            return ""
+        }
     }
     onMounted(() => {
-      window.addEventListener("beforeunload", handleBeforeUnload)
+        window.addEventListener("beforeunload", handleBeforeUnload)
     })
     onBeforeUnmount(() => {
-      window.removeEventListener("beforeunload", handleBeforeUnload)
+        window.removeEventListener("beforeunload", handleBeforeUnload)
     })
 
     const superClasses = reactive({})
@@ -341,7 +336,7 @@
     // When user clicks the submit button
     watch(submitButtonPressed, (newValue) => {
         if (newValue) {
-            if (Object.keys(formData.content).length == 0) {
+            if (nodesToSubmit.value.length == 0) {
                 noSubmitDialog.value = true;
                 submitDialog.value = false;
             } else {
@@ -717,6 +712,10 @@
         }
         return null;
     })
+
+    function isPanelOpen(index) {
+        return currentOpenForm.value === 'panel' + (index + 1);
+    }
 
     function addForm(shapeIRI, nodeIDX, formType) {
         for (var i=0;i<openForms.length;i++) {
