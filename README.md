@@ -1,7 +1,6 @@
 # shacl-vue
 
-***THIS REPOSITORY IS UNDER CONTINUOUS DEVELOPMENT***
-
+**_THIS REPOSITORY IS UNDER CONTINUOUS DEVELOPMENT_**
 
 ## Overview
 
@@ -10,7 +9,6 @@
 Think of it as an automatic builder that you just have to feed with a model of your data. If you have a SHACL schema, or a schema in a format that can be exported to SHACL, then you're good to go. No need to build custom forms for data entry, no need to struggle with post-entry data validation, no need to create a catalog application that renders all the entered data. `shacl-vue` does all of this automatically.
 
 `shacl-vue` is built with [VueJS 3](https://vuejs.org/), [Vuetify frontend components](https://vuetifyjs.com/en/), and [Vite build tools](https://vitejs.dev/), and was heavily inspired by the WC3 Draft: [Form Generation using SHACL and DASH](https://datashapes.org/forms.html). For reading, manipulating, and writing RDF data (including shacl), the package uses libraries compatible with the [RDF/JS](https://rdf.js.org/) specifications (see also: https://github.com/rdfjs-base)
-
 
 ## Links
 
@@ -40,7 +38,7 @@ This is the main configurable VueJS component that is used to render all functio
     <ShaclVue :configUrl="myconfig"></ShaclVue>
 </template>
 <script setup>
-    const myconfig = 'config.json'
+const myconfig = 'config.json';
 </script>
 ```
 
@@ -115,7 +113,6 @@ npm run test
 ## Dependency on `shacl-tulip`
 
 In an effort to generalize `shacl-vue` for improved use by and interoperability with other applications, the underlying functionality was factored out and packaged as the [`shacl-tulip`](https://github.com/psychoinformatics-de/shacl-tulip) library (like "`shacl-vue`-lib"). `shacl-tulip` provides the main (derived) classes for handling RDF data and related form data. It is completely independent of VueJS, yet class constructors allow passing reactive objects as arguments, which `shacl-tulip` handles seamlessly. It also focuses purely on library-level functionality (including utilities that were previously part of `shacl-vue`), and contains no frontend code. `shacl-vue` imports `shacl-tulip` classes and uses them mainly in its composable code.
-
 
 ### Acknowledgements
 

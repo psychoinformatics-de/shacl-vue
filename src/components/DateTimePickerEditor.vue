@@ -16,7 +16,7 @@
 
         <template v-slot:default="{ isActive }">
             <v-card title="Date">
-                <v-date-picker 
+                <v-date-picker
                     show-adjacent-months
                     v-model="subValues.picked_date"
                     validate-on="lazy input"
@@ -28,75 +28,78 @@
             </v-card>
         </template>
     </v-dialog>
-    
 </template>
 
 <script setup>
-    import {inject, computed} from 'vue'
-    import { useRules } from '../composables/rules'
-    import { useRegisterRef } from '../composables/refregister';
-    import { useBaseInput } from '@/composables/base';
+import { inject, computed } from 'vue';
+import { useRules } from '../composables/rules';
+import { useRegisterRef } from '../composables/refregister';
+import { useBaseInput } from '@/composables/base';
 
-    const props = defineProps({
-        modelValue: String,
-        property_shape: Object,
-        node_uid: String,
-        node_idx: String,
-        triple_uid: String,
-        triple_idx: Number
-    })
-    const formData = inject('formData');
-    const { rules } = useRules(props.property_shape)
-    const inputId = `input-${Date.now()}`;
-    const { fieldRef } = useRegisterRef(inputId, props);
+const props = defineProps({
+    modelValue: String,
+    property_shape: Object,
+    node_uid: String,
+    node_idx: String,
+    triple_uid: String,
+    triple_idx: Number,
+});
+const formData = inject('formData');
+const { rules } = useRules(props.property_shape);
+const inputId = `input-${Date.now()}`;
+const { fieldRef } = useRegisterRef(inputId, props);
 
-    const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue']);
 
-    const { subValues, internalValue } = useBaseInput(
-        props,
-        emit,
-        valueParser,
-        valueCombiner
-    );
+const { subValues, internalValue } = useBaseInput(
+    props,
+    emit,
+    valueParser,
+    valueCombiner
+);
 
-    function valueParser(value) {
-        // Parsing internalValue into ref values for separate subcomponent(s)
-        return {picked_date: value}
-    }
+function valueParser(value) {
+    // Parsing internalValue into ref values for separate subcomponent(s)
+    return { picked_date: value };
+}
 
-    function valueCombiner(values) {
-        if (values.picked_date) {
-            try {
-                var y = values.picked_date.getFullYear()
-                var m = ('0' + (parseInt(values.picked_date.getMonth())+1)).slice(-2)
-                var d = ('0' + values.picked_date.getDate()).slice(-2)
-                return `${y}-${m}-${d}`
-            }
-            catch (error) {
-                console.log(error)
-                return values.picked_date
-            }
+function valueCombiner(values) {
+    if (values.picked_date) {
+        try {
+            var y = values.picked_date.getFullYear();
+            var m = ('0' + (parseInt(values.picked_date.getMonth()) + 1)).slice(
+                -2
+            );
+            var d = ('0' + values.picked_date.getDate()).slice(-2);
+            return `${y}-${m}-${d}`;
+        } catch (error) {
+            console.log(error);
+            return values.picked_date;
         }
-        return null
     }
+    return null;
+}
 </script>
 
 <script>
-    import { SHACL, XSD } from '../modules/namespaces'
-    export const matchingLogic = (shape) => {
-        // sh:nodeKind exists
-        if ( shape.hasOwnProperty(SHACL.nodeKind.value) ) {
-            // sh:nodeKind == sh:Literal
-            if ( shape[SHACL.nodeKind.value] == SHACL.Literal.value ) {
-                // sh:datatype exists
-                if ( shape.hasOwnProperty(SHACL.datatype.value) ) {
-                    // sh:datatype == xsd:dateTime ||
-                    // sh:datatype == "https://www.w3.org/TR/NOTE-datetime"
-                    return shape[SHACL.datatype.value] == XSD.dateTime.value ||
-                        shape[SHACL.datatype.value] == "https://www.w3.org/TR/NOTE-datetime"
-                }
+import { SHACL, XSD } from '../modules/namespaces';
+export const matchingLogic = (shape) => {
+    // sh:nodeKind exists
+    if (shape.hasOwnProperty(SHACL.nodeKind.value)) {
+        // sh:nodeKind == sh:Literal
+        if (shape[SHACL.nodeKind.value] == SHACL.Literal.value) {
+            // sh:datatype exists
+            if (shape.hasOwnProperty(SHACL.datatype.value)) {
+                // sh:datatype == xsd:dateTime ||
+                // sh:datatype == "https://www.w3.org/TR/NOTE-datetime"
+                return (
+                    shape[SHACL.datatype.value] == XSD.dateTime.value ||
+                    shape[SHACL.datatype.value] ==
+                        'https://www.w3.org/TR/NOTE-datetime'
+                );
             }
         }
-        return false
-    };
+    }
+    return false;
+};
 </script>

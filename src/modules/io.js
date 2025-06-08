@@ -2,18 +2,23 @@
  * @module io.js
  * @description This module provides common functionality for reading and writing
  * to files or endpoints
- * 
+ *
  * It depends mainly on https://github.com/rdfjs-base/fetch-lite for reading RDF data
  * into streams and writing stream data to serialized RDF formats
  */
 
-
-import formats from '@rdfjs/formats-common'
-import fetch from '@rdfjs/fetch-lite'
+import formats from '@rdfjs/formats-common';
+import fetch from '@rdfjs/fetch-lite';
 import { Writer } from 'n3';
 
-export async function postRDF(endpoint, dataset, format = 'text/turtle', headers = {}, prefixes) {
-    const url = endpoint
+export async function postRDF(
+    endpoint,
+    dataset,
+    format = 'text/turtle',
+    headers = {},
+    prefixes
+) {
+    const url = endpoint;
     try {
         // Ensure we have the correct content-type
         headers['Content-Type'] = format;
@@ -30,7 +35,7 @@ export async function postRDF(endpoint, dataset, format = 'text/turtle', headers
 
         const response = await fetch(url, {
             method: 'POST',
-            formats, 
+            formats,
             headers,
             body,
             prefixes,
@@ -43,7 +48,7 @@ export async function postRDF(endpoint, dataset, format = 'text/turtle', headers
             error.status = code;
             error.url = url;
             error.response = response;
-            throw error
+            throw error;
         }
 
         return {
