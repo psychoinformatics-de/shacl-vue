@@ -1,67 +1,69 @@
 // graphdata.js
-import { watch} from 'vue'
-import { replaceServiceIdentifier} from '@/modules/utils';
-import { useToken } from '@/composables/tokens'
+import { watch } from 'vue';
+import { replaceServiceIdentifier } from '@/modules/utils';
+import { useToken } from '@/composables/tokens';
 import { ReactiveRdfDataset } from '@/classes/ReactiveRdfDataset';
 
 const basePath = import.meta.env.BASE_URL || '/';
 
 export function useData(config) {
-
-    const defaultURL = `${basePath}dlschemas_data.ttl`
+    const defaultURL = `${basePath}dlschemas_data.ttl`;
     const rdfDS = new ReactiveRdfDataset();
-    const fetchedRequests = new Set()
+    const fetchedRequests = new Set();
     const { token } = useToken();
 
     async function getRdfData(url) {
-        var getURL
+        var getURL;
         if (!url) {
             // If no url argument provided, check config
             // Config priority is:
             // - if the data_url is provided, use it and ignore use_default_data
             // - if the data_url is NOT provided, use default if use_default_data==true, else nothing
             if (config.value.data_url) {
-                if (config.value.data_url.indexOf('http')>=0) {
-                    getURL = config.value.data_url
+                if (config.value.data_url.indexOf('http') >= 0) {
+                    getURL = config.value.data_url;
                 } else {
                     getURL = `${basePath}${config.value.data_url}`;
                 }
             } else {
                 if (config.value.use_default_data == true) {
-                    getURL = defaultURL
+                    getURL = defaultURL;
                 } else {
-                    console.warn("getRdfData: No valid URL to fetch RDF data. Skipping fetch.");
+                    console.warn(
+                        'getRdfData: No valid URL to fetch RDF data. Skipping fetch.'
+                    );
                     return {
                         success: false,
-                        message: "No valid data URL found and use_default_data is false.",
+                        message:
+                            'No valid data URL found and use_default_data is false.',
                         error: null,
-                        url: null
+                        url: null,
                     };
                 }
             }
         } else {
-            getURL = url
+            getURL = url;
         }
-        var headers = { "Content-Type": "text/turtle" }
-        if (token.value !== null && token.value !== "null") {
+        var headers = { 'Content-Type': 'text/turtle' };
+        if (token.value !== null && token.value !== 'null') {
             headers['X-DumpThings-Token'] = token.value;
         }
 
-        const result = await rdfDS.loadRDF(getURL, headers)
+        const result = await rdfDS.loadRDF(getURL, headers);
 
         if (!result.success) {
             return {
                 success: false,
                 message: result.message,
                 error: result.error,
-                url: getURL
+                url: getURL,
             };
         }
-        rdfDS.triggerReactivity()
+        rdfDS.triggerReactivity();
         return {
             success: true,
-            url: getURL
-        }
+            url: getURL,
+        };
     }
 
     async function fetchFromService(endpoint, arg, prefixes) {
@@ -69,40 +71,52 @@ export function useData(config) {
         // arg: the URI of the parameter to be formatted and made part of the query string
 
         try {
-            const serviceBaseURL = config.value.service_base_url
-            const serviceEndpoints = config.value.service_endpoints
+            const serviceBaseURL = config.value.service_base_url;
+            const serviceEndpoints = config.value.service_endpoints;
             if (!(serviceBaseURL || serviceEndpoints)) {
-                throw new Error("Service base URL and/or service endpoints not included in configuration.\nFetching data from an endpoint will not be possible.")
+                throw new Error(
+                    'Service base URL and/or service endpoints not included in configuration.\nFetching data from an endpoint will not be possible.'
+                );
             }
 
             if (Object.keys(serviceEndpoints).indexOf(endpoint) < 0) {
-                throw new Error(`Unknown endpoint '${endpoint}' provided; continuing without making a request to configured service`)
+                throw new Error(
+                    `Unknown endpoint '${endpoint}' provided; continuing without making a request to configured service`
+                );
             }
 
             // Handle two possibilities:
             // - serviceBaseURL is a string (backwards compatible)
             // - serviceBaseURL is an Array (latest feature)
-            const baseUrls = Array.isArray(serviceBaseURL) ? serviceBaseURL.map(entry => entry.url) : [serviceBaseURL];
+            const baseUrls = Array.isArray(serviceBaseURL)
+                ? serviceBaseURL.map((entry) => entry.url)
+                : [serviceBaseURL];
 
-            const query_string = replaceServiceIdentifier(arg, serviceEndpoints[endpoint], prefixes)
+            const query_string = replaceServiceIdentifier(
+                arg,
+                serviceEndpoints[endpoint],
+                prefixes
+            );
 
             const results = [];
             let allFailed = true;
             let anyFailed = false;
             let allSkipped = true;
-            const results_status = []
+            const results_status = [];
 
             for (const baseUrl of baseUrls) {
                 const getURL = `${baseUrl}${query_string}`;
                 if (fetchedRequests.has(getURL)) {
-                    console.log(`Skipping request: Data previously fetched from ${getURL}`);
+                    console.log(
+                        `Skipping request: Data previously fetched from ${getURL}`
+                    );
                     // Add result to array, then continue to next baseUrl
                     results.push({
                         success: true,
                         skipped: true,
-                        url: getURL
+                        url: getURL,
                     });
-                    results_status.push("skipped")
+                    results_status.push('skipped');
                     continue;
                 }
 
@@ -114,9 +128,9 @@ export function useData(config) {
                         url: getURL,
                         success: false,
                         skipped: false,
-                        message: result.message || "Failed to fetch RDF data."
+                        message: result.message || 'Failed to fetch RDF data.',
                     });
-                    results_status.push("failed")
+                    results_status.push('failed');
                     anyFailed = true;
                 } else {
                     results.push({
@@ -125,24 +139,26 @@ export function useData(config) {
                         skipped: false,
                     });
                     allFailed = false;
-                    results_status.push("success")
+                    results_status.push('success');
                 }
             }
             // Now we have an array of results
             // Process all
             if (anyFailed) {
-                var error = new Error("One or more RDF data fetch attempts failed.");
+                var error = new Error(
+                    'One or more RDF data fetch attempts failed.'
+                );
                 return {
                     success: false,
                     message: error.message,
                     status: Array.from(new Set(results_status)),
                     error: error,
-                    url: results
+                    url: results,
                 };
             }
             for (var r of results) {
                 if (!r.skipped) {
-                    allSkipped = false
+                    allSkipped = false;
                     break;
                 }
             }
@@ -150,7 +166,7 @@ export function useData(config) {
                 success: true,
                 skipped: allSkipped,
                 status: Array.from(new Set(results_status)),
-                url: results
+                url: results,
             };
         } catch (error) {
             return {
@@ -158,7 +174,7 @@ export function useData(config) {
                 message: error.message,
                 status: null,
                 error: error,
-                url: null
+                url: null,
             };
         }
     }
@@ -167,6 +183,6 @@ export function useData(config) {
     return {
         rdfDS,
         getRdfData,
-        fetchFromService
-    }
+        fetchFromService,
+    };
 }

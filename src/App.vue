@@ -1,10 +1,9 @@
 <template>
-  <v-app>
-    <ShaclVue :configUrl="confURL"></ShaclVue>
-  </v-app>
+    <v-app>
+        <ShaclVue :configUrl="confURL"></ShaclVue>
+    </v-app>
 </template>
 
-
 <script setup>
-  const confURL = 'config.json'
+const confURL = 'config_flatdata.json';
 </script>

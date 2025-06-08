@@ -3,20 +3,20 @@
 </template>
 
 <script setup>
-    import { inject } from 'vue'
-    import { useRules } from '../composables/rules'
+import { inject } from 'vue';
+import { useRules } from '../composables/rules';
 
-    const props = defineProps({
-        property_shape: Object,
-        node_uid: String,
-        triple_uid: String
-    })
-    const formData = inject('formData');
-    const { rules } = useRules(props.property_shape)
+const props = defineProps({
+    property_shape: Object,
+    node_uid: String,
+    triple_uid: String,
+});
+const formData = inject('formData');
+const { rules } = useRules(props.property_shape);
 </script>
 
 <script>
-    export const matchingLogic = (shape) => {
-        return false
-    };
+export const matchingLogic = (shape) => {
+    return false;
+};
 </script>

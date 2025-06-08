@@ -1,4 +1,2 @@
-import ShaclVue from "./src/components/ShaclVue.vue";
-export {
-    ShaclVue
-}
+import ShaclVue from './src/components/ShaclVue.vue';
+export { ShaclVue };

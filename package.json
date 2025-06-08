@@ -1,79 +1,82 @@
 {
-  "name": "shacl-vue",
-  "version": "0.0.6",
-  "description": "Autogenerate user interfaces from SHACL shapes",
-  "main": "./dist/lib/shacl-vue.cjs.js",
-  "type": "module",
-  "module": "./dist/lib/shacl-vue.es.js",
-  "exports": {
-    ".": {
-      "import": "./dist/lib/shacl-vue.es.js",
-      "require": "./dist/lib/shacl-vue.cjs.js"
+    "name": "shacl-vue",
+    "version": "0.0.6",
+    "description": "Autogenerate user interfaces from SHACL shapes",
+    "main": "./dist/lib/shacl-vue.cjs.js",
+    "type": "module",
+    "module": "./dist/lib/shacl-vue.es.js",
+    "exports": {
+        ".": {
+            "import": "./dist/lib/shacl-vue.es.js",
+            "require": "./dist/lib/shacl-vue.cjs.js"
+        },
+        "./shapedata": {
+            "import": "./dist/lib/shapedata.es.js",
+            "require": "./dist/lib/shapedata.cjs.js"
+        },
+        "./style.css": "./dist/lib/shacl-vue.css"
     },
-    "./shapedata": {
-      "import": "./dist/lib/shapedata.es.js",
-      "require": "./dist/lib/shapedata.cjs.js"
+    "files": [
+        "dist/lib"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/psychoinformatics-de/shacl-vue.git"
     },
-    "./style.css": "./dist/lib/shacl-vue.css"
-  },
-  "files": [
-    "dist/lib"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/psychoinformatics-de/shacl-vue.git"
-  },
-  "keywords": [
-    "metadata",
-    "linked data",
-    "SHACL",
-    "RDF",
-    "editor",
-    "viewer",
-    "UI",
-    "VueJS"
-  ],
-  "author": "Stephan Heunis",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/psychoinformatics-de/shacl-vue/issues"
-  },
-  "homepage": "https://github.com/psychoinformatics-de/shacl-vue#readme",
-  "scripts": {
-    "dev": "vite --config vite.config.app.mjs",
-    "build": "npm run build:lib && npm run build:app",
-    "build:lib": "vite build --config vite.config.lib.mjs",
-    "build:app": "vite build --config vite.config.app.mjs",
-    "preview": "vite preview --config vite.config.app.mjs",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs",
-    "test": "vitest --config vite.config.lib.mjs"
-  },
-  "dependencies": {
-    "@mdi/font": "7.0.96",
-    "@rdfjs/fetch-lite": "^3.3.0",
-    "@rdfjs/formats-common": "^3.1.0",
-    "lodash-es": "^4.17.21",
-    "n3": "^1.25.2",
-    "roboto-fontface": "^0.10.0",
-    "shacl-tulip": "^0.0.3",
-    "vue-virtual-scroller": "^2.0.0-beta.8"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^5.2.1",
-    "happy-dom": "^17.1.8",
-    "sass": "^1.86.0",
-    "unplugin-fonts": "^1.3.1",
-    "unplugin-vue-components": "^0.26.0",
-    "vite": "^6.2.0",
-    "vite-plugin-vuetify": "^2.1.0",
-    "vitepress": "^1.6.3",
-    "vitest": "^3.0.7",
-    "vue": "^3.4.0"
-  },
-  "peerDependencies": {
-    "vue": "^3.4.0",
-    "vuetify": "^3.7.14"
-  }
+    "keywords": [
+        "metadata",
+        "linked data",
+        "SHACL",
+        "RDF",
+        "editor",
+        "viewer",
+        "UI",
+        "VueJS"
+    ],
+    "author": "Stephan Heunis",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/psychoinformatics-de/shacl-vue/issues"
+    },
+    "homepage": "https://github.com/psychoinformatics-de/shacl-vue#readme",
+    "scripts": {
+        "dev": "vite --config vite.config.app.mjs",
+        "build": "npm run build:lib && npm run build:app",
+        "build:lib": "vite build --config vite.config.lib.mjs",
+        "build:app": "vite build --config vite.config.app.mjs",
+        "preview": "vite preview --config vite.config.app.mjs",
+        "docs:dev": "vitepress dev docs",
+        "docs:build": "vitepress build docs",
+        "docs:preview": "vitepress preview docs",
+        "test": "vitest --config vite.config.lib.mjs",
+        "format": "prettier .",
+        "format:write": "prettier --write ."
+    },
+    "dependencies": {
+        "@mdi/font": "7.0.96",
+        "@rdfjs/fetch-lite": "^3.3.0",
+        "@rdfjs/formats-common": "^3.1.0",
+        "lodash-es": "^4.17.21",
+        "n3": "^1.25.2",
+        "roboto-fontface": "^0.10.0",
+        "shacl-tulip": "^0.0.3",
+        "vue-virtual-scroller": "^2.0.0-beta.8"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-vue": "^5.2.1",
+        "happy-dom": "^17.1.8",
+        "prettier": "^3.5.3",
+        "sass": "^1.86.0",
+        "unplugin-fonts": "^1.3.1",
+        "unplugin-vue-components": "^0.26.0",
+        "vite": "^6.2.0",
+        "vite-plugin-vuetify": "^2.1.0",
+        "vitepress": "^1.6.3",
+        "vitest": "^3.0.7",
+        "vue": "^3.4.0"
+    },
+    "peerDependencies": {
+        "vue": "^3.4.0",
+        "vuetify": "^3.7.14"
+    }
 }
