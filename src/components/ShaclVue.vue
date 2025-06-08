@@ -10,6 +10,11 @@
                             :color="configVarsMain.appTheme.panel_color"
                             v-model="drawer"
                             style="overflow-y: auto;"
+                            :disable-resize-watcher="true"
+                            :permanent="true"
+                            :temporary="false"
+                            :floating="false"
+                            :mobile-breakpoint="0"
                         >
                             <v-list nav selectable :disabled="formOpen" v-model:selected="selectedItem">
                                 <v-list-item  value="data"><h4>Data Types</h4></v-list-item>
