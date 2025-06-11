@@ -5,5 +5,5 @@
 </template>
 
 <script setup>
-const confURL = 'config_flatdata.json';
+const confURL = 'config.json';
 </script>
