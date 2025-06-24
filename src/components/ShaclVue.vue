@@ -175,6 +175,7 @@
                                                         :items="
                                                             filteredInstanceItemsComp
                                                         "
+                                                        page-mode
                                                         :min-item-size="50"
                                                         key-field="title"
                                                         class="virtual-scroller"
