@@ -22,6 +22,7 @@ const mainVarsToLoad = {
         hover_color: '#1565C0',
         active_color: '#D32F2F',
         panel_color: '#41b883',
+        visited_color: '#41b882',
         logo: 'shacl_vue_logo.svg',
     },
     id_resolves_externally: [],

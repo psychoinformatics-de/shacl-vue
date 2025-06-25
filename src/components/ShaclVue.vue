@@ -445,6 +445,10 @@ watch(
                 '--active-color',
                 configVarsMain.appTheme.active_color
             );
+            document.documentElement.style.setProperty(
+                '--visited-color',
+                configVarsMain.appTheme.visited_color
+            );
             // Set html document title from config variables
             if (configVarsMain.pageTitle) {
                 document.title = configVarsMain.pageTitle;
@@ -711,6 +715,7 @@ function clearField() {
 }
 
 async function selectType(IRI, fromUser, fromBackButton) {
+    instanceItemsComp.value = []
     console.log(`Selecting type: ${IRI}`);
     console.log(filteredNodeShapeNames.value);
     console.log(shapesDS.data.nodeShapeNames);
