@@ -1,6 +1,6 @@
 import { reactive, ref } from 'vue';
 import { RdfDataset } from 'shacl-tulip';
-import { Store } from 'n3';
+import { Store, Parser } from 'n3';
 
 export class ReactiveRdfDataset extends RdfDataset {
     constructor(data = reactive({})) {
@@ -69,5 +69,21 @@ export class ReactiveRdfDataset extends RdfDataset {
         // Toggle the dummy property to trigger reactivity
         this.data.graphChanged++;
         this.data.graph._dummy = !this.data.graph._dummy;
+    }
+
+    parseTTL(ttlString) {
+        const parser = new Parser();
+        parser.parse(ttlString, {
+            // onQuad (required) accepts a listener of type (quad: RDF.Quad) => void
+            onQuad: (err, quad) => {
+                if (quad) this.onDataFn(quad)
+            },
+            // onPrefix (optional) accepts a listener of type (prefix: string, iri: NamedNode) => void
+            onPrefix: (prefix, iri) => {
+                if (prefix && iri) this.onPrefixFn(prefix, iri)
+            },
+            // onComment (optional) accepts a listener of type (comment: string) => void
+            // onComment: (comment) => { console.log('#', comment); },
+        });
     }
 }

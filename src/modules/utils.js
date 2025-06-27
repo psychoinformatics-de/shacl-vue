@@ -78,7 +78,7 @@ export function findObjectIndexByKey(array, key, value) {
 }
 
 export function replaceServiceIdentifier(id, arg_string, prefixes) {
-    // id: The URI parameter to be formatter
+    // id: The URI parameter to be formatted
     // arg_string: The formatting instruction "record?id={curie}&format=ttl";
 
     // First extract the part inside the curly brackets
