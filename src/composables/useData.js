@@ -1,5 +1,5 @@
-// graphdata.js
-import { watch } from 'vue';
+// useData.js
+import { watch, reactive } from 'vue';
 import { replaceServiceIdentifier } from '@/modules/utils';
 import { useToken } from '@/composables/tokens';
 import { ReactiveRdfDataset } from '@/classes/ReactiveRdfDataset';
@@ -10,6 +10,7 @@ export function useData(config) {
     const defaultURL = `${basePath}dlschemas_data.ttl`;
     const rdfDS = new ReactiveRdfDataset();
     const fetchedRequests = new Set();
+    const fetchedPages = reactive({})
     const { token } = useToken();
 
     async function getRdfData(url) {
@@ -92,7 +93,16 @@ export function useData(config) {
                 ? serviceBaseURL.map((entry) => entry.url)
                 : [serviceBaseURL];
 
-            const query_string = replaceServiceIdentifier(
+            // Initialise the variable to keep track of fetched pages
+            for (var b of baseUrls) {
+                if (!fetchedPages.hasOwnProperty(b)) {
+                    fetchedPages[b] = {
+                        fetchedRequests: new Set(),
+                    }
+                }
+            }
+
+            let query_string = replaceServiceIdentifier(
                 arg,
                 serviceEndpoints[endpoint],
                 prefixes
@@ -105,6 +115,34 @@ export function useData(config) {
             const results_status = [];
 
             for (const baseUrl of baseUrls) {
+                if (endpoint == 'get-paginated-records') {
+                    // If this is the first time that a paginated request will be made
+                    // for this baseURL and for this class/arg, we set the page to 1
+                    // else we set it to the next page, unless the next page exceeds the
+                    // total number of pages, then we just skip.
+                    if (!fetchedPages[baseUrl].hasOwnProperty(arg)) {
+                        query_string = query_string.replace('{page_number}', '1')
+                    } else {
+                        var nextPage = fetchedPages[baseUrl][arg].lastPageFetched + 1;
+
+                        query_string = query_string.replace('{page_number}', nextPage.toString())
+                        if (nextPage > fetchedPages[baseUrl][arg].totalPages) {
+                            console.log(
+                                `Skipping request: Last page of records already fetched for class '${arg}' at service URL '${baseUrl}' `
+                            );
+                            // Add result to array, then continue to next baseUrl
+                            results.push({
+                                success: true,
+                                skipped: true,
+                                url: `${baseUrl}${query_string}`,
+                                allPagesFetched: true,
+                            });
+                            results_status.push('skipped');
+                            continue;
+                        }
+                    }
+                }
+
                 const getURL = `${baseUrl}${query_string}`;
                 if (fetchedRequests.has(getURL)) {
                     console.log(
@@ -121,7 +159,13 @@ export function useData(config) {
                 }
 
                 fetchedRequests.add(getURL);
-                const result = await getRdfData(getURL);
+                let result;
+                if (endpoint == 'get-paginated-records') {
+                    result = await getPaginatedRdfData(getURL);
+                } else {
+                    result = await getRdfData(getURL);
+                }
+                
                 if (!result.success) {
                     fetchedRequests.delete(getURL); // Allow retry
                     results.push({
@@ -137,9 +181,33 @@ export function useData(config) {
                         url: getURL,
                         success: true,
                         skipped: false,
+                        pageMeta: result.pageMeta ? result.pageMeta : {}
                     });
                     allFailed = false;
                     results_status.push('success');
+
+                    // If this was a pagination request, we need to store details
+                    if (result.pageMeta){
+                        console.log("Storing pagemeta now")
+                        // add the complete getURL to the Set of fetched urls
+                        // The plan is to use it somewhare but this not used yet
+                        fetchedPages[baseUrl].fetchedRequests.add(getURL)
+                        // If, for the current baseurl, we have NOT fetched records
+                        // of the current class (arg) before, we need to set the first
+                        // value from the page metadata
+                        if (!fetchedPages[baseUrl].hasOwnProperty(arg)) {
+                            fetchedPages[baseUrl][arg] = {
+                                totalItems: result.pageMeta.total,
+                                totalPages: result.pageMeta.pages,
+                                lastPageFetched: result.pageMeta.page,
+                            }
+                        } else {
+                            // If records for the current class (arg) have already been
+                            // fetched before, only set the lastPageFetched value. we
+                            // assume the rest stays constant.
+                            fetchedPages[baseUrl][arg]["lastPageFetched"] = result.pageMeta.page
+                        }
+                    }
                 }
             }
             // Now we have an array of results
@@ -179,10 +247,62 @@ export function useData(config) {
         }
     }
 
+    async function getPaginatedRdfData(getURL) {
+        var headers = {};
+        let metadata;
+        if (token.value !== null && token.value !== 'null') {
+            headers['X-DumpThings-Token'] = token.value;
+        }
+        try {
+            const response = await fetch(getURL, headers);
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+            const json = await response.json();
+            metadata = {
+                page: json.page,
+                pages: json.pages,
+                total: json.total,
+                size: json.size,
+            }
+            json.items.forEach(element => {
+                rdfDS.parseTTL(element)
+            });
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message,
+                error: error,
+                url: getURL,
+            };
+        }
+        rdfDS.triggerReactivity();
+        return {
+            success: true,
+            url: getURL,
+            pageMeta: metadata,
+        };
+
+    }
+
+    function hasUnfetchedPages(IRI) {
+        for (const topLevelKey in fetchedPages) {
+            const section = fetchedPages[topLevelKey];
+            if (section[IRI]) {
+                if (section[IRI].totalPages > section[IRI].lastPageFetched) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     // expose managed state as return value
     return {
         rdfDS,
         getRdfData,
         fetchFromService,
+        fetchedPages,
+        hasUnfetchedPages,
     };
 }

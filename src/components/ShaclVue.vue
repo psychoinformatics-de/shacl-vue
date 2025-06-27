@@ -72,6 +72,7 @@
                                                         density="compact"
                                                         variant="outlined"
                                                         @click="goBack()"
+                                                        :disabled="openForms.length > 0"
                                                     ></v-btn>
                                                     &nbsp;
                                                 </span>
@@ -171,6 +172,13 @@
                                                         </v-col>
                                                         <v-col> </v-col>
                                                     </v-row>
+                                                    <v-fab
+                                                        v-if="showScrollTopBtn && openForms.length == 0"
+                                                        @click="scrollToTop"
+                                                        icon="mdi-arrow-up-bold"
+                                                        :app="true"
+                                                        style="bottom: 2em;"
+                                                    ></v-fab>
                                                     <DynamicScroller
                                                         :items="
                                                             filteredInstanceItemsComp
@@ -179,6 +187,8 @@
                                                         :min-item-size="50"
                                                         key-field="title"
                                                         class="virtual-scroller"
+                                                        @scroll-end="onScrollEnd"
+                                                        ref="scrollerRef"
                                                     >
                                                         <template
                                                             v-slot="{
@@ -230,6 +240,11 @@
                                                                     />
                                                                 </template>
                                                             </DynamicScrollerItem>
+                                                        </template>
+                                                        <template #after>
+                                                            <div v-if="isFetchingPage" :style="'margin: auto; text-align: center; color: ' + configVarsMain.appTheme.link_color + ';'">
+                                                                <v-progress-circular indeterminate :size="40" :width="4"></v-progress-circular>
+                                                            </div>
                                                         </template>
                                                     </DynamicScroller>
                                                 </div>
@@ -399,6 +414,50 @@ const props = defineProps({
     configUrl: String,
 });
 
+// ---------- //
+// PAGINATION //
+// ---------- //
+const isFetchingPage = ref(false);
+const showScrollTopBtn = ref(false);
+const scrollerRef = ref(null);
+function onScrollEnd() {
+    debouncedScrollEnd();
+}
+const debouncedScrollEnd = debounce(async () => {
+    console.log("NEAR BOTTOM OF SCROLLER")
+    if (config.value.use_service) {
+        if (hasUnfetchedPages(selectedIRI.value)) {
+            isFetchingPage.value = true;
+            // First fetch rdf data from configured service
+            var result = await fetchFromService('get-paginated-records', selectedIRI.value, allPrefixes);
+            console.log('scrollEnd fetchFromService result:');
+            console.log(result);
+            console.log('scrollEnd fetchFromService result.status:');
+            console.log(result.status);
+            console.log('scrollEnd fetchFromService result.url:');
+            console.log(result.url);
+            // If there was an actual error during the try statement
+            // before making the requests, relay error and deactivate loader
+            if (result.status === null) {
+                console.error(result.error);
+            }
+            getInstanceItems();
+            isFetchingPage.value = false;
+        } else {
+            console.log("Last page already fetched")
+        }
+    }
+}, 1000);
+function scrollToTop() {
+    if (scrollerRef.value?.scrollToItem) {
+        scrollerRef.value.scrollToItem(0);
+    }
+    nextTick(() => {
+        const el = mainContent.value?.$el || mainContent.value;
+        if (el) el.scrollTop = 0;
+    });
+}
+
 // ---------------------------------------------------- //
 // CONFIGURATION, AND LOADING SHAPES/CLASSES/DATA/FORMS //
 // ---------------------------------------------------- //
@@ -409,7 +468,7 @@ const config_ready = ref(false);
 const itemRefs = ref([]);
 const { config, configFetched, configError, configVarsMain, loadConfigVars } =
     useConfig(props.configUrl);
-const { rdfDS, getRdfData, fetchFromService } = useData(config);
+const { rdfDS, getRdfData, fetchFromService, fetchedPages, hasUnfetchedPages } = useData(config);
 const { classDS, getClassData } = useClasses(config);
 const { shapesDS, getSHACLschema } = useShapes(config);
 const { formData, submitFormData, savedNodes, submittedNodes, nodesToSubmit } =
@@ -436,10 +495,6 @@ watch(
             document.documentElement.style.setProperty(
                 '--hover-color',
                 configVarsMain.appTheme.hover_color
-            );
-            document.documentElement.style.setProperty(
-                '--visited-color',
-                adjustHexColor(configVarsMain.appTheme.link_color, -1)
             );
             document.documentElement.style.setProperty(
                 '--active-color',
@@ -715,12 +770,12 @@ function clearField() {
 }
 
 async function selectType(IRI, fromUser, fromBackButton) {
-    instanceItemsComp.value = []
     console.log(`Selecting type: ${IRI}`);
     console.log(filteredNodeShapeNames.value);
     console.log(shapesDS.data.nodeShapeNames);
-
     console.log(selectedItem.value);
+    isFetchingPage.value = false;
+    showScrollTopBtn.value = false;
     newTypeSelected = true;
     var tempSearchText = searchText.value;
     var tempIRI = selectedIRI.value;
@@ -730,9 +785,13 @@ async function selectType(IRI, fromUser, fromBackButton) {
     if (config.value.use_service) {
         classRecordsLoading.value = true;
         // First fetch rdf data from configured service
-        var result = await fetchFromService('get-records', IRI, allPrefixes);
-        console.log('fetchFromService results status:');
+        var result = await fetchFromService('get-paginated-records', IRI, allPrefixes);
+        console.log('fetchFromService result:');
+        console.log(result);
+        console.log('fetchFromService result.status:');
         console.log(result.status);
+        console.log('fetchFromService result.url:');
+        console.log(result.url);
         // If there was an actual error during the try statement
         // before making the requests, relay error and deactivate loader
         if (result.status === null) {
@@ -943,6 +1002,7 @@ function getInstanceItems() {
         instanceItemsArr.push(item);
     });
     instanceItemsComp.value = [...instanceItemsArr];
+    if (instanceItemsComp.value.length > 7) showScrollTopBtn.value = true;
 }
 
 const filteredInstanceItemsComp = computed(() => {
