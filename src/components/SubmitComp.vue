@@ -106,7 +106,7 @@
 <script setup>
 import { ref, onBeforeMount, inject } from 'vue';
 import { getDisplayName } from '@/modules/utils';
-import { useToken } from '@/composables/tokens';
+import { useTokens } from '@/composables/tokens';
 
 const props = defineProps({
     dialog: Boolean,
@@ -115,7 +115,8 @@ const props = defineProps({
 const submitForm = ref(null);
 const tokenval = ref(null);
 const visible = ref(false);
-const { token, setToken, clearToken } = useToken();
+const tokenName = 'serviceToken';
+const { tokens, setToken } = useTokens();
 const submitFormData = inject('submitFormData');
 const submitButtonPressed = inject('submitButtonPressed');
 const submitDialog = inject('submitDialog');
@@ -164,7 +165,7 @@ async function submit() {
             console.log('invalid');
             return;
         }
-        setToken(tokenval.value);
+        setToken(tokenName, tokenval.value);
     }
     awaitingResponse.value = true;
     var submit_result = await submitFormData(
@@ -209,7 +210,7 @@ function cancelSubmit() {
 }
 
 onBeforeMount(() => {
-    if (token.value !== null && token.value !== 'null') {
+    if (tokens[tokenName].value !== null && tokens[tokenName].value !== 'null') {
         tokenExists.value = true;
     }
 });

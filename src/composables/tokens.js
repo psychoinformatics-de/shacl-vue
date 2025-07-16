@@ -1,19 +1,27 @@
 // src/composables/tokens.js
 import { ref } from 'vue';
 
-const tokenName = 'serviceToken';
-const token = ref(sessionStorage.getItem(tokenName) || null);
+const tokenNames = {
+    "serviceToken": "serviceToken",
+    "gitAnnexUserName": "gitAnnexUserName",
+    "gitAnnexPassword": "gitAnnexPassword",
+}
+const tokens = {};
+for (var t of Object.keys(tokenNames)) {
+    tokens[t] = ref(sessionStorage.getItem(tokenNames[t]) || null);
+}
+const token = tokens["serviceToken"]
 
-export function useToken() {
-    const setToken = (newToken) => {
-        token.value = newToken;
-        sessionStorage.setItem(tokenName, newToken);
+export function useTokens() {
+    function setToken(name, newToken) {
+        tokens[name].value = newToken;
+        sessionStorage.setItem(name, newToken);
     };
 
-    const clearToken = () => {
-        token.value = null;
-        sessionStorage.removeItem(tokenName);
+    function clearToken(name) {
+        tokens[name].value = null;
+        sessionStorage.removeItem(name);
     };
 
-    return { token, setToken, clearToken };
+    return { tokens, setToken, clearToken};
 }

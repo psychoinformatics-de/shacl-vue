@@ -7,7 +7,7 @@ import {
     findObjectIndexByKey,
 } from '@/modules/utils';
 import { postRDF } from '@/modules/io';
-import { useToken } from '@/composables/tokens';
+import { useTokens } from '@/composables/tokens';
 import { FormBase } from 'shacl-tulip';
 import { Store } from 'n3';
 
@@ -69,10 +69,11 @@ export function useForm(config) {
                 );
             }
 
-            const { token } = useToken();
+            const { tokens } = useTokens();
+            const tokenName = 'serviceToken';
             var headers = {};
-            if (token.value !== null && token.value !== 'null') {
-                headers['X-DumpThings-Token'] = token.value;
+            if (tokens[tokenName].value !== null && tokens[tokenName].value !== 'null') {
+                headers['X-DumpThings-Token'] = tokens[tokenName].value;
             }
 
             // collect all POST requests as Promises
