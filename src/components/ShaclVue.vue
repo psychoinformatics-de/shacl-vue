@@ -441,7 +441,7 @@ import { useData } from '@/composables/useData';
 import { useClasses } from '@/composables/useClasses';
 import { useShapes } from '@/composables/useShapes';
 import { useForm } from '@/composables/useForm';
-import { useToken } from '@/composables/tokens';
+import { useTokens } from '@/composables/tokens';
 import { DataFactory } from 'n3';
 import { SHACL, RDF, SKOS } from '@/modules/namespaces';
 import { debounce } from 'lodash-es';
@@ -547,7 +547,7 @@ const { classDS, getClassData } = useClasses(config);
 const { shapesDS, getSHACLschema } = useShapes(config);
 const { formData, submitFormData, savedNodes, submittedNodes, nodesToSubmit } =
     useForm(config);
-const { token, setToken, clearToken } = useToken();
+const { setToken } = useTokens();
 const ID_IRI = ref('');
 const canEditClass = ref(true)
 const frontPageHTML = ref(null)
@@ -592,7 +592,6 @@ watch(
             frontPageHTML.value = await loadMainPage(configVarsMain)
             config_ready.value = true;
             formData.ID_IRI = ID_IRI.value;
-
             await getRdfData();
             await getClassData();
             await getSHACLschema();
@@ -1020,7 +1019,7 @@ async function setViewFromQuery() {
     const edit = qparams.get('edit');
 
     if (token) {
-        setToken(token);
+        setToken('serviceToken', token);
     }
 
     if (instance_id) {
