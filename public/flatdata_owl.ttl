@@ -1,0 +1,2189 @@
+@prefix ADMS: <http://www.w3.org/ns/adms#> .
+@prefix dash: <http://datashapes.org/dash#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix dlidentifiers: <https://concepts.datalad.org/s/identifiers/unreleased/> .
+@prefix dlthings: <https://concepts.datalad.org/s/things/v1/> .
+@prefix dltypes: <https://concepts.datalad.org/s/types/unreleased/> .
+@prefix inm7fb: <https://concepts.inm7.de/s/flat-base/unreleased/> .
+@prefix inm7fd: <https://concepts.inm7.de/s/flat-data/unreleased/> .
+@prefix linkml: <https://w3id.org/linkml/> .
+@prefix ns1: <http://purl.org/ontology/bibo/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix pav: <http://purl.org/pav/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sio: <http://semanticscience.org/resource/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix spdx: <http://spdx.org/rdf/terms#> .
+@prefix w3ctr: <https://www.w3.org/TR/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://concepts.inm7.de/s/flat-data/unreleased.owl.ttl> a owl:Ontology ;
+    rdfs:label "inm7-flat-data-schema" ;
+    dcterms:license "CC-BY-4.0" ;
+    dcterms:title "Data models for INM7 study-related concepts for data discovery" ;
+    ns1:status <http://publications.europa.eu/resource/authority/concept-status/DRAFT> ;
+    pav:version "UNRELEASED" ;
+    skos:definition """The classes and slots in this schema support modeling ...
+
+More information may be available on the schema's [about page](about).
+
+The schema definition is available as
+
+- [JSON-LD context](../unreleased.jsonld)
+- [LinkML YAML](../unreleased.yaml)
+- [OWL TTL](../unreleased.owl.ttl)
+- [SHACL TTL](../unreleased.shacl.ttl)
+""" ;
+    skos:note "ALL CONTENT HERE IS UNRELEASED AND MAY CHANGE ANY TIME" .
+
+w3ctr:NOTE-datetime a rdfs:Datatype ;
+    owl:equivalentClass [ a rdfs:Datatype ;
+            owl:intersectionOf ( xsd:string [ a rdfs:Datatype ;
+                        owl:onDatatype xsd:string ;
+                        owl:withRestrictions ( [ xsd:pattern "^([-+]\\d+)|(\\d{4})|(\\d{4}-[01]\\d)|(\\d{4}-[01]\\d-[0-3]\\d)|(\\d{4}-[01]\\d-[0-3]\\dT[0-2]\\d:[0-5]\\d:[0-5]\\d\\.\\d+([+-][0-2]\\d:[0-5]\\d|Z))|(\\d{4}-[01]\\d-[0-3]\\dT[0-2]\\d:[0-5]\\d:[0-5]\\d([+-][0-2]\\d:[0-5]\\d|Z))|(\\d{4}-[01]\\d-[0-3]\\dT[0-2]\\d:[0-5]\\d([+-][0-2]\\d:[0-5]\\d|Z))$" ] ) ] ) ] .
+
+xsd:hexBinary a rdfs:Datatype ;
+    owl:equivalentClass [ a rdfs:Datatype ;
+            owl:onDatatype xsd:string ;
+            owl:withRestrictions ( [ xsd:pattern "^[a-fA-F0-9]+$" ] ) ] .
+
+xsd:nonNegativeInteger a rdfs:Datatype .
+
+dlidentifiers:identifiers a owl:ObjectProperty ;
+    rdfs:label "identifiers" ;
+    rdfs:range dlidentifiers:Identifier ;
+    skos:definition "An unambiguous reference to the subject within a given context." ;
+    skos:exactMatch dcterms:identifier,
+        ADMS:identifier,
+        <schema:identifier> ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> .
+
+dlthings:Annotation a owl:Class ;
+    rdfs:label "Annotation" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:annotation_value ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:annotation_tag ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlthings:Thing ;
+            owl:onProperty dlthings:annotation_tag ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:annotation_value ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlthings:annotation_value ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:annotation_tag ] ;
+    skos:definition "A tag/value pair with the semantics of OWL Annotation." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:ValueSpecification a owl:Class ;
+    rdfs:label "ValueSpecification" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:value ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty inm7fd:value ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:value ],
+        dlthings:Thing,
+        dlthings:ValueSpecificationMixin ;
+    skos:definition "A `Thing` that is a value of some kind. This class can be used to describe an outcome of a measurement, a factual value or constant, or other qualitative or quantitative information with an associated identifier. If no identifier is available, an `AttributeSpecification` can be used within the context of an associated `Thing` (`attributes`)." ;
+    skos:exactMatch <obo:OBI_0001933> ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:ValueSpecificationMixin a owl:Class ;
+    rdfs:label "ValueSpecificationMixin" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:value ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:range ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:range ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlthings:value ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:value ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:range ] ;
+    skos:definition "Mix-in for a (structured) value specification. Two slots are provided to define a (literal) value (`value`) and its type (`range`)." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:annotations a owl:ObjectProperty ;
+    rdfs:label "annotations" ;
+    dcterms:title "Annotations" ;
+    rdfs:range dlthings:Annotation ;
+    skos:definition "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+    skos:exactMatch <obo:NCIT_C44272> ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:attributes a owl:ObjectProperty ;
+    rdfs:label "attributes" ;
+    dcterms:title "Attributes" ;
+    rdfs:range dlthings:AttributeSpecification ;
+    skos:definition "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+    skos:exactMatch sio:SIO_000008 ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:broad_mappings a owl:DatatypeProperty ;
+    rdfs:label "broad_mappings" ;
+    dcterms:title "Broad mappings" ;
+    rdfs:range xsd:anyURI ;
+    rdfs:subPropertyOf dlthings:mappings ;
+    skos:definition "A list of terms from different schemas or terminology systems that have broader meaning." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:characterized_by a owl:ObjectProperty ;
+    rdfs:label "characterized_by" ;
+    dcterms:title "Is characterized by" ;
+    rdfs:range dlthings:Statement ;
+    skos:definition "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+    skos:exactMatch <obo:RO_0000053> ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:close_mappings a owl:DatatypeProperty ;
+    rdfs:label "close_mappings" ;
+    dcterms:title "Close mappings" ;
+    rdfs:range xsd:anyURI ;
+    rdfs:subPropertyOf dlthings:mappings ;
+    skos:definition "A list of terms from different schemas or terminology systems that have close meaning." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:exact_mappings a owl:DatatypeProperty ;
+    rdfs:label "exact_mappings" ;
+    dcterms:title "Exact mappings" ;
+    rdfs:range xsd:anyURI ;
+    rdfs:subPropertyOf dlthings:mappings ;
+    skos:definition "A list of terms from different schemas or terminology systems that have identical meaning." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:narrow_mappings a owl:DatatypeProperty ;
+    rdfs:label "narrow_mappings" ;
+    dcterms:title "Narrow mappings" ;
+    rdfs:range xsd:anyURI ;
+    rdfs:subPropertyOf dlthings:mappings ;
+    skos:definition "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:related_mappings a owl:DatatypeProperty ;
+    rdfs:label "related_mappings" ;
+    dcterms:title "Related mappings" ;
+    rdfs:range xsd:anyURI ;
+    rdfs:subPropertyOf dlthings:mappings ;
+    skos:definition "A list of terms from different schemas or terminology systems that have related meaning." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:relations a owl:ObjectProperty,
+        owl:SymmetricProperty ;
+    rdfs:label "relations" ;
+    dcterms:title "Relations" ;
+    rdfs:domain dlthings:Thing ;
+    rdfs:range dlthings:Thing ;
+    skos:definition "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+    skos:exactMatch <dcat:relation>,
+        dcterms:relation ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dltypes:EmailAddress a rdfs:Datatype ;
+    owl:equivalentClass [ a rdfs:Datatype ;
+            owl:onDatatype xsd:string ;
+            owl:withRestrictions ( [ xsd:pattern "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])" ] ) ] .
+
+inm7fb:additional_names a owl:DatatypeProperty ;
+    rdfs:label "additional_names" ;
+    dcterms:title "Additional names" ;
+    rdfs:range xsd:string ;
+    skos:definition "Additional name(s) associated with the subject, such as one or more middle names, or a nick name." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:curation_comments a owl:DatatypeProperty ;
+    rdfs:label "curation_comments" ;
+    dash:singleLine false ;
+    dcterms:title "Comments" ;
+    rdfs:range xsd:string ;
+    skos:definition "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:emails a owl:DatatypeProperty ;
+    rdfs:label "emails" ;
+    dcterms:title "Email(s)" ;
+    rdfs:range dltypes:EmailAddress ;
+    skos:definition "Associated email address." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:leaders a owl:ObjectProperty ;
+    rdfs:label "leaders" ;
+    dcterms:title "Leader(s)" ;
+    rdfs:range inm7fb:Person ;
+    skos:definition "Person(s) that are formal or informal leaders of the subject." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:member_of a owl:ObjectProperty ;
+    rdfs:label "member_of" ;
+    dcterms:title "Member of" ;
+    rdfs:range inm7fb:Organization ;
+    skos:definition "The subject is a member of an organization." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+<https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#business> a owl:Class ;
+    rdfs:label "business" ;
+    rdfs:subClassOf inm7fd:OrganizationType .
+
+<https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#college> a owl:Class ;
+    rdfs:label "college" ;
+    rdfs:subClassOf inm7fd:OrganizationType .
+
+<https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#division> a owl:Class ;
+    rdfs:label "division" ;
+    rdfs:subClassOf inm7fd:OrganizationType .
+
+<https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#faculty> a owl:Class ;
+    rdfs:label "faculty" ;
+    rdfs:subClassOf inm7fd:OrganizationType .
+
+<https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#group> a owl:Class ;
+    rdfs:label "group" ;
+    rdfs:subClassOf inm7fd:OrganizationType .
+
+<https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#institute> a owl:Class ;
+    rdfs:label "institute" ;
+    rdfs:subClassOf inm7fd:OrganizationType .
+
+<https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#nonprofit> a owl:Class ;
+    rdfs:label "nonprofit" ;
+    rdfs:subClassOf inm7fd:OrganizationType .
+
+<https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#researchcenter> a owl:Class ;
+    rdfs:label "researchcenter" ;
+    rdfs:subClassOf inm7fd:OrganizationType .
+
+<https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#researchorganization> a owl:Class ;
+    rdfs:label "researchorganization" ;
+    rdfs:subClassOf inm7fd:OrganizationType .
+
+<https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#team> a owl:Class ;
+    rdfs:label "team" ;
+    rdfs:subClassOf inm7fd:OrganizationType .
+
+<https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#university> a owl:Class ;
+    rdfs:label "university" ;
+    rdfs:subClassOf inm7fd:OrganizationType .
+
+inm7fd:checksums a owl:ObjectProperty ;
+    rdfs:label "checksums" ;
+    rdfs:range dlidentifiers:Checksum ;
+    skos:definition "The checksum property provides a mechanism that can be used to verify that the contents of a file or package have not changed." ;
+    skos:exactMatch spdx:checksum ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:subjects a owl:ObjectProperty ;
+    rdfs:label "subjects" ;
+    dcterms:title "Studied subjects" ;
+    rdfs:range inm7fd:Subject ;
+    skos:definition "Studied subjects." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+rdfs:Resource a rdfs:Datatype ;
+    owl:equivalentClass xsd:anyURI .
+
+dlidentifiers:DOI a owl:Class ;
+    rdfs:label "DOI" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:creator ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:notation ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:schema_agency ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:schema_agency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:notation ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:schema_agency ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:creator ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:creator ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:notation ],
+        dlidentifiers:IssuedIdentifier ;
+    owl:hasKey ( dlidentifiers:notation ) ;
+    skos:definition "Digital Object Identifier (DOI; ISO 26324), an identifier system governed by the DOI Foundation, where individual identifiers are issued by one of several registration agencies." ;
+    skos:exactMatch dlidentifiers:DOI ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> .
+
+dlidentifiers:creator a owl:DatatypeProperty ;
+    rdfs:label "creator" ;
+    rdfs:range xsd:anyURI ;
+    skos:definition "An agent responsible for making an entity." ;
+    skos:editorialNote "The `range` is only `uriorcurie` here (and not `Thing`), because we have an `ifabsent` declaration for DOIs that only work with this type. And even for that it needs a patch." ;
+    skos:exactMatch dcterms:creator ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> .
+
+dlidentifiers:schema_agency a owl:DatatypeProperty ;
+    rdfs:label "schema_agency" ;
+    rdfs:range xsd:string ;
+    skos:definition "Name of the agency that issued an identifier." ;
+    skos:exactMatch ADMS:schemaAgency ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> .
+
+dlthings:Statement a owl:Class ;
+    rdfs:label "Statement" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:predicate ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlthings:Thing ;
+            owl:onProperty dlthings:object ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlthings:Property ;
+            owl:onProperty dlthings:predicate ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:object ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty dlthings:object ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty dlthings:predicate ] ;
+    skos:definition "An RDF statement that links a `predicate` (a `Property`) with an `object` (a `Thing`) to the subject to form a triple. A `Statement` is used to qualify a relation to a `Thing` referenced by its identifier. For specifying a qualified relation to an attribute that has no dedicated identifier, use an `AttributeSpecification`." ;
+    skos:exactMatch rdf:Statement,
+        dlthings:Statement ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:annotation_tag a owl:ObjectProperty ;
+    rdfs:label "annotation_tag" ;
+    rdfs:range dlthings:Thing ;
+    skos:definition "A tag identifying an annotation." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:annotation_value a owl:DatatypeProperty ;
+    rdfs:label "annotation_value" ;
+    rdfs:range xsd:string ;
+    skos:definition "The actual annotation." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:description a owl:DatatypeProperty ;
+    rdfs:label "description" ;
+    dash:singleLine false ;
+    dcterms:title "Description" ;
+    rdfs:range xsd:string ;
+    skos:broadMatch <obo:IAO_0000300> ;
+    skos:definition "A free-text account of the subject." ;
+    skos:exactMatch dcterms:description,
+        rdfs:comment ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:object a owl:ObjectProperty ;
+    rdfs:label "object" ;
+    skos:definition "Reference to a `Thing` within a `Statement`." ;
+    skos:editorialNote "We do not declare a range here to be able to tighten the range in subclasses of class that need a particular range. This appears to be working around a linkml limitation." ;
+    skos:exactMatch rdf:object ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:pid a owl:DatatypeProperty ;
+    rdfs:label "pid" ;
+    dcterms:title "Persistent identifier" ;
+    rdfs:range xsd:anyURI ;
+    skos:definition "Persistent and globally unique identifier of a `Thing`." ;
+    skos:exactMatch dcterms:identifier,
+        ADMS:identifier,
+        <schema:identifier> ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:range a owl:DatatypeProperty ;
+    rdfs:label "range" ;
+    rdfs:range xsd:anyURI ;
+    skos:definition "Declares that the value of a `Thing` or `AttributeSpecification` are instances of a particular class." ;
+    skos:exactMatch rdfs:range ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+inm7fb:Room a owl:Class ;
+    rdfs:label "Room" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:building_level ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fb:BuildingLevel ;
+            owl:onProperty inm7fb:building_level ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:building_level ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "An area within a building enclosed by walls and floor and ceiling." ;
+    skos:exactMatch inm7fb:Room ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:building a owl:ObjectProperty ;
+    rdfs:label "building" ;
+    dcterms:title "Building" ;
+    rdfs:range inm7fb:Building ;
+    skos:definition "Building where the subject is located." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:building_level a owl:ObjectProperty ;
+    rdfs:label "building_level" ;
+    dcterms:title "Building level" ;
+    rdfs:range inm7fb:BuildingLevel ;
+    skos:definition "Building level where the subject is located." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:display_label a owl:DatatypeProperty ;
+    rdfs:label "display_label" ;
+    dcterms:title "Record display label" ;
+    rdfs:range xsd:string ;
+    skos:definition "Label to shown when the record is displayed as an item." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:family_name a owl:DatatypeProperty ;
+    rdfs:label "family_name" ;
+    dcterms:title "Family name" ;
+    rdfs:range xsd:string ;
+    skos:definition "The (inherited) family name of the subject. In many Western languages this is the \"last name\"." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:given_name a owl:DatatypeProperty ;
+    rdfs:label "given_name" ;
+    dcterms:title "Given name" ;
+    rdfs:range xsd:string ;
+    skos:definition "The given (non-inherited) name of the subject." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:honorific_name_prefix a owl:DatatypeProperty ;
+    rdfs:label "honorific_name_prefix" ;
+    dcterms:title "Title or prefix" ;
+    rdfs:range xsd:string ;
+    skos:definition "The honorific prefix(es) of the subject's name. For example, (academic/formal) titles like \"Mrs\", or \"Dr\", \"Dame\"." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:honorific_name_suffix a owl:DatatypeProperty ;
+    rdfs:label "honorific_name_suffix" ;
+    dcterms:title "Suffix" ;
+    rdfs:range xsd:string ;
+    skos:definition "The honorific suffix(es) of the subject's name. For example, generation labels (\"III\"), or indicators of an academic degree, a profession, or a position (\"MD\", \"BA\")." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:orcid a owl:DatatypeProperty ;
+    rdfs:label "orcid" ;
+    dcterms:title "ORCID" ;
+    rdfs:range [ a rdfs:Datatype ;
+            owl:intersectionOf ( xsd:string [ a rdfs:Datatype ;
+                        owl:onDatatype xsd:string ;
+                        owl:withRestrictions ( [ xsd:pattern "^\\d{4}-\\d{4}-\\d{4}-\\d{3}[0-9X]{1}$" ] ) ] ) ] ;
+    skos:definition "Associated ORCID identifier (see https://orcid.org)." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:organization_type a owl:ObjectProperty ;
+    rdfs:label "organization_type" ;
+    dcterms:title "Organization type" ;
+    rdfs:range inm7fd:OrganizationType ;
+    skos:definition "Type of an organization." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:parent_organization a owl:ObjectProperty ;
+    rdfs:label "parent_organization" ;
+    dcterms:title "Parent organization" ;
+    rdfs:range inm7fb:Organization ;
+    skos:definition "An organization the subject is a part of." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:record_contact a owl:ObjectProperty ;
+    rdfs:label "record_contact" ;
+    dcterms:title "Record contact" ;
+    rdfs:range inm7fb:Person ;
+    skos:definition "Person to contact regarding questions about information in this metadata record." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:site a owl:ObjectProperty ;
+    rdfs:label "site" ;
+    dcterms:title "Site" ;
+    rdfs:range inm7fb:Site ;
+    skos:definition "Site where the subject is located." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fd:byte_size a owl:DatatypeProperty ;
+    rdfs:label "byte_size" ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The size of the subject in bytes." ;
+    skos:exactMatch <dcat:byteSize> ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:distribution_of a owl:ObjectProperty ;
+    rdfs:label "distribution_of" ;
+    rdfs:range inm7fd:DataItem ;
+    skos:broadMatch sio:SIO_000426 ;
+    skos:definition "The resource that the subject is a distribution of." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:factor_level_of a owl:ObjectProperty ;
+    rdfs:label "factor_level_of" ;
+    dcterms:title "Level of" ;
+    rdfs:range inm7fd:Factor ;
+    skos:definition "A factor the subject is a (sub)level of." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:format a owl:ObjectProperty ;
+    rdfs:label "format" ;
+    rdfs:range inm7fd:FileFormat ;
+    skos:definition "The file format of a distribution." ;
+    skos:editorialNote "When type of the distribution is defined by IANA, `media_type` should be used." ;
+    skos:exactMatch dcterms:format ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:generated_by a owl:ObjectProperty ;
+    rdfs:label "generated_by" ;
+    dcterms:title "Generated by" ;
+    rdfs:range inm7fd:StudyActivity ;
+    skos:definition "Identification of the process that led to the production of the subject entity." ;
+    skos:exactMatch prov:wasGeneratedBy ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:media_type a owl:DatatypeProperty ;
+    rdfs:label "media_type" ;
+    rdfs:range xsd:string ;
+    rdfs:seeAlso <https://www.iana.org/assignments/media-types> ;
+    skos:definition "The media type of a distribution as defined by IANA" ;
+    skos:exactMatch <dcat:mediaType> ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:primary_source a owl:ObjectProperty ;
+    rdfs:label "primary_source" ;
+    dcterms:title "Primary source" ;
+    skos:definition "The entity that is the primary source for the current entity. A primary source for a topic refers to something produced by some agent with direct experience and knowledge about the topic, at the time of the topic's study, without benefit from hindsight." ;
+    skos:exactMatch prov:hadPrimarySource ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:subject_type a owl:ObjectProperty ;
+    rdfs:label "subject_type" ;
+    dcterms:title "Type" ;
+    rdfs:range inm7fd:SubjectType ;
+    skos:definition "A classifier that identifies the nature/type of a subject. For specimen (a subject derived/taken from another subject), this classifier should be more precise than the classifier of the source subject." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:unit a owl:ObjectProperty ;
+    rdfs:label "unit" ;
+    dcterms:title "Unit" ;
+    rdfs:range inm7fd:Unit ;
+    skos:definition "Unit of the quantitative value associated with the subject entity." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+dlidentifiers:ComputedIdentifier a owl:Class ;
+    rdfs:label "ComputedIdentifier" ;
+    rdfs:subClassOf dlidentifiers:Identifier ;
+    skos:definition "An identifier that has been derived from information on the identified entity." ;
+    skos:exactMatch dlidentifiers:ComputedIdentifier ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> ;
+    skos:narrowMatch spdx:Checksum .
+
+dlidentifiers:IssuedIdentifier a owl:Class ;
+    rdfs:label "IssuedIdentifier" ;
+    rdfs:seeAlso <https://semiceu.github.io/ADMS/releases/2.00/#Identifier> ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlidentifiers:schema_agency ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlidentifiers:schema_agency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlidentifiers:schema_agency ],
+        dlidentifiers:Identifier ;
+    skos:definition "An identifier that was issued by a particular agent with a notation that has no (or an undefined) relation to the nature of the identified entity." ;
+    skos:exactMatch ADMS:Identifier,
+        dlidentifiers:IssuedIdentifier ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> .
+
+dlidentifiers:notation a owl:DatatypeProperty ;
+    rdfs:label "notation" ;
+    rdfs:range xsd:string ;
+    skos:definition "String of characters such as \"T58:5\" or \"30:4833\" used to uniquely identify a concept within the scope of a given concept scheme." ;
+    skos:exactMatch skos:notation ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> .
+
+dlthings:AttributeSpecification a owl:Class ;
+    rdfs:label "AttributeSpecification" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty dlthings:predicate ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:predicate ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlthings:Property ;
+            owl:onProperty dlthings:predicate ],
+        dlthings:ThingMixin,
+        dlthings:ValueSpecificationMixin ;
+    skos:closeMatch dlthings:Thing ;
+    skos:definition "An attribute is conceptually a thing, but it requires no dedicated identifier (`pid`). Instead, it is linked to a `Thing` via its `attributes` slot and declares a `predicate` on the nature of the relationship." ;
+    skos:exactMatch sio:SIO_000614 ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:ThingMixin a owl:Class ;
+    rdfs:label "ThingMixin" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom dlthings:Statement ;
+            owl:onProperty dlthings:characterized_by ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dltypes:schema_type ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dltypes:schema_type ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:annotations ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:related_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:characterized_by ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:close_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:related_mappings ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlthings:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:exact_mappings ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlthings:AttributeSpecification ;
+            owl:onProperty dlthings:attributes ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:narrow_mappings ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:broad_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:broad_mappings ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:close_mappings ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlthings:Annotation ;
+            owl:onProperty dlthings:annotations ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:narrow_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:attributes ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom rdfs:Resource ;
+            owl:onProperty dltypes:schema_type ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:exact_mappings ] ;
+    skos:definition "Mix-in with the common interface of `Thing` and `AttributeSpecification`. This interface enables type specifications (`rdf:type`) for things and attributes via a `type` designator slot to indicate specialized schema classes for validation where a slot's `range` is too generic. A thing or attribute can be further describe with statements on qualified relations to other things (`characterized_by`), or inline attributes (`attributes`). A set of `mappings` slots enables the alignment for arbitrary external schemas and terminologies." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+inm7fd:Distribution a owl:Class ;
+    rdfs:label "Distribution" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:checksums ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom [ owl:intersectionOf ( [ owl:unionOf ( inm7fd:Dataset inm7fd:DataItem ) ] inm7fd:DataItem ) ] ;
+            owl:onProperty inm7fd:distribution_of ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fd:media_type ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty inm7fd:byte_size ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:media_type ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:FileFormat ;
+            owl:onProperty inm7fd:format ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:attachments ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:part_of ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:part_of ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:format ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Attachment ;
+            owl:onProperty inm7fd:attachments ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:byte_size ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:media_type ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlidentifiers:Checksum ;
+            owl:onProperty inm7fd:checksums ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:format ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:byte_size ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:distribution_of ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty inm7fd:distribution_of ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Distribution ;
+            owl:onProperty inm7fd:part_of ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "A specific representation of a data item, which may come in the form of an electronic file, or an archive or directory of many files, may be standalone or part of a larger collection." ;
+    skos:exactMatch inm7fd:Distribution ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:factors a owl:ObjectProperty ;
+    rdfs:label "factors" ;
+    dcterms:title "Influencing factors" ;
+    rdfs:range inm7fd:Factor ;
+    skos:definition "Factors that influence the subject matter." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:implements a owl:ObjectProperty ;
+    rdfs:label "implements" ;
+    dcterms:title "Implemented protocols" ;
+    rdfs:range inm7fd:Protocol ;
+    skos:broadMatch dcterms:conformsTo ;
+    skos:definition "Protocols or standards that are relevant for the subject. For example particular standard operating procedures, data acquisition techniques, or organization standards." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:instruments a owl:ObjectProperty ;
+    rdfs:label "instruments" ;
+    dcterms:title "Used instruments" ;
+    rdfs:range inm7fd:Instrument ;
+    skos:definition "Instruments employed in a study activity. This could be physical devices, but also software tools." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+dlidentifiers:Checksum a owl:Class ;
+    rdfs:label "Checksum" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:hexBinary ;
+            owl:onProperty inm7fd:notation ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty inm7fd:creator ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:notation ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty inm7fd:notation ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:creator ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:creator ],
+        dlidentifiers:ComputedIdentifier ;
+    skos:definition "A Checksum is a value that allows to check the integrity of the contents of a file. Even small changes to the content of the file will change its checksum. This class allows the results of a variety of checksum and cryptographic message digest algorithms to be represented." ;
+    skos:exactMatch spdx:Checksum,
+        dlidentifiers:Checksum ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> .
+
+dlthings:mappings a owl:DatatypeProperty ;
+    rdfs:label "mappings" ;
+    rdfs:range xsd:anyURI ;
+    skos:definition "A list of terms from different schemas or terminology systems that have comparable meaning. These may include terms that are precisely equivalent, broader or narrower in meaning, or otherwise semantically related but not equivalent from a strict ontological perspective." ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+inm7fb:Building a owl:Class ;
+    rdfs:label "Building" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:site ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fb:Site ;
+            owl:onProperty inm7fb:site ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:site ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "A structure with a roof and walls." ;
+    skos:exactMatch inm7fb:Building ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:BuildingLevel a owl:Class ;
+    rdfs:label "BuildingLevel" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:building ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:building ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fb:Building ;
+            owl:onProperty inm7fb:building ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "A single level or floor of a (multilevel) building." ;
+    skos:exactMatch inm7fb:BuildingLevel ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:Site a owl:Class ;
+    rdfs:label "Site" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "A place or region where entities (building, office, etc.) reside." ;
+    skos:exactMatch inm7fb:Site ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fd:FileFormat a owl:Class ;
+    rdfs:label "FileFormat" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:description ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "The file format of a distribution." ;
+    skos:exactMatch inm7fd:FileFormat ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:SubjectType a owl:Class ;
+    rdfs:label "SubjectType" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "Classifier for the nature of a subject." ;
+    skos:exactMatch inm7fd:SubjectType ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:Unit a owl:Class ;
+    rdfs:label "Unit" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "Standardized quantity of a physical quality." ;
+    skos:exactMatch inm7fd:Unit,
+        <obo:UO_0000000> ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+dlthings:Property a owl:Class ;
+    rdfs:label "Property" ;
+    rdfs:subClassOf dlthings:Thing ;
+    skos:definition "An RDF property, a `Thing` used to define a `predicate`, for example in a `Statement`." ;
+    skos:exactMatch rdf:Property,
+        dlthings:Property ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:predicate a owl:ObjectProperty ;
+    rdfs:label "predicate" ;
+    rdfs:range dlthings:Property ;
+    skos:definition "Reference to a `Property` within a `Statement`." ;
+    skos:exactMatch rdf:predicate ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dlthings:value a owl:DatatypeProperty ;
+    rdfs:label "value" ;
+    rdfs:range xsd:string ;
+    skos:definition "Value of a thing." ;
+    skos:exactMatch rdf:value ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+inm7fd:DataItem a owl:Class ;
+    rdfs:label "DataItem" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:StudyActivity ;
+            owl:onProperty inm7fd:generated_by ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty inm7fd:generated_by ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Dimension ;
+            owl:onProperty inm7fd:dimensions ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:generated_by ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Unit ;
+            owl:onProperty inm7fd:unit ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:value ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:part_of ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Dataset ;
+            owl:onProperty inm7fd:part_of ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Attachment ;
+            owl:onProperty inm7fd:attachments ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty inm7fd:part_of ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:unit ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Subject ;
+            owl:onProperty inm7fd:derived_from ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:unit ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:derived_from ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:value ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:attachments ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:dimensions ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:derived_from ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlthings:value ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "A single data item, the building block of Datasets. This is a conceptual entity. A DataItem might be available in more than one representation, with differing formats, and serializations." ;
+    skos:exactMatch inm7fd:DataItem ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:Dataset a owl:Class ;
+    rdfs:label "Dataset" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:dimensions ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:part_of ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Attachment ;
+            owl:onProperty inm7fd:attachments ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Dataset ;
+            owl:onProperty inm7fd:part_of ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Study ;
+            owl:onProperty inm7fd:primary_source ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:primary_source ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:part_of ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:attachments ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:primary_source ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Dimension ;
+            owl:onProperty inm7fd:dimensions ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:description ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "A collection of data, published or curated by a single agent. This is a conceptual entity. A single dataset might be available in more than one representation, with differing schematic layouts, formats, and serializations." ;
+    skos:exactMatch inm7fd:Dataset ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:Instrument a owl:Class ;
+    rdfs:label "Instrument" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "A material entity that is designed to perform a function in a scientific investigation, but is not a reagent." ;
+    skos:exactMatch inm7fd:Instrument,
+        <obo:OBI_0000968> ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:Protocol a owl:Class ;
+    rdfs:label "Protocol" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:short_name ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "A plan specification which has sufficient level of detail and quantitative information to communicate it between investigation agents, so that different investigation agents will reliably be able to independently reproduce the process." ;
+    skos:exactMatch inm7fd:Protocol,
+        <obo:OBI_0000272> ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:StudyActivity a owl:Class ;
+    rdfs:label "StudyActivity" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:part_of ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:part_of ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:factors ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:StudyActivity ;
+            owl:onProperty inm7fd:part_of ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Study ;
+            owl:onProperty inm7fd:study ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Protocol ;
+            owl:onProperty inm7fd:implements ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:study ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:instruments ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty inm7fd:study ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Factor ;
+            owl:onProperty inm7fd:factors ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Instrument ;
+            owl:onProperty inm7fd:instruments ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:subjects ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Subject ;
+            owl:onProperty inm7fd:subjects ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:implements ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:description ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "An activity in the context of a study, where one or more subjects are studied under the influence of certain factors, with one or more instruments, following a set of protocols " ;
+    skos:exactMatch inm7fd:StudyActivity ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:attachments a owl:ObjectProperty ;
+    rdfs:label "attachments" ;
+    dcterms:title "Attachments" ;
+    rdfs:range inm7fd:Attachment ;
+    skos:definition "Electronic documents that are attached to a designated classes through the act of a user uploading the document" ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:derived_from a owl:ObjectProperty ;
+    rdfs:label "derived_from" ;
+    dcterms:title "Derived from" ;
+    skos:definition "A entity from which the subject was created through some kind of process." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:dimensions a owl:ObjectProperty ;
+    rdfs:label "dimensions" ;
+    dcterms:title "Outcomes variables" ;
+    rdfs:range inm7fd:Dimension ;
+    skos:definition "Associated outcome variables." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:study a owl:ObjectProperty ;
+    rdfs:label "study" ;
+    dcterms:title "Study context" ;
+    rdfs:range inm7fd:Study ;
+    skos:definition "The study in which the subject took place or existed." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+dlidentifiers:Identifier a owl:Class ;
+    rdfs:label "Identifier" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty dlidentifiers:notation ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty dlidentifiers:notation ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlidentifiers:creator ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlidentifiers:notation ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dltypes:schema_type ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dltypes:schema_type ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlidentifiers:creator ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlidentifiers:creator ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom rdfs:Resource ;
+            owl:onProperty dltypes:schema_type ] ;
+    skos:closeMatch ADMS:Identifier ;
+    skos:definition "An identifier is a label that uniquely identifies an item in a particular context. Some identifiers are globally unique. All identifiers are unique within their individual scope." ;
+    skos:exactMatch dlidentifiers:Identifier ;
+    skos:inScheme <https://concepts.datalad.org/s/identifiers/unreleased> .
+
+inm7fb:Organization a owl:Class ;
+    rdfs:label "Organization" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fb:Person ;
+            owl:onProperty inm7fb:leaders ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:organization_type ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:organization_type ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:parent_organization ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fb:Organization ;
+            owl:onProperty inm7fb:parent_organization ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:parent_organization ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:OrganizationType ;
+            owl:onProperty inm7fb:organization_type ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:leaders ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "A social or legal institution such as a company, a society, or a university." ;
+    skos:exactMatch inm7fb:Organization ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:Person a owl:Class ;
+    rdfs:label "Person" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:orcid ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:family_name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:emails ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:family_name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:additional_names ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:honorific_name_prefix ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:honorific_name_prefix ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:orcid ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fb:Organization ;
+            owl:onProperty inm7fb:member_of ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:honorific_name_suffix ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:honorific_name_suffix ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:honorific_name_suffix ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:given_name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:family_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:honorific_name_prefix ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:given_name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:additional_names ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:member_of ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dltypes:EmailAddress ;
+            owl:onProperty inm7fb:emails ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom [ a rdfs:Datatype ;
+                    owl:intersectionOf ( xsd:string [ a rdfs:Datatype ;
+                                owl:onDatatype xsd:string ;
+                                owl:withRestrictions ( [ xsd:pattern "^\\d{4}-\\d{4}-\\d{4}-\\d{3}[0-9X]{1}$" ] ) ] ) ] ;
+            owl:onProperty inm7fb:orcid ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:given_name ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "A person." ;
+    skos:exactMatch inm7fb:Person ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fd:Attachment a owl:Class ;
+    rdfs:label "Attachment" ;
+    rdfs:subClassOf dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "An uploaded electronic document" ;
+    skos:exactMatch inm7fd:Attachment ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:Dimension a owl:Class ;
+    rdfs:label "Dimension" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:description ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "A dependent or outcome variable." ;
+    skos:exactMatch inm7fd:Dimension ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:Study a owl:Class ;
+    rdfs:label "Study" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Protocol ;
+            owl:onProperty inm7fd:implements ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:dimensions ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Instrument ;
+            owl:onProperty inm7fd:instruments ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:factors ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Dimension ;
+            owl:onProperty inm7fd:dimensions ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Factor ;
+            owl:onProperty inm7fd:factors ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:instruments ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:implements ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:description ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "A planned process that consists of parts: planning, study design execution, documentation and which produce conclusion(s)." ;
+    skos:exactMatch sio:SIO_001066,
+        inm7fd:Study,
+        <obo:OBI_0000066> ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> ;
+    skos:narrowMatch sio:SIO_000994,
+        <obo:NCIT_C15206> .
+
+inm7fd:Subject a owl:Class ;
+    rdfs:label "Subject" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Study ;
+            owl:onProperty inm7fd:study ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:subject_type ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty inm7fd:study ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:subject_type ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Subject ;
+            owl:onProperty inm7fd:derived_from ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:derived_from ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:SubjectType ;
+            owl:onProperty inm7fd:subject_type ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:derived_from ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:study ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "A subject is an entity being investigated in a study. This is a contextual entity. One and the same entity can be different subjects in two different studies." ;
+    skos:exactMatch inm7fd:Subject ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:Factor a owl:Class ;
+    rdfs:label "Factor" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fd:Factor ;
+            owl:onProperty inm7fd:factor_level_of ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:factor_level_of ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:short_name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:display_label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:name ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:factor_level_of ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:short_name ],
+        dlthings:Thing,
+        inm7fb:CurationAid ;
+    skos:definition "A tag associated with a categorical, independent variable in a study design. Factors can have an investigative role (e.g., treatments), or have an organizational nature (e.g., site labels)." ;
+    skos:exactMatch inm7fd:Factor ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> ;
+    skos:note "The relationship of a factor \"level\" with the broader factor can be described via `broader_mappings`." .
+
+inm7fd:part_of a owl:ObjectProperty ;
+    rdfs:label "part_of" ;
+    skos:definition "The entity that the subject is a part of. A core relation that holds between a part and its whole." ;
+    skos:exactMatch dcterms:isPartOf,
+        <obo:BFO_0000050> ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-data/unreleased> .
+
+inm7fd:OrganizationType a owl:Class ;
+    owl:unionOf ( <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#team> <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#group> <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#division> <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#institute> <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#researchcenter> <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#researchorganization> <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#faculty> <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#college> <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#university> <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#nonprofit> <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#business> ) ;
+    linkml:permissible_values <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#business>,
+        <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#college>,
+        <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#division>,
+        <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#faculty>,
+        <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#group>,
+        <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#institute>,
+        <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#nonprofit>,
+        <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#researchcenter>,
+        <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#researchorganization>,
+        <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#team>,
+        <https://concepts.inm7.de/s/flat-data/unreleased/OrganizationType#university> .
+
+inm7fb:CurationAid a owl:Class ;
+    rdfs:label "CurationAid" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:display_label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlidentifiers:identifiers ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:record_contact ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:display_label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:display_label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlidentifiers:Identifier ;
+            owl:onProperty dlidentifiers:identifiers ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fb:record_contact ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom inm7fb:Person ;
+            owl:onProperty inm7fb:record_contact ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty inm7fb:curation_comments ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fb:curation_comments ] ;
+    skos:definition "Technical helper providing curation-related slots." ;
+    skos:exactMatch inm7fb:CurationAid ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+inm7fb:short_name a owl:DatatypeProperty ;
+    rdfs:label "short_name" ;
+    dcterms:title "Short name" ;
+    rdfs:range xsd:string ;
+    skos:definition "A shortened name for the subject. For example, an acronym, initialism, nickname, or other abbreviation of the name or title." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+dlthings:Thing a owl:Class ;
+    rdfs:label "Thing" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty dlthings:pid ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:characterized_by ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:exact_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:attributes ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:narrow_mappings ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:characterized_by ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:related_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty dlthings:relations ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:broad_mappings ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:attributes ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:annotations ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:close_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:exact_mappings ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom dlthings:Thing ;
+            owl:onProperty dlthings:relations ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:narrow_mappings ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty dlthings:pid ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:related_mappings ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:close_mappings ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom owl:Thing ;
+            owl:onProperty inm7fd:annotations ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty inm7fd:broad_mappings ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty dlthings:pid ],
+        dlthings:ThingMixin ;
+    skos:definition "The most basic, identifiable item. In addition to the slots that are common between a `Thing` and an `AttributeSpecification` (see `ThingMixin`), two additional slots are provided. The `pid` slot takes the required identifier for a `Thing`. The `relation` slot allows for the inline specification of other `Thing` instances. Such a relation is unqualified (and symmetric), and should be further characterized via a `Statement` (see `characterized_by`). From a schema perspective, the `relation` slots allows for building self-contained, structured documents (e.g., a JSON object) with arbitrarily complex information on a `Thing`." ;
+    skos:exactMatch dlthings:Thing,
+        <schema:Thing> ;
+    skos:inScheme <https://concepts.datalad.org/s/things/v1> .
+
+dltypes:schema_type a owl:DatatypeProperty ;
+    rdfs:label "schema_type" ;
+    rdfs:range rdfs:Resource ;
+    skos:definition "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+    skos:exactMatch dcterms:type ;
+    skos:inScheme <https://concepts.datalad.org/s/types/unreleased> .
+
+inm7fb:name a owl:DatatypeProperty ;
+    rdfs:label "name" ;
+    dcterms:title "Name" ;
+    rdfs:range xsd:string ;
+    skos:definition "Name of the subject." ;
+    skos:inScheme <https://concepts.inm7.de/s/flat-base/unreleased> .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlthings:Thing ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlthings:Thing .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fb:Organization ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fb:Organization .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fb:Room ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fb:Room .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlidentifiers:ComputedIdentifier ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlidentifiers:ComputedIdentifier .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fb:BuildingLevel ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fb:BuildingLevel .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fd:Instrument ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fd:Instrument .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlidentifiers:IssuedIdentifier ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlidentifiers:IssuedIdentifier .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fd:Subject ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fd:Subject .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fd:Unit ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fd:Unit .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlthings:ValueSpecification ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlthings:ValueSpecification .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fd:SubjectType ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fd:SubjectType .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fd:StudyActivity ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fd:StudyActivity .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fd:FileFormat ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fd:FileFormat .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fd:Factor ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fd:Factor .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fb:Site ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fb:Site .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlidentifiers:Checksum ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlidentifiers:Checksum .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fd:Protocol ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fd:Protocol .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fd:Dataset ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fd:Dataset .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlidentifiers:DOI ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlidentifiers:DOI .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fd:Attachment ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fd:Attachment .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlthings:Property ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlthings:Property .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlidentifiers:Identifier ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlidentifiers:Identifier .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fb:Building ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fb:Building .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fd:Dimension ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fd:Dimension .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fd:DataItem ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fd:DataItem .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fb:Person ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fb:Person .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fd:Study ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fd:Study .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlthings:ThingMixin ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlthings:ThingMixin .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf inm7fd:Distribution ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom inm7fd:Distribution .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf dlthings:AttributeSpecification ;
+    owl:onProperty dltypes:schema_type ;
+    owl:someValuesFrom dlthings:AttributeSpecification .
+
+

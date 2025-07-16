@@ -1,0 +1,3292 @@
+@prefix dash: <http://datashapes.org/dash#> .
+@prefix dlidentifiers: <https://concepts.datalad.org/s/identifiers/unreleased/> .
+@prefix dlthings: <https://concepts.datalad.org/s/things/v1/> .
+@prefix dltypes: <https://concepts.datalad.org/s/types/unreleased/> .
+@prefix inm7fb: <https://concepts.inm7.de/s/flat-base/unreleased/> .
+@prefix inm7fd: <https://concepts.inm7.de/s/flat-data/unreleased/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+dlidentifiers:ComputedIdentifier a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "An identifier that has been derived from information on the identified entity." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:description "An agent responsible for making an entity." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path dlidentifiers:creator ],
+        [ sh:datatype xsd:string ;
+            sh:description "String of characters such as \"T58:5\" or \"30:4833\" used to uniquely identify a concept within the scope of a given concept scheme." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlidentifiers:notation ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path rdf:type ] ;
+    sh:targetClass dlidentifiers:ComputedIdentifier .
+
+dlidentifiers:DOI a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "Digital Object Identifier (DOI; ISO 26324), an identifier system governed by the DOI Foundation, where individual identifiers are issued by one of several registration agencies." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:defaultValue "https://doi.org"^^xsd:anyURI ;
+            sh:description "By default, the creator is identified as \"https://doi.org\"." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlidentifiers:creator ],
+        [ sh:datatype xsd:string ;
+            sh:description "The identifier notation is specified without a URL-prefix, or a `doi:` prefix." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path dlidentifiers:notation ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:datatype xsd:string ;
+            sh:defaultValue "DOI Foundation"^^xsd:string ;
+            sh:description "By default, the schema agency is identified as `DOI Foundation`." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path dlidentifiers:schema_agency ] ;
+    sh:targetClass dlidentifiers:DOI .
+
+dlidentifiers:IssuedIdentifier a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "An identifier that was issued by a particular agent with a notation that has no (or an undefined) relation to the nature of the identified entity." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:datatype xsd:string ;
+            sh:description "Name of the agency that issued an identifier." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path dlidentifiers:schema_agency ],
+        [ sh:datatype xsd:string ;
+            sh:description "String of characters such as \"T58:5\" or \"30:4833\" used to uniquely identify a concept within the scope of a given concept scheme." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path dlidentifiers:notation ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "An agent responsible for making an entity." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlidentifiers:creator ] ;
+    sh:targetClass dlidentifiers:IssuedIdentifier .
+
+dlthings:ThingMixin a sh:NodeShape ;
+    sh:closed false ;
+    sh:description "Mix-in with the common interface of `Thing` and `AttributeSpecification`. This interface enables type specifications (`rdf:type`) for things and attributes via a `type` designator slot to indicate specialized schema classes for validation where a slot's `range` is too generic. A thing or attribute can be further describe with statements on qualified relations to other things (`characterized_by`), or inline attributes (`attributes`). A set of `mappings` slots enables the alignment for arbitrary external schemas and terminologies." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 0 ;
+            sh:path dlthings:annotations ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:narrowMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path skos:broadMatch ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:attributes ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path skos:closeMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path skos:exactMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:relatedMatch ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path dlthings:description ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path rdf:type ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 6 ;
+            sh:path dlthings:characterized_by ] ;
+    sh:targetClass dlthings:ThingMixin .
+
+dlthings:ValueSpecification a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A `Thing` that is a value of some kind. This class can be used to describe an outcome of a measurement, a factual value or constant, or other qualitative or quantitative information with an associated identifier. If no identifier is available, an `AttributeSpecification` can be used within the context of an associated `Thing` (`attributes`)." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:datatype xsd:string ;
+            sh:description "Value of a thing." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path rdfs:value ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path rdf:type ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path dlthings:description ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Declares that the value of a `Thing` or `AttributeSpecification` are instances of a particular class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path rdfs:range ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ] ;
+    sh:targetClass dlthings:ValueSpecification .
+
+dlthings:ValueSpecificationMixin a sh:NodeShape ;
+    sh:closed false ;
+    sh:description "Mix-in for a (structured) value specification. Two slots are provided to define a (literal) value (`value`) and its type (`range`)." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:description "Declares that the value of a `Thing` or `AttributeSpecification` are instances of a particular class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path rdfs:range ],
+        [ sh:datatype xsd:string ;
+            sh:description "Value of a thing." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path rdfs:value ] ;
+    sh:targetClass dlthings:ValueSpecificationMixin .
+
+inm7fb:CurationAid a sh:NodeShape ;
+    sh:closed false ;
+    sh:description "Technical helper providing curation-related slots." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 3 ;
+            sh:path inm7fb:record_contact ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path skos:prefLabel ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlidentifiers:identifier ] ;
+    sh:targetClass inm7fb:CurationAid .
+
+inm7fb:Room a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "An area within a building enclosed by walls and floor and ceiling." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ sh:datatype xsd:string ;
+            sh:description "Name of the subject." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path inm7fb:name ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:class inm7fb:BuildingLevel ;
+            sh:description "Building level where the subject is located." ;
+            sh:maxCount 1 ;
+            sh:name "Building level" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:building_level ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path skos:prefLabel ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path dlthings:description ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ] ;
+    sh:targetClass inm7fb:Room .
+
+dlidentifiers:Checksum a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A Checksum is a value that allows to check the integrity of the contents of a file. Even small changes to the content of the file will change its checksum. This class allows the results of a variety of checksum and cryptographic message digest algorithms to be represented." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:hexBinary ;
+            sh:description "Lower case hexadecimal encoded checksum digest value." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlidentifiers:notation ;
+            sh:pattern "^[a-fA-F0-9]+$" ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path rdf:type ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Identifies the software agent (algorithm) used to produce the subject `Checksum`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path dlidentifiers:creator ] ;
+    sh:targetClass dlidentifiers:Checksum .
+
+inm7fb:Building a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A structure with a roof and walls." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path skos:prefLabel ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:class inm7fb:Site ;
+            sh:description "Site where the subject is located." ;
+            sh:maxCount 1 ;
+            sh:name "Site" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:site ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ sh:datatype xsd:string ;
+            sh:description "Name of the subject." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path inm7fb:name ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path dlthings:description ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ] ;
+    sh:targetClass inm7fb:Building .
+
+inm7fb:BuildingLevel a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A single level or floor of a (multilevel) building." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path dlthings:description ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:class inm7fb:Building ;
+            sh:description "Building where the subject is located." ;
+            sh:maxCount 1 ;
+            sh:name "Building" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:building ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype xsd:string ;
+            sh:description "Name of the subject." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path inm7fb:name ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path skos:prefLabel ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ] ;
+    sh:targetClass inm7fb:BuildingLevel .
+
+inm7fb:Site a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A place or region where entities (building, office, etc.) reside." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path skos:prefLabel ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path dlthings:description ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:datatype xsd:string ;
+            sh:description "Name of the subject." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path inm7fb:name ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ] ;
+    sh:targetClass inm7fb:Site .
+
+inm7fd:DataItem a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A single data item, the building block of Datasets. This is a conceptual entity. A DataItem might be available in more than one representation, with differing formats, and serializations." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:class inm7fd:Subject ;
+            sh:description "A entity from which the subject was created through some kind of process." ;
+            sh:maxCount 1 ;
+            sh:name "Derived from" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 3 ;
+            sh:path inm7fd:derived_from ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:class inm7fd:Unit ;
+            sh:description "Unit of the quantitative value associated with the subject entity." ;
+            sh:maxCount 1 ;
+            sh:name "Unit" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 5 ;
+            sh:path inm7fd:unit ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:prefLabel ],
+        [ sh:class inm7fd:Dataset ;
+            sh:description "The entity that the subject is a part of. A core relation that holds between a part and its whole." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 1 ;
+            sh:path inm7fd:part_of ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:class inm7fd:StudyActivity ;
+            sh:description "Identification of the process that led to the production of the subject entity." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Generated by" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fd:generated_by ],
+        [ sh:class inm7fd:Dimension ;
+            sh:description "Associated outcome variables." ;
+            sh:name "Outcomes variables" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path inm7fd:dimensions ],
+        [ sh:datatype xsd:string ;
+            sh:description "Value of a thing." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path rdfs:value ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path dlthings:description ],
+        [ sh:class inm7fd:Attachment ;
+            sh:description "Electronic documents that are attached to a designated classes through the act of a user uploading the document" ;
+            sh:name "Attachments" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 8 ;
+            sh:path inm7fd:attachments ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ] ;
+    sh:targetClass inm7fd:DataItem .
+
+inm7fd:Distribution a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A specific representation of a data item, which may come in the form of an electronic file, or an archive or directory of many files, may be standalone or part of a larger collection." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:datatype xsd:string ;
+            sh:description "The media type of a distribution as defined by IANA" ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path inm7fd:media_type ],
+        [ sh:class inm7fd:FileFormat ;
+            sh:description "The file format of a distribution." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 5 ;
+            sh:path inm7fd:format ],
+        [ sh:datatype xsd:nonNegativeInteger ;
+            sh:description "The size of the subject in bytes." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path inm7fd:byte_size ],
+        [ sh:datatype xsd:string ;
+            sh:description "(File) name of the distribution. If the distribution is part of another distribution, the name is interpreted as a relative path within the parent distribution. This relative path may contain intermediate directories, and must be encoded using POSIX conventions." ;
+            sh:maxCount 1 ;
+            sh:name "Name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path inm7fb:name ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:prefLabel ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path dlthings:description ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:class inm7fd:Attachment ;
+            sh:description "Electronic documents that are attached to a designated classes through the act of a user uploading the document" ;
+            sh:name "Attachments" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 9 ;
+            sh:path inm7fd:attachments ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:description "The resource that the subject is a distribution of." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:or ( [ sh:class inm7fd:Dataset ] [ sh:class inm7fd:DataItem ] ) ;
+            sh:order 1 ;
+            sh:path inm7fd:distribution_of ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:class dlidentifiers:Checksum ;
+            sh:description "The checksum property provides a mechanism that can be used to verify that the contents of a file or package have not changed." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 7 ;
+            sh:path inm7fd:checksums ],
+        [ sh:class inm7fd:Distribution ;
+            sh:description "The entity that the subject is a part of. A core relation that holds between a part and its whole." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 3 ;
+            sh:path inm7fd:part_of ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ] ;
+    sh:targetClass inm7fd:Distribution .
+
+inm7fd:FileFormat a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "The file format of a distribution." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path dlthings:description ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path skos:prefLabel ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ sh:datatype xsd:string ;
+            sh:description "A shortened name for the subject. For example, an acronym, initialism, nickname, or other abbreviation of the name or title." ;
+            sh:maxCount 1 ;
+            sh:name "Short name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path inm7fb:short_name ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:datatype xsd:string ;
+            sh:description "Name of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path inm7fb:name ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ] ;
+    sh:targetClass inm7fd:FileFormat .
+
+inm7fd:SubjectType a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "Classifier for the nature of a subject." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path dlthings:description ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path skos:prefLabel ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:datatype xsd:string ;
+            sh:description "Name of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path inm7fb:name ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ] ;
+    sh:targetClass inm7fd:SubjectType .
+
+inm7fd:Unit a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "Standardized quantity of a physical quality." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "A shortened name for the subject. For example, an acronym, initialism, nickname, or other abbreviation of the name or title." ;
+            sh:maxCount 1 ;
+            sh:name "Short name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path inm7fb:short_name ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path skos:prefLabel ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path dlthings:description ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:datatype xsd:string ;
+            sh:description "Name of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path inm7fb:name ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ] ;
+    sh:targetClass inm7fd:Unit .
+
+dlthings:Property a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "An RDF property, a `Thing` used to define a `predicate`, for example in a `Statement`." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path rdf:type ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path dlthings:description ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ] ;
+    sh:targetClass dlthings:Property .
+
+inm7fb:Organization a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A social or legal institution such as a company, a society, or a university." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person(s) that are formal or informal leaders of the subject." ;
+            sh:name "Leader(s)" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 4 ;
+            sh:path inm7fb:leaders ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:datatype xsd:string ;
+            sh:description "Name of the subject." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path inm7fb:name ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path dlthings:description ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path skos:prefLabel ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:class inm7fb:Organization ;
+            sh:description "An organization the subject is a part of." ;
+            sh:maxCount 1 ;
+            sh:name "Parent organization" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 5 ;
+            sh:path inm7fb:parent_organization ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:datatype xsd:string ;
+            sh:description "A shortened name for the subject. For example, an acronym, initialism, nickname, or other abbreviation of the name or title." ;
+            sh:maxCount 1 ;
+            sh:name "Short name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path inm7fb:short_name ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:description "Type of an organization." ;
+            sh:in ( "team" "group" "division" "institute" "researchcenter" "researchorganization" "faculty" "college" "university" "nonprofit" "business" ) ;
+            sh:maxCount 1 ;
+            sh:name "Organization type" ;
+            sh:order 3 ;
+            sh:path inm7fb:organization_type ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ] ;
+    sh:targetClass inm7fb:Organization .
+
+inm7fd:Instrument a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A material entity that is designed to perform a function in a scientific investigation, but is not a reagent." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path skos:prefLabel ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path dlthings:description ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:datatype xsd:string ;
+            sh:description "A shortened name for the subject. For example, an acronym, initialism, nickname, or other abbreviation of the name or title." ;
+            sh:maxCount 1 ;
+            sh:name "Short name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path inm7fb:short_name ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:datatype xsd:string ;
+            sh:description "Name of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path inm7fb:name ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ] ;
+    sh:targetClass inm7fd:Instrument .
+
+inm7fd:Protocol a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A plan specification which has sufficient level of detail and quantitative information to communicate it between investigation agents, so that different investigation agents will reliably be able to independently reproduce the process." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:datatype xsd:string ;
+            sh:description "Name of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path inm7fb:name ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:datatype xsd:string ;
+            sh:description "A shortened name for the subject. For example, an acronym, initialism, nickname, or other abbreviation of the name or title." ;
+            sh:maxCount 1 ;
+            sh:name "Short name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path inm7fb:short_name ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path skos:prefLabel ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path dlthings:description ] ;
+    sh:targetClass inm7fd:Protocol .
+
+inm7fd:StudyActivity a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "An activity in the context of a study, where one or more subjects are studied under the influence of certain factors, with one or more instruments, following a set of protocols " ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path dlthings:description ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:class inm7fd:Subject ;
+            sh:description "Studied subjects." ;
+            sh:name "Studied subjects" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fd:subjects ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:prefLabel ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ sh:class inm7fd:Protocol ;
+            sh:description "Protocols or standards that are relevant for the subject. For example particular standard operating procedures, data acquisition techniques, or organization standards." ;
+            sh:name "Implemented protocols" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 3 ;
+            sh:path inm7fd:implements ],
+        [ sh:class inm7fd:Factor ;
+            sh:description "Factors that influence the subject matter." ;
+            sh:name "Influencing factors" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 4 ;
+            sh:path inm7fd:factors ],
+        [ sh:class inm7fd:StudyActivity ;
+            sh:description "The entity that the subject is a part of. A core relation that holds between a part and its whole." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path inm7fd:part_of ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:class inm7fd:Study ;
+            sh:description "The study in which the subject took place or existed." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Study context" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 1 ;
+            sh:path inm7fd:study ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:class inm7fd:Instrument ;
+            sh:description "Instruments employed in a study activity. This could be physical devices, but also software tools." ;
+            sh:name "Used instruments" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 5 ;
+            sh:path inm7fd:instruments ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ] ;
+    sh:targetClass inm7fd:StudyActivity .
+
+inm7fd:Attachment a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "An uploaded electronic document" ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path rdf:type ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlidentifiers:identifier ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path dlthings:description ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 3 ;
+            sh:path inm7fb:record_contact ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path skos:prefLabel ] ;
+    sh:targetClass inm7fd:Attachment .
+
+inm7fd:Dataset a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A collection of data, published or curated by a single agent. This is a conceptual entity. A single dataset might be available in more than one representation, with differing schematic layouts, formats, and serializations." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:class inm7fd:Dimension ;
+            sh:description "Associated outcome variables." ;
+            sh:name "Outcomes variables" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 5 ;
+            sh:path inm7fd:dimensions ],
+        [ sh:class inm7fd:Dataset ;
+            sh:description "The entity that the subject is a part of. A core relation that holds between a part and its whole." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 3 ;
+            sh:path inm7fd:part_of ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:datatype xsd:string ;
+            sh:description "Name of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path inm7fb:name ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:class inm7fd:Attachment ;
+            sh:description "Electronic documents that are attached to a designated classes through the act of a user uploading the document" ;
+            sh:name "Attachments" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 7 ;
+            sh:path inm7fd:attachments ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:class inm7fd:Study ;
+            sh:description "The entity that is the primary source for the current entity. A primary source for a topic refers to something produced by some agent with direct experience and knowledge about the topic, at the time of the topic's study, without benefit from hindsight." ;
+            sh:maxCount 1 ;
+            sh:name "Primary source" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 4 ;
+            sh:path inm7fd:primary_source ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:prefLabel ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path dlthings:description ],
+        [ sh:datatype xsd:string ;
+            sh:description "A shortened name for the subject. For example, an acronym, initialism, nickname, or other abbreviation of the name or title." ;
+            sh:maxCount 1 ;
+            sh:name "Short name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path inm7fb:short_name ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ] ;
+    sh:targetClass inm7fd:Dataset .
+
+inm7fd:Dimension a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A dependent or outcome variable." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path skos:prefLabel ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path dlthings:description ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:datatype xsd:string ;
+            sh:description "A shortened name for the subject. For example, an acronym, initialism, nickname, or other abbreviation of the name or title." ;
+            sh:maxCount 1 ;
+            sh:name "Short name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path inm7fb:short_name ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:datatype xsd:string ;
+            sh:description "Name of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path inm7fb:name ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ] ;
+    sh:targetClass inm7fd:Dimension .
+
+inm7fd:Factor a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A tag associated with a categorical, independent variable in a study design. Factors can have an investigative role (e.g., treatments), or have an organizational nature (e.g., site labels)." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:class inm7fd:Factor ;
+            sh:description "A factor the subject is a (sub)level of." ;
+            sh:maxCount 1 ;
+            sh:name "Level of" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 3 ;
+            sh:path inm7fd:factor_level_of ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path dlthings:description ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:datatype xsd:string ;
+            sh:description "A shortened name for the subject. For example, an acronym, initialism, nickname, or other abbreviation of the name or title." ;
+            sh:maxCount 1 ;
+            sh:name "Short name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path inm7fb:short_name ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:datatype xsd:string ;
+            sh:description "Name of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path inm7fb:name ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 5 ;
+            sh:path skos:prefLabel ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ] ;
+    sh:targetClass inm7fd:Factor .
+
+inm7fd:Study a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A planned process that consists of parts: planning, study design execution, documentation and which produce conclusion(s)." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path dlthings:description ],
+        [ sh:class inm7fd:Protocol ;
+            sh:description "Protocols or standards that are relevant for the subject. For example particular standard operating procedures, data acquisition techniques, or organization standards." ;
+            sh:name "Implemented protocols" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 3 ;
+            sh:path inm7fd:implements ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:datatype xsd:string ;
+            sh:description "A shortened name for the subject. For example, an acronym, initialism, nickname, or other abbreviation of the name or title." ;
+            sh:maxCount 1 ;
+            sh:name "Short name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path inm7fb:short_name ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:datatype xsd:string ;
+            sh:description "Name of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path inm7fb:name ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:class inm7fd:Instrument ;
+            sh:description "Instruments employed in a study activity. This could be physical devices, but also software tools." ;
+            sh:name "Used instruments" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 5 ;
+            sh:path inm7fd:instruments ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:prefLabel ],
+        [ sh:class inm7fd:Dimension ;
+            sh:description "Associated outcome variables." ;
+            sh:name "Outcomes variables" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path inm7fd:dimensions ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:class inm7fd:Factor ;
+            sh:description "Factors that influence the subject matter." ;
+            sh:name "Influencing factors" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 4 ;
+            sh:path inm7fd:factors ] ;
+    sh:targetClass inm7fd:Study .
+
+inm7fd:Subject a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A subject is an entity being investigated in a study. This is a contextual entity. One and the same entity can be different subjects in two different studies." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:class inm7fd:Subject ;
+            sh:description "Source subject." ;
+            sh:maxCount 1 ;
+            sh:name "Specimen of" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 4 ;
+            sh:path inm7fd:derived_from ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 5 ;
+            sh:path dlthings:description ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path skos:prefLabel ],
+        [ sh:class inm7fd:Study ;
+            sh:description "The study in which the subject took place or existed." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Study context" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 1 ;
+            sh:path inm7fd:study ],
+        [ sh:datatype xsd:string ;
+            sh:description "Name of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path inm7fb:name ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:class inm7fd:SubjectType ;
+            sh:description "A classifier that identifies the nature/type of a subject. For specimen (a subject derived/taken from another subject), this classifier should be more precise than the classifier of the source subject." ;
+            sh:maxCount 1 ;
+            sh:name "Type" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 3 ;
+            sh:path inm7fd:subject_type ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ] ;
+    sh:targetClass inm7fd:Subject .
+
+dlidentifiers:Identifier a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "An identifier is a label that uniquely identifies an item in a particular context. Some identifiers are globally unique. All identifiers are unique within their individual scope." ;
+    sh:ignoredProperties ( rdf:type dlidentifiers:schema_agency ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:description "An agent responsible for making an entity." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path dlidentifiers:creator ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path rdf:type ],
+        [ sh:datatype xsd:string ;
+            sh:description "String of characters such as \"T58:5\" or \"30:4833\" used to uniquely identify a concept within the scope of a given concept scheme." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlidentifiers:notation ] ;
+    sh:targetClass dlidentifiers:Identifier .
+
+inm7fb:Person a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A person." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:datatype xsd:string ;
+            sh:description "The honorific prefix(es) of the subject's name. For example, (academic/formal) titles like \"Mrs\", or \"Dr\", \"Dame\"." ;
+            sh:maxCount 1 ;
+            sh:name "Title or prefix" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path inm7fb:honorific_name_prefix ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A comment about a metadata record either providing additional information for a record curation, or leaving a comment after curation occurred. This can be used to include information that is deemed relevant, but could not be expressed in the provided fields." ;
+            sh:name "Comments" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path inm7fb:curation_comments ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path rdf:type ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:class inm7fb:Person ;
+            sh:description "Person to contact regarding questions about information in this metadata record." ;
+            sh:maxCount 1 ;
+            sh:name "Record contact" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path inm7fb:record_contact ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:datatype xsd:string ;
+            sh:description "Associated ORCID identifier (see https://orcid.org)." ;
+            sh:maxCount 1 ;
+            sh:name "ORCID" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path inm7fb:orcid ;
+            sh:pattern "^\\d{4}-\\d{4}-\\d{4}-\\d{3}[0-9X]{1}$" ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:class dlidentifiers:Identifier ;
+            sh:description "An unambiguous reference to the subject within a given context." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlidentifiers:identifier ],
+        [ sh:datatype xsd:string ;
+            sh:description "The (inherited) family name of the subject. In many Western languages this is the \"last name\"." ;
+            sh:maxCount 1 ;
+            sh:name "Family name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path inm7fb:family_name ],
+        [ sh:datatype dltypes:EmailAddress ;
+            sh:description "Associated email address." ;
+            sh:name "Email(s)" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path inm7fb:emails ;
+            sh:pattern "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])" ],
+        [ sh:datatype xsd:string ;
+            sh:description "Label to shown when the record is displayed as an item." ;
+            sh:maxCount 1 ;
+            sh:name "Record display label" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:prefLabel ],
+        [ sh:datatype xsd:string ;
+            sh:description "The given (non-inherited) name of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Given name" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path inm7fb:given_name ],
+        [ sh:datatype xsd:string ;
+            sh:description "The honorific suffix(es) of the subject's name. For example, generation labels (\"III\"), or indicators of an academic degree, a profession, or a position (\"MD\", \"BA\")." ;
+            sh:maxCount 1 ;
+            sh:name "Suffix" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 5 ;
+            sh:path inm7fb:honorific_name_suffix ],
+        [ sh:class inm7fb:Organization ;
+            sh:description "The subject is a member of an organization." ;
+            sh:name "Member of" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 8 ;
+            sh:path inm7fb:member_of ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path dlthings:description ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:datatype xsd:string ;
+            sh:description "Additional name(s) associated with the subject, such as one or more middle names, or a nick name." ;
+            sh:name "Additional names" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path inm7fb:additional_names ] ;
+    sh:targetClass inm7fb:Person .
+
+dlthings:Annotation a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A tag/value pair with the semantics of OWL Annotation." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "The actual annotation." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:annotation_value ],
+        [ sh:class dlthings:Thing ;
+            sh:description "A tag identifying an annotation." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 0 ;
+            sh:path dlthings:annotation_tag ] ;
+    sh:targetClass dlthings:Annotation .
+
+dlthings:AttributeSpecification a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "An attribute is conceptually a thing, but it requires no dedicated identifier (`pid`). Instead, it is linked to a `Thing` via its `attributes` slot and declares a `predicate` on the nature of the relationship." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "Value of a thing." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 12 ;
+            sh:path rdfs:value ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path rdf:type ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path dlthings:annotations ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Declares that the value of a `Thing` or `AttributeSpecification` are instances of a particular class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path rdfs:range ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 7 ;
+            sh:path dlthings:characterized_by ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path dlthings:description ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 5 ;
+            sh:path skos:exactMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path skos:closeMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:relatedMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path skos:broadMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:narrowMatch ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 6 ;
+            sh:path dlthings:attributes ],
+        [ sh:class dlthings:Property ;
+            sh:description "Reference to a `Property` within a `Statement`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 0 ;
+            sh:path rdf:predicate ] ;
+    sh:targetClass dlthings:AttributeSpecification .
+
+dlthings:Statement a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "An RDF statement that links a `predicate` (a `Property`) with an `object` (a `Thing`) to the subject to form a triple. A `Statement` is used to qualify a relation to a `Thing` referenced by its identifier. For specifying a qualified relation to an attribute that has no dedicated identifier, use an `AttributeSpecification`." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:class dlthings:Property ;
+            sh:description "Reference to a `Property` within a `Statement`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 1 ;
+            sh:path rdf:predicate ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Reference to a `Thing` within a `Statement`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 0 ;
+            sh:path rdf:object ] ;
+    sh:targetClass dlthings:Statement .
+
+dlthings:Thing a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "The most basic, identifiable item. In addition to the slots that are common between a `Thing` and an `AttributeSpecification` (see `ThingMixin`), two additional slots are provided. The `pid` slot takes the required identifier for a `Thing`. The `relation` slot allows for the inline specification of other `Thing` instances. Such a relation is unqualified (and symmetric), and should be further characterized via a `Statement` (see `characterized_by`). From a schema perspective, the `relation` slots allows for building self-contained, structured documents (e.g., a JSON object) with arbitrarily complex information on a `Thing`." ;
+    sh:ignoredProperties ( inm7fd:distribution_of inm7fb:member_of inm7fd:implements inm7fd:unit inm7fd:derived_from inm7fd:checksums inm7fb:leaders inm7fd:factor_level_of inm7fd:subjects inm7fd:instruments inm7fd:dimensions inm7fb:orcid skos:prefLabel inm7fd:attachments inm7fd:generated_by inm7fb:given_name inm7fd:subject_type inm7fb:name inm7fb:family_name inm7fb:building_level inm7fb:parent_organization dlidentifiers:identifier rdf:type inm7fd:media_type rdfs:range inm7fb:record_contact inm7fb:short_name inm7fd:byte_size inm7fb:site inm7fd:primary_source inm7fb:building inm7fb:additional_names inm7fd:part_of inm7fd:format inm7fb:organization_type inm7fb:honorific_name_prefix inm7fd:factors rdfs:value inm7fd:study inm7fb:emails inm7fb:honorific_name_suffix inm7fb:curation_comments ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:description "Persistent and globally unique identifier of a `Thing`." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "Persistent identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dlthings:pid ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have close meaning." ;
+            sh:name "Close mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path skos:closeMatch ],
+        [ dash:singleLine false ;
+            sh:datatype xsd:string ;
+            sh:description "A free-text account of the subject." ;
+            sh:maxCount 1 ;
+            sh:name "Description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path dlthings:description ],
+        [ sh:class dlthings:Annotation ;
+            sh:description "A record of properties of the metadata record on a subject, a collection of tag/text tuples with the semantics of OWL Annotation." ;
+            sh:name "Annotations" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 5 ;
+            sh:path dlthings:annotations ],
+        [ sh:class dlthings:Thing ;
+            sh:description "Declares an unqualified relation of the subject `Thing` to another `Thing`. This schema slot is used to define related things inline. If such a definition is not needed. A qualified relationship can be declared directly using the `characterized_by` slot." ;
+            sh:name "Relations" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path dlthings:relation ],
+        [ sh:class dlthings:AttributeSpecification ;
+            sh:description "Declares a relation that associates a `Thing` (or another attribute) with an attribute, where an attribute is an intrinsic characteristic, such as a quality, capability, disposition, function, or is an externally derived attribute determined from some descriptor (e.g. a quantity, position, label/identifier). Technically, this declaration is done via an `AttributeSpecification` that combines a `predicate` with a value declaration and the attribute-related slots of a `Thing`. Importantly, such attributes are declared inline, because they do not have a unique identifier. If an identifier is available, a `Thing` declaration (see `relation`), and a qualification of that relationship via a `Statement` (see `characterized_by`) should be preferred." ;
+            sh:name "Attributes" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dlthings:attributes ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have broader meaning." ;
+            sh:name "Broad mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path skos:broadMatch ],
+        [ sh:class dlthings:Statement ;
+            sh:description "Qualifies relationships between a subject `Thing` and an object `Thing` with a `Statement` declaring a `predicate` on the nature of the relationship." ;
+            sh:name "Is characterized by" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dlthings:characterized_by ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have identical meaning." ;
+            sh:name "Exact mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path skos:exactMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have related meaning." ;
+            sh:name "Related mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path skos:relatedMatch ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A list of terms from different schemas or terminology systems that have narrower meaning." ;
+            sh:name "Narrow mappings" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path skos:narrowMatch ],
+        [ sh:datatype rdfs:Resource ;
+            sh:description "State that the subject is an instance of a particular schema class. Typically, no explicit value needs to be assigned to this slot, because it matches the class type of a particular record. However, this slots can be used as a type designator of a schema element for validation and schema structure handling purposes. This is used to indicate specialized schema classes for properties that accept a hierarchy of classes as their range." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path rdf:type ] ;
+    sh:targetClass dlthings:Thing .
