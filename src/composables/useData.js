@@ -1,7 +1,7 @@
 // useData.js
 import { ref, reactive, toRaw } from 'vue';
-import { findObjectByKey, replaceServiceIdentifier } from '@/modules/utils';
-import { useToken } from '@/composables/tokens';
+import { replaceServiceIdentifier } from '@/modules/utils';
+import { useTokens } from '@/composables/tokens';
 import { ReactiveRdfDataset } from '@/classes/ReactiveRdfDataset';
 
 const basePath = import.meta.env.BASE_URL || '/';
@@ -11,8 +11,9 @@ export function useData(config) {
     const rdfDS = new ReactiveRdfDataset();
     const fetchedRequests = new Set();
     const fetchedPages = reactive({})
-    const { token } = useToken();
     const http401response = ref(false);
+    const tokenName = 'serviceToken';
+    const { tokens } = useTokens();
 
     async function getRdfData(url) {
         var getURL;
@@ -47,8 +48,8 @@ export function useData(config) {
             getURL = url;
         }
         var headers = { 'Content-Type': 'text/turtle' };
-        if (token.value !== null && token.value !== 'null') {
-            headers['X-DumpThings-Token'] = token.value;
+        if (tokens[tokenName].value !== null && tokens[tokenName].value !== 'null') {
+            headers['X-DumpThings-Token'] = tokens[tokenName].value;
         }
 
         const result = await rdfDS.loadRDF(getURL, headers);
@@ -277,8 +278,8 @@ export function useData(config) {
     async function getPaginatedRdfData(getURL) {
         var headers = {};
         let metadata;
-        if (token.value !== null && token.value !== 'null') {
-            headers['X-DumpThings-Token'] = token.value;
+        if (tokens[tokenName].value !== null && tokens[tokenName].value !== 'null') {
+            headers['X-DumpThings-Token'] = tokens[tokenName].value;
         }
         try {
             const response = await fetch(getURL, {
