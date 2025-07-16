@@ -59,7 +59,12 @@ const mainVarsToLoad = {
         typing_debounce: 800,
     },
     class_name_display: 'name',
+<<<<<<< HEAD
     footer_links: [],
+=======
+    use_gitannex_p2phttp: false,
+    gitannex_p2phttp_config: {},
+>>>>>>> e38d313 (Introduce new configuration options to support git annex p2phttp)
 };
 
 export function useConfig(url) {
