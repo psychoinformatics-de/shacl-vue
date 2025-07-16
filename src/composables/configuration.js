@@ -31,6 +31,8 @@ const mainVarsToLoad = {
     token_info_url: '',
     use_service: false,
     class_name_display: 'name',
+    use_gitannex_p2phttp: false,
+    gitannex_p2phttp_config: {},
 };
 
 export function useConfig(url) {

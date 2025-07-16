@@ -5,5 +5,5 @@
 </template>
 
 <script setup>
-const confURL = 'config.json';
+const confURL = 'config_edu.json';
 </script>

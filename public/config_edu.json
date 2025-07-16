@@ -1,0 +1,184 @@
+{
+    "app_name": "Data Annotation Demo",
+    "page_title": "Data Annotation",
+    "documentation_url": "https://hub.datalad.org/edu/annotate.edu.datalad.org",
+    "source_code_url": "https://hub.datalad.org/edu/annotate.edu.datalad.org",
+    "app_theme": {
+        "link_color": "#ffa200",
+        "hover_color": "#ffa200",
+        "active_color": "#ffa201",
+        "visited_color": "#ffa201",
+        "panel_color": "#333333",
+        "logo": "logo.png",
+        "inm7_darkblue": "#002a76",
+        "inm7_blue": "#014386",
+        "inm7_red": "#eb3822"
+    },
+    "shapes_url": "flatdata_shacl.ttl",
+    "use_default_shapes": false,
+    "data_url": "",
+    "use_default_data": false,
+    "class_url": "flatdata_owl.ttl",
+    "use_default_classes": false,
+    "id_iri": "https://concepts.datalad.org/s/things/v1/pid",
+    "id_autogenerate": {
+        "https://concepts.inm7.de/s/flat-base/unreleased/Organization": {
+            "id_autogenerate_prefix": "datamgt",
+            "id_autogenerate_prepend": ""
+        },
+        "https://concepts.inm7.de/s/flat-base/unreleased/Person": {
+            "id_autogenerate_prefix": "datamgt",
+            "id_autogenerate_prepend": ""
+        },
+        "https://concepts.inm7.de/s/flat-data/unreleased/DataItem": {
+            "id_autogenerate_prefix": "datamgt",
+            "id_autogenerate_prepend": ""
+        },
+        "https://concepts.inm7.de/s/flat-data/unreleased/Dataset": {
+            "id_autogenerate_prefix": "datamgt",
+            "id_autogenerate_prepend": ""
+        },
+        "https://concepts.inm7.de/s/flat-data/unreleased/Dimension": {
+            "id_autogenerate_prefix": "datamgt",
+            "id_autogenerate_prepend": ""
+        },
+        "https://concepts.inm7.de/s/flat-data/unreleased/Distribution": {
+            "id_autogenerate_prefix": "datamgt",
+            "id_autogenerate_prepend": ""
+        },
+        "https://concepts.inm7.de/s/flat-data/unreleased/Factor": {
+            "id_autogenerate_prefix": "datamgt",
+            "id_autogenerate_prepend": ""
+        },
+        "https://concepts.inm7.de/s/flat-data/unreleased/FileFormat": {
+            "id_autogenerate_prefix": "datamgt",
+            "id_autogenerate_prepend": ""
+        },
+        "https://concepts.inm7.de/s/flat-data/unreleased/Instrument": {
+            "id_autogenerate_prefix": "datamgt",
+            "id_autogenerate_prepend": ""
+        },
+        "https://concepts.inm7.de/s/flat-data/unreleased/Protocol": {
+            "id_autogenerate_prefix": "datamgt",
+            "id_autogenerate_prepend": ""
+        },
+        "https://concepts.inm7.de/s/flat-data/unreleased/Study": {
+            "id_autogenerate_prefix": "datamgt",
+            "id_autogenerate_prepend": ""
+        },
+        "https://concepts.inm7.de/s/flat-data/unreleased/StudyActivity": {
+            "id_autogenerate_prefix": "datamgt",
+            "id_autogenerate_prepend": ""
+        },
+        "https://concepts.inm7.de/s/flat-data/unreleased/Subject": {
+            "id_autogenerate_prefix": "datamgt",
+            "id_autogenerate_prepend": ""
+        },
+        "https://concepts.inm7.de/s/flat-data/unreleased/SubjectType": {
+            "id_autogenerate_prefix": "datamgt",
+            "id_autogenerate_prepend": ""
+        },
+        "https://concepts.inm7.de/s/flat-data/unreleased/Unit": {
+            "id_autogenerate_prefix": "datamgt",
+            "id_autogenerate_prepend": ""
+        }
+    },
+    "id_resolves_externally": [],
+    "show_shapes_wo_id": false,
+    "show_all_fields": false,
+    "hide_classes": [
+        "https://concepts.inm7.de/s/flat-data/unreleased/Attachment",
+        "https://concepts.inm7.de/s/flat-base/unreleased/Building",
+        "https://concepts.inm7.de/s/flat-base/unreleased/BuildingLevel",
+        "https://concepts.inm7.de/s/flat-base/unreleased/Room",
+        "https://concepts.inm7.de/s/flat-base/unreleased/Site",
+        "https://concepts.datalad.org/s/things/v1/Property",
+        "https://concepts.datalad.org/s/things/v1/Thing",
+        "https://concepts.datalad.org/s/things/v1/ValueSpecification"
+    ],
+    "class_name_display": "name",
+    "use_service": true,
+    "use_token": true,
+    "token_info": "Please contact the workshop teachers for credentials.",
+    "token_info_url": "",
+    "service_base_url": [
+        {
+            "url": "https://metadata.edu.datalad.org/datamgt/",
+            "type": "write"
+        }
+    ],
+    "service_endpoints":  {
+        "post-record": "record/{name}?format=ttl",
+        "get-record": "record?pid={curie}&format=ttl",
+        "get-records": "records/{name}?format=ttl",
+        "get-paginated-records": "records/p/{name}?format=ttl&size=50&page={page_number}"
+    },
+    "service_fetch_before": {
+        "get-record": [],
+        "get-records": []
+    },
+    "use_gitannex_p2phttp": true,
+    "gitannex_p2phttp_config": {
+        "deployment_url": "https://hub.psychoinformatics.de",
+        "info": "Please contact the workshop teachers for credentials.",
+        "info_url": "",
+        "base_url": "https://hub.psychoinformatics.de/git-annex-p2phttp/git-annex",
+        "annex_uuid": "5a53c0b0-e73b-47ac-b0f4-9c441b70c04a",
+        "client_uuid": "shacl-vue",
+        "id_prefix": "dlannexkey"
+    },
+    "prefixes": {
+        "dlannexkey": "https://concepts.datalad.org/ns/annex-key/",
+        "dlidentifiers": "https://concepts.datalad.org/s/identifiers/unreleased/",
+        "dlprops": "https://concepts.datalad.org/s/properties/unreleased/",
+        "dlpubs": "https://concepts.datalad.org/s/publications/unreleased/",
+        "dlres": "https://concepts.datalad.org/s/resources/unreleased/",
+        "dlroles": "https://concepts.datalad.org/s/roles/unreleased/",
+        "dlschemas": "https://concepts.datalad.org/s/",
+        "dlsocial": "https://concepts.datalad.org/s/social/unreleased/",
+        "dlspatial": "https://concepts.datalad.org/s/spatial/unreleased/",
+        "dltemporal": "https://concepts.datalad.org/s/temporal/unreleased/",
+        "dlthings": "https://concepts.datalad.org/s/things/v1/",
+        "dltypes": "https://concepts.datalad.org/s/types/unreleased/",
+        "doi": "https://dx.doi.org/",
+        "email": "https://concepts.datalad.org/ns/email/",
+        "eunal": "http://publications.europa.eu/resource/authority/",
+        "geo": "geo:",
+        "gepris": "https://gepris.dfg.de/gepris/",
+        "inm7": "https://inm7.de/ns/",
+        "inm7datamgt": "https://inm7.de/ns/datamgt/",
+        "linkml": "https://w3id.org/linkml/",
+        "marcrel": "http://id.loc.gov/vocabulary/relators/",
+        "obo": "http://purl.obolibrary.org/obo/",
+        "orcid": "https://orcid.org/",
+        "owl": "http://www.w3.org/2002/07/owl#",
+        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        "ror": "https://ror.org/",
+        "schema": "http://schema.org/",
+        "sct": "http://snomed.info/id/",
+        "sh": "http://www.w3.org/ns/shacl#",
+        "sio": "http://semanticscience.org/resource/",
+        "skos": "http://www.w3.org/2004/02/skos/core#",
+        "w3ctr": "https://www.w3.org/TR/",
+        "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "class_icons": {
+        "https://concepts.datalad.org/s/things/v1/Annotation": "mdi-tag",
+        "https://concepts.inm7.de/s/flat-data/unreleased/DataItem": "mdi-file-document-outline",
+        "https://concepts.inm7.de/s/flat-data/unreleased/Dataset": "mdi-database",
+        "https://concepts.inm7.de/s/flat-data/unreleased/Dimension": "mdi-variable",
+        "https://concepts.inm7.de/s/flat-data/unreleased/Distribution": "mdi-folder-file-outline",
+        "https://concepts.inm7.de/s/flat-data/unreleased/Factor": "mdi-shape-outline",
+        "https://concepts.inm7.de/s/flat-data/unreleased/FileFormat": "mdi-format-list-bulleted-type",
+        "https://concepts.inm7.de/s/flat-data/unreleased/Instrument": "mdi-microscope",
+        "https://concepts.inm7.de/s/flat-base/unreleased/Organization": "mdi-account-group",
+        "https://concepts.inm7.de/s/flat-base/unreleased/Person": "mdi-face-man",
+        "https://concepts.inm7.de/s/flat-data/unreleased/Protocol": "mdi-file-cog",
+        "https://concepts.inm7.de/s/flat-data/unreleased/Study": "mdi-account-hard-hat",
+        "https://concepts.inm7.de/s/flat-data/unreleased/StudyActivity": "mdi-magnify",
+        "https://concepts.inm7.de/s/flat-data/unreleased/Subject": "mdi-account-search",
+        "https://concepts.inm7.de/s/flat-data/unreleased/SubjectType": "mdi-sitemap-outline",
+        "https://concepts.inm7.de/s/flat-data/unreleased/Unit": "mdi-gauge"
+    }
+}
