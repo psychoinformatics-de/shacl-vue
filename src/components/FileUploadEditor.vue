@@ -191,6 +191,8 @@ const validateAndReadFile = async (file) => {
         if (result.status == 'ok') {
             uploadSuccess.value = true;
             uploadFailure.value = false;
+            console.log("Uploaded file can be downloaded at:")
+            console.log(fileData.value.download)
         } else {
             uploadSuccess.value = false;
             uploadFailure.value = true;
@@ -206,14 +208,15 @@ const validateAndReadFile = async (file) => {
 const uploadFile = async () => {
 
     const endpoint = `${baseUrl}/${targetUuid}/v4/put?key=${encodeURIComponent(fileData.value.key)}&clientuuid=${encodeURIComponent(clientUuid)}`
-
+    // Use the following line during development to circumvent CORS issues, it sends the request to the local proxy server insteda of directly to the baseurl
+    // const endpoint = `/forgejo-api/${targetUuid}/v4/put?key=${encodeURIComponent(fileData.value.key)}&clientuuid=${encodeURIComponent(clientUuid)}`
     try {
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/octet-stream',
                 'X-git-annex-data-length': fileData.value.size,
-                'Authorization': 'Basic ' + btoa(`${username}:${password}`)
+                'Authorization': 'Basic ' + btoa(`${username.value}:${password.value}`)
             },
             body: fileData.value.file
         })
