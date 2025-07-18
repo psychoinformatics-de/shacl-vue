@@ -61,6 +61,14 @@ export default defineConfig({
         mimeTypes: {
             '.vue': 'application/javascript',
         },
+        proxy: {
+            '/forgejo-api': {
+                // the target here should be updated during testing to match the appropriate deployment
+                target: 'https://hub.psychoinformatics.de',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/forgejo-api/, '/git-annex-p2phttp/git-annex'),
+            },
+        },
     },
     base: './',
 });
