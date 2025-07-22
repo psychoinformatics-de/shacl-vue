@@ -4,7 +4,7 @@ layout: doc
 
 # Application configuration
 
-The URLs to the input sources covered in the [Application Inputs section](./app-inputs), as well as various settings for theming, identifiers, UI behavior, and service API integration can all be configured easily in order to customize a `shacl-vue` instance. The current configuration, available at [`shacl-vue/src/assets/config.json`](https://github.com/psychoinformatics-de/shacl-vue/blob/main/src/assets/config.json) includes the following:
+The URLs to the input sources covered in the [Application Inputs section](./app-inputs), as well as various settings for theming, identifiers, UI behavior, and service API integration can all be configured easily in order to customize a `shacl-vue` instance. The current configuration, available at [`shacl-vue/public/config.json`](https://github.com/psychoinformatics-de/shacl-vue/blob/main/public/config.json) includes the following:
 
 ```json
 {
