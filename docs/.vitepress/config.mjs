@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   base: "/shacl-vue/docs/",
-  title: "shacl-vue (alpha)",
+  title: "shacl-vue",
   description: "Automatic generation of user interfaces from SHACL",
   head: [['link', { rel: 'icon', href: '/shacl-vue/docs/favicon.ico' }]],
   themeConfig: {

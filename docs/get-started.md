@@ -22,25 +22,27 @@ Think of it as an automatic builder that you just have to feed with a model of y
 
 ## Installation
 
-`shacl-vue` is not yet available via any package manager, and will need to be installed from sources.
+`shacl-vue` can be installed from `npm` or from sources.
 
-First clone the repo locally:
-```
-git clone https://github.com/psychoinformatics-de/shacl-vue.git
-cd shacl-vue
-```
-
-Then create a local `NodeJS` virtual environment, for example with [miniconda](https://docs.anaconda.com/miniconda/):
+It is usually a good idea to start with a virtual environment. You can for example create a `NodeJS` environment with [miniconda](https://docs.anaconda.com/miniconda/):
 
 ```
 conda create -yn <my-env-name> nodejs
 conda activate <my-env-name>
 ```
 
-Then install the application:
+Then install `shacl-vue`:
 
 ```
-npm install
+npm install shacl-vue
+```
+
+For the latest development version, first clone the repo locally and then install `shacl-vue`:
+
+```
+git clone https://github.com/psychoinformatics-de/shacl-vue.git
+cd shacl-vue
+npm install .
 ```
 
 ### Local rendering
