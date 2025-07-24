@@ -81,6 +81,7 @@
                             key-field="value"
                             class="virtual-scroller"
                             ref="scrollerRef"
+                            @scroll-end="onScrollEnd"
                         >
                             <template v-slot="{ item, index, active }">
                                 <DynamicScrollerItem
@@ -162,6 +163,11 @@
                                     <v-divider></v-divider>
                                 </DynamicScrollerItem>
                             </template>
+                            <template #after>
+                                <div v-if="isFetchingPage" :style="'margin: auto; margin-bottom: 2em; text-align: center; color: ' + configVarsMain.appTheme.link_color + ';'">
+                                    <v-progress-circular indeterminate :size="26" :width="4"></v-progress-circular>
+                                </div>
+                            </template>
                         </DynamicScroller>
                     </span>
                     <span v-else>
@@ -187,7 +193,7 @@ import {
 import { useRules } from '../composables/rules';
 import { DataFactory } from 'n3';
 import { SHACL, RDF, RDFS, SKOS } from '@/modules/namespaces';
-import { findObjectByKey } from '../modules/utils';
+import { findObjectByKey, getAllClasses } from '../modules/utils';
 import { toCURIE, toIRI } from 'shacl-tulip';
 import { useRegisterRef } from '../composables/refregister';
 import { useBaseInput } from '@/composables/base';
@@ -227,17 +233,20 @@ const allPrefixes = inject('allPrefixes');
 const classDS = inject('classDS');
 const config = inject('config');
 const fetchFromService = inject('fetchFromService');
+const hasUnfetchedPages = inject('hasUnfetchedPages');
+const isFetchingPage = ref(false);
+const hasOpenedMenu = ref(false);
+const configVarsMain = inject('configVarsMain')
 const localPropertyShape = ref(props.property_shape);
 const propClass = ref(null);
 propClass.value = localPropertyShape.value[SHACL.class.value] ?? false;
-const allclass_array = getAllClasses(propClass.value);
+const allclass_array = getAllClasses(classDS, propClass.value);
 const propClassList = allclass_array.map((cl) => {
     return {
         title: toCURIE(cl, allPrefixes),
         value: cl,
     };
 });
-const editorComp = ref(null);
 const { rules } = useRules(localPropertyShape.value);
 const inputId = `input-${Date.now()}`;
 const { fieldRef } = useRegisterRef(inputId, props);
@@ -270,10 +279,6 @@ const saveDialogForm = () => {
 };
 provide('saveFormHandler', saveDialogForm);
 
-const openMenu = () => {
-    populateList();
-    menu.value = true;
-};
 
 const showClearIcon = computed(() => {
     if (queryText.value || subValues.value.selectedInstance) {
@@ -338,6 +343,14 @@ onBeforeMount(async () => {
     }
 });
 
+const openMenu = () => {
+    if (hasOpenedMenu.value == false) {
+        populateList();
+        hasOpenedMenu.value == true
+    }
+    menu.value = true;
+};
+
 async function populateList() {
     fetchingDataLoader.value = true;
     if (config.value.use_service) {
@@ -358,6 +371,31 @@ async function populateList() {
 // ------------------- //
 // Computed properties //
 // ------------------- //
+
+function onScrollEnd() {
+    debouncedScrollEnd();
+}
+
+const debouncedScrollEnd = debounce(async () => {
+    console.log("NEAR BOTTOM OF SCROLLER")
+    if (config.value.use_service) {
+        isFetchingPage.value = true;
+        try {
+            for (const iri of allclass_array) {
+                if (hasUnfetchedPages(iri)) {
+                    var result = await fetchFromService('get-paginated-records', iri, allPrefixes)
+                    if (result.status === null) {
+                        console.error(result.error);
+                    }
+                }
+            }
+            getItemsToList();
+        }
+        finally {
+            isFetchingPage.value = false;
+        }
+    }
+}, 1000);
 
 // trigger whenever lastSavedNode is updated, i.e. whenever a form is saved
 watch(
@@ -482,29 +520,9 @@ function handleAddItemClick(item) {
     addForm(selectedAddItemShapeIRI.value, newNodeIdx.value, 'new');
 }
 
-function getAllClasses(main_class) {
-    return [main_class].concat(getSubClasses(main_class));
-}
-
-function getSubClasses(main_class) {
-    // Find quads in the subclass datasetnodes with predicate rdfs:subClassOf
-    // object main_class, and return as an array of terms
-    const subClasses = classDS.data.graph.getQuads(
-        null,
-        namedNode(RDFS.subClassOf.value),
-        namedNode(main_class),
-        null
-    );
-    var myArr = [];
-    subClasses.forEach((quad) => {
-        myArr.push(quad.subject.value);
-    });
-    return myArr;
-}
-
 async function getAllRecordsFromService(iri_array) {
     const fetchPromises = iri_array.map((iri) =>
-        fetchFromService('get-records', iri, allPrefixes)
+        fetchFromService('get-paginated-records', iri, allPrefixes)
     );
     const results = await Promise.allSettled(fetchPromises);
     return results;

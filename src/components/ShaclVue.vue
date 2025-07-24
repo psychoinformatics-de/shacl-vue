@@ -532,6 +532,7 @@ provide('shapesDS', shapesDS);
 provide('classDS', classDS);
 provide('formData', formData);
 provide('fetchFromService', fetchFromService);
+provide('hasUnfetchedPages', hasUnfetchedPages);
 provide('submitFormData', submitFormData);
 provide('savedNodes', savedNodes);
 provide('submittedNodes', submittedNodes);

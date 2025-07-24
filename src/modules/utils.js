@@ -314,3 +314,23 @@ export async function quadsToTTL(allQuads, allPrefixes) {
     });
     return ttl;
 }
+
+export function getAllClasses(classDS, main_class) {
+    return [main_class].concat(getSubClasses(classDS, main_class));
+}
+
+export function getSubClasses(classDS, main_class) {
+    // Find quads in the subclass datasetnodes with predicate rdfs:subClassOf
+    // object main_class, and return as an array of terms
+    const subClasses = classDS.data.graph.getQuads(
+        null,
+        namedNode(RDFS.subClassOf.value),
+        namedNode(main_class),
+        null
+    );
+    var myArr = [];
+    subClasses.forEach((quad) => {
+        myArr.push(quad.subject.value);
+    });
+    return myArr;
+}
