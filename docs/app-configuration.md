@@ -122,7 +122,7 @@ The defaults for all input source URLs are the repository-local demo files.
 - `hide_classes` is a list of class URIs to hide from the left-hand-side panel listing all data types (i.e. classes)
 - `no_edit_classes` prevents records of specific classes from being created or edited by users. It is a list of class URIs that will firstly be hidden from the left-hand-side panel, which duplicates the functionality of `hide_classes`. In addition:
    - users will not be able to create records of these classes via the `Add New Item` selection in an `InstancesSelectEditor`, i.e. the dropdown that allows users to select a specific record.
-   - users will not be able to use URL query parametes to navigate to the main view displaying records of these classes.
+   - users will not be able to use URL query parameters to navigate to the main view displaying records of these classes.
 - `class_name_display` specifies whether to use the CURIE format or just the latter part of the CURIE for displaying class names in the `shacl-vue` UI. Allowed options are: 'curie' (for the full CURIE, e.g. `prov:Agent`) and 'name' (for the CURIE suffix, e.g. `Agent`) which is the default.
 - `class_icons` is a mapping of class URIs to [Material Design Icons](https://pictogrammers.com/library/mdi/). By default, `class_icons` that are not defined will display as empty circles.
 
