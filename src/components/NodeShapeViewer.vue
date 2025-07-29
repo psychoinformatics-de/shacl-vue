@@ -17,10 +17,10 @@
         </v-card-title>
         <v-card-subtitle>
             Type: <em>{{ toCURIE(record.subtitle, allPrefixes) }}</em>
-            &nbsp;
             <span v-if="!props.formOpen">
                 <v-tooltip text="Edit record" location="bottom">
-                    <template v-slot:activator="{ props }">
+                    <template v-slot:activator="{ props }" v-if="canEditClass">
+                        &nbsp;
                         <v-btn
                             icon="mdi-pencil"
                             variant="tonal"
@@ -241,6 +241,7 @@ const ttlDialog_type = ref('');
 const ttlDialog_content = ref('');
 
 const fetchingRecords = ref(false);
+const canEditClass = ref(false)
 
 const emit = defineEmits(['namedNodeSelected']);
 function selectNamedNode(recordClass, recordPID) {
@@ -249,6 +250,7 @@ function selectNamedNode(recordClass, recordPID) {
 provide('selectNamedNode', selectNamedNode);
 
 onBeforeMount(async () => {
+    canEditClass.value = configVarsMain.noEditClasses.indexOf(props.classIRI) < 0 ? true : false
     fetchingRecords.value = true;
     await updateRecord(true);
     fetchingRecords.value = false;

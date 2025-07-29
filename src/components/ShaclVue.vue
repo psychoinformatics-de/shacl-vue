@@ -86,6 +86,7 @@
                                                 }}
                                                 &nbsp;&nbsp;
                                                 <v-btn
+                                                    v-if="canEditClass"
                                                     icon="mdi-plus"
                                                     size="x-small"
                                                     variant="tonal"
@@ -475,6 +476,7 @@ const { formData, submitFormData, savedNodes, submittedNodes, nodesToSubmit } =
     useForm(config);
 const { token, setToken, clearToken } = useToken();
 const ID_IRI = ref('');
+const canEditClass = ref(true)
 watch(
     configFetched,
     async (newValue) => {
@@ -741,16 +743,13 @@ const idFilteredNodeShapeNames = computed(() => {
 const filteredNodeShapeNames = computed(() => {
     var names = idFilteredNodeShapeNames.value;
     console.log(names);
-    if (configVarsMain.hideClasses.length == 0 && configVarsMain.noEditClasses.length == 0) {
+    if (configVarsMain.hideClasses.length == 0) {
         return names;
     }
     var shapeNames = [];
     for (var n of names) {
         if (
             configVarsMain.hideClasses.indexOf(
-                shapesDS.data.nodeShapeNames[n]
-            ) < 0 &&
-            configVarsMain.noEditClasses.indexOf(
                 shapesDS.data.nodeShapeNames[n]
             ) < 0
         ) {
@@ -786,6 +785,7 @@ async function selectType(IRI, fromUser, fromBackButton) {
     searchText.value = '';
     selectedIRI.value = IRI;
     selectedShape.value = shapesDS.data.nodeShapes[IRI];
+    canEditClass.value = configVarsMain.noEditClasses.indexOf(IRI) < 0 ? true : false
     if (config.value.use_service) {
         classRecordsLoading.value = true;
         // First fetch rdf data from configured service
@@ -881,13 +881,15 @@ async function setViewFromQuery() {
         var nodeShapeIRI = toIRI(nodeShape, allPrefixes);
         if (shapesDS.data.nodeShapes[nodeShapeIRI]) {
 
-            if (configVarsMain.hideClasses.indexOf(nodeShapeIRI) < 0 &&
-                configVarsMain.noEditClasses.indexOf(nodeShapeIRI) < 0
-            ) {
+            if (configVarsMain.hideClasses.indexOf(nodeShapeIRI) < 0) {
                 await selectType(nodeShapeIRI);
                 if (edit) {
-                    addInstanceItem();
-                    updateURL(nodeShapeIRI, true);
+                    if (configVarsMain.noEditClasses.indexOf(nodeShapeIRI) >= 0) {
+                        updateURL(nodeShapeIRI, false)
+                    } else {
+                        addInstanceItem();
+                        updateURL(nodeShapeIRI, true);
+                    }
                 }
             }
             else {
