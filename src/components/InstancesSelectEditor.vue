@@ -47,31 +47,33 @@
                     ></v-skeleton-loader>
                 </span>
                 <span v-else>
-                    <v-list-item @click.stop :active="false">
-                        <v-list-item-title>
-                            <v-menu v-model="addItemMenu" location="end">
-                                <template v-slot:activator="{ props }">
-                                    <v-btn variant="tonal" v-bind="props"
-                                        >Add new item &nbsp;&nbsp;
-                                        <v-icon icon="item.icon"
-                                            >mdi-play</v-icon
-                                        ></v-btn
-                                    >
-                                </template>
+                    <span v-if="canEditClass">
+                        <v-list-item @click.stop :active="false">
+                            <v-list-item-title>
+                                <v-menu v-model="addItemMenu" location="end">
+                                    <template v-slot:activator="{ props }">
+                                        <v-btn variant="tonal" v-bind="props"
+                                            >Add new item &nbsp;&nbsp;
+                                            <v-icon icon="item.icon"
+                                                >mdi-play</v-icon
+                                            ></v-btn
+                                        >
+                                    </template>
 
-                                <v-list ref="addItemList">
-                                    <v-list-item
-                                        v-for="item in propClassList"
-                                        @click.stop="handleAddItemClick(item)"
-                                    >
-                                        <v-list-item-title>{{
-                                            item.title
-                                        }}</v-list-item-title>
-                                    </v-list-item>
-                                </v-list>
-                            </v-menu>
-                        </v-list-item-title>
-                    </v-list-item>
+                                    <v-list ref="addItemList">
+                                        <v-list-item
+                                            v-for="item in propClassList"
+                                            @click.stop="handleAddItemClick(item)"
+                                        >
+                                            <v-list-item-title>{{
+                                                item.title
+                                            }}</v-list-item-title>
+                                        </v-list-item>
+                                    </v-list>
+                                </v-menu>
+                            </v-list-item-title>
+                        </v-list-item>
+                    </span>
                     <span v-if="itemsToList.length">
                         <DynamicScroller
                             style="max-height: 200px; overflow-y: auto"
@@ -247,6 +249,8 @@ const propClassList = allclass_array.map((cl) => {
         value: cl,
     };
 });
+const canEditClass = ref(true)
+canEditClass.value = configVarsMain.noEditClasses.indexOf(propClass.value) < 0 ? true : false
 const { rules } = useRules(localPropertyShape.value);
 const inputId = `input-${Date.now()}`;
 const { fieldRef } = useRegisterRef(inputId, props);

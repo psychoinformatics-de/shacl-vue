@@ -741,13 +741,16 @@ const idFilteredNodeShapeNames = computed(() => {
 const filteredNodeShapeNames = computed(() => {
     var names = idFilteredNodeShapeNames.value;
     console.log(names);
-    if (configVarsMain.hideClasses.length == 0) {
+    if (configVarsMain.hideClasses.length == 0 && configVarsMain.noEditClasses.length == 0) {
         return names;
     }
     var shapeNames = [];
     for (var n of names) {
         if (
             configVarsMain.hideClasses.indexOf(
+                shapesDS.data.nodeShapeNames[n]
+            ) < 0 &&
+            configVarsMain.noEditClasses.indexOf(
                 shapesDS.data.nodeShapeNames[n]
             ) < 0
         ) {
@@ -866,24 +869,34 @@ async function setViewFromQuery() {
     }
 
     if (instance_id) {
-        console.log('Queried ID FOUND');
+        console.log('ID in queryparams');
         queried_id.value = instance_id;
         console.log(queried_id.value);
     }
 
     if (nodeShape) {
-        console.log('Queried nodeshape FOUND');
+        console.log('Nodeshape in queryparams');
         // this could be a curie or iri
         // check if iri is in
         var nodeShapeIRI = toIRI(nodeShape, allPrefixes);
         if (shapesDS.data.nodeShapes[nodeShapeIRI]) {
-            await selectType(nodeShapeIRI);
-            if (edit) {
-                addInstanceItem();
-                updateURL(nodeShapeIRI, true);
+
+            if (configVarsMain.hideClasses.indexOf(nodeShapeIRI) < 0 &&
+                configVarsMain.noEditClasses.indexOf(nodeShapeIRI) < 0
+            ) {
+                await selectType(nodeShapeIRI);
+                if (edit) {
+                    addInstanceItem();
+                    updateURL(nodeShapeIRI, true);
+                }
+            }
+            else {
+                console.log('Queried nodeshape found in shacl schema, but present in hide_classes or no_edit_classes config options');
+                history.replaceState(null, '', window.location.pathname);
             }
         } else {
             console.log('Queried nodeshape not found in shacl schema');
+            history.replaceState(null, '', window.location.pathname);
         }
     } else {
         console.log('nodeshape not in query params');

@@ -12,6 +12,7 @@ const mainVarsToLoad = {
     page_title: 'shacl-vue',
     show_shapes_wo_id: true,
     hide_classes: [],
+    no_edit_classes: [],
     id_autogenerate: {},
     prefixes: {},
     class_icons: {},
