@@ -119,10 +119,16 @@ The defaults for all input source URLs are the repository-local demo files.
 
 - `show_shapes_wo_id` shows data types (in the left-hand-side panel) for which the driving SHACL shapes do not have the `id_iri` property defined, when `true`
 - `show_all_fields` displays all properties in the form editor when a record is created/edited, when `true`. Properties in the form editor are displayed by default in order of reverse inheritance. For example, if the `Person` class is derived from the `Thing` class, the form editor for a `Person` would display the `Person`-properties in top, and the `Thing`-properties below that. Often, only the top-level properties are of immediate interest or importance to users and UX is improved by hiding other properties. The `show_all_fields` option, when `false`, would hide lower-level properties and display the top-level properties and required properties when a user opens the form editor to add/edit a record. In addition to the configuration option, the UI still allows the user to toggle between showing and hiding lower-level properties.
-- `hide_classes` is a list of class URIs to hide from the left-hand-side panel listing all data types (i.e. classes)
-- `no_edit_classes` prevents records of specific classes from being created or edited by users. It is a list of class URIs that will firstly be hidden from the left-hand-side panel, which duplicates the functionality of `hide_classes`. In addition:
-   - users will not be able to create records of these classes via the `Add New Item` selection in an `InstancesSelectEditor`, i.e. the dropdown that allows users to select a specific record.
-   - users will not be able to use URL query parameters to navigate to the main view displaying records of these classes.
+- `hide_classes` is a list of class URIs to hide from the left-hand-side panel listing all data types (i.e. classes). Records of these classes:
+   - WILL NOT show up in the left-hand-side panel
+   - CANNOT be navigated to using URL query parameters
+   - by implication, CAN ALSO NOT be edited via URL query parameters
+   - CAN be created via `Add new item` button in `InstancesSelectEditor`, i.e. the dropdown that allows users to select a specific record.
+- `no_edit_classes` prevents records of specific classes from being created or edited by users. Records of these classes:
+   - WILL show up in the left-hand-side panel, EXCLUDING the option to create new records
+   - CAN be navigated to using URL query parameters
+   - CANNOT be edited via URL query parameters
+   - CANNOT be created via `Add new item` button in `InstancesSelectEditor`
 - `class_name_display` specifies whether to use the CURIE format or just the latter part of the CURIE for displaying class names in the `shacl-vue` UI. Allowed options are: 'curie' (for the full CURIE, e.g. `prov:Agent`) and 'name' (for the CURIE suffix, e.g. `Agent`) which is the default.
 - `class_icons` is a mapping of class URIs to [Material Design Icons](https://pictogrammers.com/library/mdi/). By default, `class_icons` that are not defined will display as empty circles.
 
