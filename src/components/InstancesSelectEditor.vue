@@ -50,27 +50,37 @@
                     <span v-if="canEditClass">
                         <v-list-item @click.stop :active="false">
                             <v-list-item-title>
-                                <v-menu v-model="addItemMenu" location="end">
-                                    <template v-slot:activator="{ props }">
-                                        <v-btn variant="tonal" v-bind="props"
-                                            >Add new item &nbsp;&nbsp;
-                                            <v-icon icon="item.icon"
-                                                >mdi-play</v-icon
-                                            ></v-btn
-                                        >
-                                    </template>
+                                <!-- When there is only one item, just show a button -->
+                                <template v-if="propClassList.length === 1">
+                                    <v-btn variant="tonal" @click.stop="handleAddItemClick(propClassList[0])">
+                                        Add new item &nbsp;&nbsp;
+                                        <v-icon icon="mdi-play"></v-icon>
+                                    </v-btn>
+                                </template>
+                                <!-- When there are more items, show the menu -->
+                                <template v-else>
+                                    <v-menu v-model="addItemMenu" location="end">
+                                        <template v-slot:activator="{ props }">
+                                            <v-btn variant="tonal" v-bind="props"
+                                                >Add new item &nbsp;&nbsp;
+                                                <v-icon icon="item.icon"
+                                                    >mdi-play</v-icon
+                                                ></v-btn
+                                            >
+                                        </template>
 
-                                    <v-list ref="addItemList">
-                                        <v-list-item
-                                            v-for="item in propClassList"
-                                            @click.stop="handleAddItemClick(item)"
-                                        >
-                                            <v-list-item-title>{{
-                                                item.title
-                                            }}</v-list-item-title>
-                                        </v-list-item>
-                                    </v-list>
-                                </v-menu>
+                                        <v-list ref="addItemList">
+                                            <v-list-item
+                                                v-for="item in propClassList"
+                                                @click.stop="handleAddItemClick(item)"
+                                            >
+                                                <v-list-item-title>{{
+                                                    item.title
+                                                }}</v-list-item-title>
+                                            </v-list-item>
+                                        </v-list>
+                                    </v-menu>
+                                </template>
                             </v-list-item-title>
                         </v-list-item>
                     </span>
