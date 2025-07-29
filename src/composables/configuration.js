@@ -13,6 +13,7 @@ const mainVarsToLoad = {
     show_shapes_wo_id: true,
     hide_classes: [],
     no_edit_classes: [],
+    allow_edit_instances: false,
     id_autogenerate: {},
     prefixes: {},
     class_icons: {},

@@ -190,6 +190,19 @@
                                                     ></v-icon>
                                                 </template>
                                             </v-tooltip>
+                                            <v-btn
+                                                v-if="configVarsMain.allowEditInstances"
+                                                icon="mdi-pencil"
+                                                variant="text"
+                                                size="x-small"
+                                                @click="editInstanceItem(
+                                                    {
+                                                        quad: item.props.itemQuad,
+                                                        value: item.value
+                                                    }
+                                                )"
+                                                :disabled="!canEditClass"
+                                            ></v-btn>
                                         </template>
                                     </v-list-item>
                                     <v-divider></v-divider>
@@ -261,6 +274,7 @@ const scrollerRef = ref(null);
 const itemsToList = ref([]);
 const fetchingDataLoader = ref(false);
 const fetchingRecordLoader = ref(false);
+const editInstanceItem = inject('editInstanceItem');
 const rdfDS = inject('rdfDS');
 const allPrefixes = inject('allPrefixes');
 const classDS = inject('classDS');
@@ -616,6 +630,7 @@ function getItemsToList() {
             title: quad.subject.value + extra,
             value: quad.subject.value,
             props: {
+                itemQuad: quad,
                 subtitle: toCURIE(quad.object.value, allPrefixes),
                 hasPrefLabel: false,
                 hasNote: false,

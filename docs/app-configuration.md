@@ -129,6 +129,7 @@ The defaults for all input source URLs are the repository-local demo files.
    - CAN be navigated to using URL query parameters
    - CANNOT be edited via URL query parameters
    - CANNOT be created via `Add new item` button in `InstancesSelectEditor`
+- `allow_edit_instances`, if true, will add an edit button for all instances in an `InstancesSelectEditor`, i.e. the dropdown that allows users to select a specific record. This edit button allows the user to edit the specific record directly, without having to navigate to the record editor via the left-hand-side panel. This edit button will be disabled if the record's class is included in `no_edit_classes`.
 - `class_name_display` specifies whether to use the CURIE format or just the latter part of the CURIE for displaying class names in the `shacl-vue` UI. Allowed options are: 'curie' (for the full CURIE, e.g. `prov:Agent`) and 'name' (for the CURIE suffix, e.g. `Agent`) which is the default.
 - `class_icons` is a mapping of class URIs to [Material Design Icons](https://pictogrammers.com/library/mdi/). By default, `class_icons` that are not defined will display as empty circles.
 
