@@ -27,6 +27,10 @@ const mainVarsToLoad = {
         visited_color: '#41b882',
         logo: 'shacl_vue_logo.svg',
     },
+    W3CISO8601_datetime_editor: {
+        yearStart: 1925,
+        yearEnd: 2077
+    },
     id_resolves_externally: [],
     use_token: false,
     token_info: '',
