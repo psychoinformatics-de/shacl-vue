@@ -19,7 +19,7 @@
             Type: <em>{{ toCURIE(record.subtitle, allPrefixes) }}</em>
             <span v-if="!props.formOpen">
                 <v-tooltip text="Edit record" location="bottom">
-                    <template v-slot:activator="{ props }" v-if="canEditClass">
+                    <template v-slot:activator="{ props }">
                         &nbsp;
                         <v-btn
                             icon="mdi-pencil"
@@ -27,7 +27,7 @@
                             size="x-small"
                             class="rounded-lg"
                             @click="editInstanceItem(record)"
-                            :disabled="props.formOpen"
+                            :disabled="props.formOpen || !canEditClass"
                             v-bind="props"
                         ></v-btn>
                     </template>

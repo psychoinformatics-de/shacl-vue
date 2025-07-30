@@ -86,13 +86,13 @@
                                                 }}
                                                 &nbsp;&nbsp;
                                                 <v-btn
-                                                    v-if="canEditClass"
                                                     icon="mdi-plus"
                                                     size="x-small"
                                                     variant="tonal"
                                                     @click="addInstanceItem()"
                                                     :disabled="
-                                                        openForms.length > 0
+                                                        openForms.length > 0 ||
+                                                        !canEditClass
                                                     "
                                                 ></v-btn>
                                             </h2>
