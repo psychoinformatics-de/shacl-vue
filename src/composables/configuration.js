@@ -13,6 +13,22 @@ const mainVarsToLoad = {
     show_shapes_wo_id: true,
     hide_classes: [],
     no_edit_classes: [],
+    allow_edit_instances: [],
+    editor_selection: {},
+    editor_config: {
+        W3CISO8601YearEditor: {
+            yearStart: 1925,
+            yearEnd: 2077
+        },
+        W3CISO8601YearMonthEditor: {
+            yearStart: 1925,
+            yearEnd: 2077
+        },
+    },
+    display_name_autogenerate: {},
+    display_name_autogenerate_placeholder: {
+        default: "[?]"
+    },
     id_autogenerate: {},
     prefixes: {},
     class_icons: {},

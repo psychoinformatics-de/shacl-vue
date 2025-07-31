@@ -334,3 +334,26 @@ export function getSubClasses(classDS, main_class) {
     });
     return myArr;
 }
+
+export function hasConfigDisplayLabel(class_uri, allPrefixes, configVarsMain) {
+    var class_curi = toCURIE(class_uri, allPrefixes)
+    console.log(class_curi)
+    if (configVarsMain.displayNameAutogenerate.hasOwnProperty(class_curi)) {
+        return configVarsMain.displayNameAutogenerate[class_curi]
+    } else {
+        return false
+    }
+}
+
+export function getConfigDisplayLabel(labelTemplate, labelParts, configVarsMain) {
+    const regex = /{([^}]+)}/g;
+    const defaultPlaceholder = 
+        "default" in configVarsMain.displayNameAutogeneratePlaceholder ? 
+        configVarsMain.displayNameAutogeneratePlaceholder.default : "[?]"
+    return labelTemplate.replace(regex, (_, key) => {
+        let missingPlaceholder =
+            key in configVarsMain.displayNameAutogeneratePlaceholder ? 
+            configVarsMain.displayNameAutogeneratePlaceholder[key] : defaultPlaceholder
+        return key in labelParts ? labelParts[key] : missingPlaceholder;
+    });
+}

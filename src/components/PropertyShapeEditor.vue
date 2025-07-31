@@ -48,7 +48,7 @@
                                             localNodeIdx
                                         ][my_uid][triple_idx]
                                     "
-                                    :is="matchedComponent"
+                                    :is="configMatchedComponent || matchedComponent"
                                     :property_shape="localPropertyShape"
                                     :node_uid="localNodeUid"
                                     :node_idx="localNodeIdx"
@@ -124,6 +124,7 @@ import {
 import { SHACL, DLCO } from '../modules/namespaces';
 import { useRules } from '../composables/rules';
 import { nameOrCURIE, addCodeTagsToText, isObject } from '../modules/utils';
+import { toCURIE, toIRI } from 'shacl-tulip';
 
 // ----- //
 // Props //
@@ -156,6 +157,7 @@ const { isRequired } = useRules(localPropertyShape.value);
 const configVarsMain = inject('configVarsMain');
 const ID_IRI = inject('ID_IRI');
 const compDisabled = ref(false);
+const configMatchedComponent = ref(null);
 
 // ----------------- //
 // Lifecycle methods //
@@ -219,6 +221,26 @@ onMounted(() => {
 
 onBeforeMount(() => {
     my_uid.value = localPropertyShape.value[SHACL.path.value];
+    // Lets see if any config-driven editor matching is available
+    // We loop through all keys of config[editor_selection] and assign and exit on first matched
+    let configMatchedComponentName
+    for (const prop_shape_key of Object.keys(configVarsMain.editorSelection)) {
+        var pskey = toIRI(prop_shape_key, allPrefixes)
+        if (
+            localPropertyShape.value.hasOwnProperty(pskey) &&
+            Object.keys(configVarsMain.editorSelection[prop_shape_key]).indexOf(toCURIE(localPropertyShape.value[pskey], allPrefixes)) >= 0
+        ) {
+            configMatchedComponentName = configVarsMain.editorSelection[prop_shape_key][toCURIE(localPropertyShape.value[pskey], allPrefixes)]
+            break;
+        }
+    }
+    if (configMatchedComponentName) {
+        const matchingComponentNames = Object.keys(editorMatchers).filter(key => key.includes(configMatchedComponentName));
+        if (matchingComponentNames.length > 0) {
+            var cname = matchingComponentNames[0] // take first matched
+            configMatchedComponent.value = editorMatchers[cname].component
+        }
+    }
 });
 
 onBeforeUnmount(() => {});
