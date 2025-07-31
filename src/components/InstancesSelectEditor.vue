@@ -191,7 +191,10 @@
                                                 </template>
                                             </v-tooltip>
                                             <v-btn
-                                                v-if="configVarsMain.allowEditInstances"
+                                                v-if="
+                                                    configVarsMain.allowEditInstances === true ||
+                                                    configVarsMain.allowEditInstances.indexOf(item.props.itemQuad.object.value) >= 0
+                                                "
                                                 icon="mdi-pencil"
                                                 variant="text"
                                                 size="x-small"

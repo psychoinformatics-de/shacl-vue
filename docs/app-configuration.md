@@ -110,7 +110,7 @@ The defaults for all input source URLs are the repository-local demo files.
     "show_all_fields": true,
     "hide_classes": [],
     "no_edit_classes": [],
-    "allow_edit_instances": false,
+    "allow_edit_instances": [],
     "class_name_display": "",
     "class_icons": {
         "": ""
@@ -134,7 +134,7 @@ The defaults for all input source URLs are the repository-local demo files.
    - CAN be navigated to using URL query parameters
    - CANNOT be edited via URL query parameters
    - CANNOT be created via `Add new item` button in `InstancesSelectEditor`
-- `allow_edit_instances`, if true, will add an edit button for all instances in an `InstancesSelectEditor`, i.e. the dropdown that allows users to select a specific record. This edit button allows the user to edit the specific record directly, without having to navigate to the record editor via the left-hand-side panel. This edit button will be disabled if the record's class is included in `no_edit_classes`.
+- `allow_edit_instances`, allows an edit button to be added for all instances in an `InstancesSelectEditor`, i.e. the dropdown that allows users to select a specific record. This edit button allows the user to edit the specific record directly, without having to navigate to the record editor via the left-hand-side panel. `allow_edit_instances` can take a boolean value of `true` to apply this setting for all instances of all classes, or alternatively an array with specific class URIs to apply the setting only for instances of specific classes. The edit button will be disabled if the record's class is included in `no_edit_classes`.
 - `class_name_display` specifies whether to use the CURIE format or just the latter part of the CURIE for displaying class names in the `shacl-vue` UI. Allowed options are: 'curie' (for the full CURIE, e.g. `prov:Agent`) and 'name' (for the CURIE suffix, e.g. `Agent`) which is the default.
 - `class_icons` is a mapping of class URIs to [Material Design Icons](https://pictogrammers.com/library/mdi/). By default, `class_icons` that are not defined will display as empty circles.
 - `W3CISO8601DateTimeEditor` is an option specific to the `W3CISO8601DateTimeEditor.vue` component, which provides a date picker for various formats defined in the [W3C ISO8601 Note](https://www.w3.org/TR/NOTE-datetime). The `yearStart` and `yearEnd` options can be used to define the starting and ending years that together define the range of options in the year-picker of this component. Respectively, they default to `1925` and `2077` if not specified.
