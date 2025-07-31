@@ -115,10 +115,8 @@ The defaults for all input source URLs are the repository-local demo files.
     "class_icons": {
         "": ""
     },
-    "W3CISO8601_datetime_editor": {
-        "yearStart": 1925,
-        "yearEnd": 2077
-    }
+    "editor_selection": {},
+    "editor_config": {},
 }
 ```
 
@@ -137,7 +135,30 @@ The defaults for all input source URLs are the repository-local demo files.
 - `allow_edit_instances`, allows an edit button to be added for all instances in an `InstancesSelectEditor`, i.e. the dropdown that allows users to select a specific record. This edit button allows the user to edit the specific record directly, without having to navigate to the record editor via the left-hand-side panel. `allow_edit_instances` can take a boolean value of `true` to apply this setting for all instances of all classes, or alternatively an array with specific class URIs to apply the setting only for instances of specific classes. The edit button will be disabled if the record's class is included in `no_edit_classes`.
 - `class_name_display` specifies whether to use the CURIE format or just the latter part of the CURIE for displaying class names in the `shacl-vue` UI. Allowed options are: 'curie' (for the full CURIE, e.g. `prov:Agent`) and 'name' (for the CURIE suffix, e.g. `Agent`) which is the default.
 - `class_icons` is a mapping of class URIs to [Material Design Icons](https://pictogrammers.com/library/mdi/). By default, `class_icons` that are not defined will display as empty circles.
-- `W3CISO8601DateTimeEditor` is an option specific to the `W3CISO8601DateTimeEditor.vue` component, which provides a date picker for various formats defined in the [W3C ISO8601 Note](https://www.w3.org/TR/NOTE-datetime). The `yearStart` and `yearEnd` options can be used to define the starting and ending years that together define the range of options in the year-picker of this component. Respectively, they default to `1925` and `2077` if not specified.
+- `editor_selection`: this option allows the UI to use config-driven selection of an editor component instead of the [component matching procedure](./editor-component#the-matching-script) that `shacl-vue` uses by default. The object takes keys of a SHACL property shape as its keys in CURIE format (e.g. `sh:datatype`, `sh:path`, or `sh:nodeKind`), and the values are objects themselves. These objects will have the to-be-matched CURIEs as keys, and the corresponding value should be the exact name of the component that will be selected. An example is provided below.
+- `editor_config` allows component-specific parameters to be passed to name-identified components. Such parameters allow the customization of behavior or display in `shacl-vue` components. The object has the exact name of any editor component as its keys, and values are key-value parameter pairs that should feed into the associated editor components. An example is provided below.
+
+### Example
+
+In the example below, the `editor_selection` option specifies that, if a SHACL property shape is encountered where the `sh:datatype` is equal to `mydatetime:year`, the `W3CISO8601YearEditor` should be selected and rendered. The `editor_config` option specifies that, for the `W3CISO8601YearEditor`, the `yearStart` and `yearEnd` options should be set to `1925` and `2077`, which for this component defines the starting and ending years that together make up the range of options in the rendered year-picker.
+
+```json
+{
+    ...
+    "editor_selection": {
+        "sh:datatype": {
+            "mydatetime:year": "W3CISO8601YearEditor",
+        }
+    },
+    "editor_config": {
+        "W3CISO8601YearEditor": {
+            "yearStart": 1925,
+            "yearEnd": 2077
+        }
+    },
+    ...
+}
+```
 
 ## Service API integration
 

@@ -14,6 +14,17 @@ const mainVarsToLoad = {
     hide_classes: [],
     no_edit_classes: [],
     allow_edit_instances: [],
+    editor_selection: {},
+    editor_config: {
+        W3CISO8601YearEditor: {
+            yearStart: 1925,
+            yearEnd: 2077
+        },
+        W3CISO8601YearMonthEditor: {
+            yearStart: 1925,
+            yearEnd: 2077
+        },
+    },
     id_autogenerate: {},
     prefixes: {},
     class_icons: {},
@@ -26,10 +37,6 @@ const mainVarsToLoad = {
         panel_color: '#41b883',
         visited_color: '#41b882',
         logo: 'shacl_vue_logo.svg',
-    },
-    W3CISO8601_datetime_editor: {
-        yearStart: 1925,
-        yearEnd: 2077
     },
     id_resolves_externally: [],
     use_token: false,
