@@ -25,6 +25,10 @@ const mainVarsToLoad = {
             yearEnd: 2077
         },
     },
+    display_name_autogenerate: {},
+    display_name_autogenerate_placeholder: {
+        default: "[?]"
+    },
     id_autogenerate: {},
     prefixes: {},
     class_icons: {},

@@ -135,6 +135,9 @@
                                                 ]
                                             }}
                                         </span>
+                                        <span v-else-if="item.props.hasDisplayLabel">
+                                            {{ item.props._displayLabel }}
+                                        </span>
                                         <span v-else>
                                             <span
                                                 v-for="(
@@ -149,6 +152,7 @@
                                                             'subtitle',
                                                             'name',
                                                             'value',
+                                                            'itemQuad',
                                                             RDF.type.value,
                                                             toCURIE(
                                                                 RDF.type.value,
@@ -242,7 +246,7 @@ import {
 import { useRules } from '../composables/rules';
 import { DataFactory } from 'n3';
 import { SHACL, RDF, RDFS, SKOS } from '@/modules/namespaces';
-import { findObjectByKey, getAllClasses } from '../modules/utils';
+import { findObjectByKey, getAllClasses, hasConfigDisplayLabel, getConfigDisplayLabel} from '../modules/utils';
 import { toCURIE, toIRI } from 'shacl-tulip';
 import { useRegisterRef } from '../composables/refregister';
 import { useBaseInput } from '@/composables/base';
@@ -357,7 +361,11 @@ function setSelectedValue() {
             subValues.value.selectedInstance = inst;
             queryLabel.value = subValues.value.selectedInstance.props._prefLabel
                 ? subValues.value.selectedInstance.props._prefLabel
-                : '(selected item name unknown)';
+                : (
+                    subValues.value.selectedInstance.props._displayLabel ?
+                    subValues.value.selectedInstance.props._displayLabel :
+                    '(selected item name unknown)'
+                )
         } else {
             subValues.value.selectedInstance = null;
             queryLabel.value = '';
@@ -549,8 +557,12 @@ function selectItem(item) {
     console.log(item);
     subValues.value.selectedInstance = item;
     queryLabel.value = subValues.value.selectedInstance.props._prefLabel
-        ? subValues.value.selectedInstance.props._prefLabel
-        : '(selected item name unknown)';
+                ? subValues.value.selectedInstance.props._prefLabel
+                : (
+                    subValues.value.selectedInstance.props._displayLabel ?
+                    subValues.value.selectedInstance.props._displayLabel :
+                    '(selected item name unknown)'
+                )
     queryText.value = '';
     menu.value = false;
 }
@@ -636,14 +648,17 @@ function getItemsToList() {
                 itemQuad: quad,
                 subtitle: toCURIE(quad.object.value, allPrefixes),
                 hasPrefLabel: false,
+                hasDisplayLabel: false,
                 hasNote: false,
             },
         };
+        let labelTemplate = hasConfigDisplayLabel(quad.object.value, allPrefixes, configVarsMain)
+        let labelParts = {}
         relatedTrips.forEach((quad) => {
-            item.props[toCURIE(quad.predicate.value, allPrefixes)] = toCURIE(
-                quad.object.value,
-                allPrefixes
-            );
+            let predCuri = toCURIE(quad.predicate.value, allPrefixes)
+            
+            console.log(`current subject has predicate: ${predCuri}`)
+            item.props[predCuri] = toCURIE(quad.object.value, allPrefixes);
             if (quad.predicate.value == SKOS.prefLabel.value) {
                 item.props.hasPrefLabel = true;
                 item.props._prefLabel = quad.object.value;
@@ -652,7 +667,19 @@ function getItemsToList() {
                 item.props.hasNote = true;
                 item.props._note = quad.object.value;
             }
+            // If current predicate is used for display label generation, store it
+            if ( labelTemplate && labelTemplate.includes(predCuri)) {
+                labelParts[predCuri] = quad.object.value
+            }
         });
+        // Generate display label if possible
+        if (labelTemplate) {
+            let displayLabel = getConfigDisplayLabel(labelTemplate, labelParts, configVarsMain)
+            if (displayLabel) {
+                item.props.hasDisplayLabel = true;
+                item.props._displayLabel = displayLabel;
+            }
+        }
         itemsToListArr.push(item);
     });
     itemsToList.value = itemsToListArr;
