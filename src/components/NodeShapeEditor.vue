@@ -4,7 +4,7 @@
             <h3>
                 Properties from:
                 <code class="code-style">{{
-                    getDisplayName(localShapeIri, configVarsMain, allPrefixes)
+                    getDisplayName(localShapeIri, configVarsMain, allPrefixes, shape_obj)
                 }}</code>
             </h3>
             <br />
@@ -26,7 +26,7 @@
                 <h3>
                     Properties from:
                     <code class="code-style">{{
-                        getDisplayName(c, configVarsMain, allPrefixes)
+                        getDisplayName(c, configVarsMain, allPrefixes, shapesDS.data.nodeShapes[c])
                     }}</code>
                 </h3>
                 <br />

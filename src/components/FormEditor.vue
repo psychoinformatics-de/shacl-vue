@@ -2,7 +2,7 @@
     <v-sheet class="pa-4 scaled-sheet" border rounded elevation="2">
         <div style="display: flex; position: relative">
             <h3>
-                {{ getDisplayName(localShapeIri, configVarsMain, allPrefixes) }}
+                {{ getDisplayName(localShapeIri, configVarsMain, allPrefixes, shape_obj) }}
             </h3>
 
             <div style="display: flex; margin-left: auto">

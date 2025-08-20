@@ -204,11 +204,21 @@ export function adjustHexColor(hexColor, amount) {
     return `#${colorInt.toString(16).padStart(6, '0')}`;
 }
 
-export function getDisplayName(uri, configVarsMain, prefixes) {
-    if (configVarsMain.classNameDisplay == 'curie') {
-        return toCURIE(uri, prefixes);
+export function getDisplayName(uri, configVarsMain, prefixes, shape = {}) {
+    // configVarsMain.classNameDisplay should be one of:
+    // - name: the value of the nodeshape's `sh:name` attribute (e.g. Organization)
+    // - reference: the reference of the nodeshape CURIE (e.g. DSCOrganization)
+    // - curie: the full CURIE of the nodeshape IRI (e.g. trr379cps:DSCOrganization)
+    let mode = configVarsMain.classNameDisplay;
+    let name = shape.hasOwnProperty(SHACL.name.value) ? shape[SHACL.name.value] : null;
+    let reference = toCURIE(uri, prefixes, 'parts').property;
+    let curie = toCURIE(uri, prefixes);
+    if (mode == 'name') {
+        return name ? name : reference;
+    } else if (mode == 'reference') {
+        return reference;
     } else {
-        return toCURIE(uri, prefixes, 'parts').property;
+        return curie
     }
 }
 
@@ -337,7 +347,6 @@ export function getSubClasses(classDS, main_class) {
 
 export function hasConfigDisplayLabel(class_uri, allPrefixes, configVarsMain) {
     var class_curi = toCURIE(class_uri, allPrefixes)
-    console.log(class_curi)
     if (configVarsMain.displayNameAutogenerate.hasOwnProperty(class_curi)) {
         return configVarsMain.displayNameAutogenerate[class_curi]
     } else {

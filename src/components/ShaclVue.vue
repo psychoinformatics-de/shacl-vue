@@ -32,7 +32,14 @@
                                             shapesDS.data.nodeShapeNames[node]
                                         )
                                     "
-                                    :title="node"
+                                    :title="
+                                        getDisplayName(
+                                            shapesDS.data.nodeShapeNames[node],
+                                            configVarsMain,
+                                            allPrefixes,
+                                            shapesDS.data.nodeShapes[shapesDS.data.nodeShapeNames[node]]
+                                        )
+                                    "
                                     :value="shapesDS.data.nodeShapeNames[node]"
                                     @click="
                                         selectType(
@@ -83,7 +90,8 @@
                                                         getDisplayName(
                                                             selectedIRI,
                                                             configVarsMain,
-                                                            allPrefixes
+                                                            allPrefixes,
+                                                            shapesDS.data.nodeShapes[selectedIRI]
                                                         )
                                                     }}
                                                     <span v-if="fetchedItemCount">
@@ -322,7 +330,8 @@
                                                                 getDisplayName(
                                                                     f.shapeIRI,
                                                                     configVarsMain,
-                                                                    allPrefixes
+                                                                    allPrefixes,
+                                                                    shapesDS.data.nodeShapes[f.shapeIRI]
                                                                 )
                                                             }}
                                                         </em>
