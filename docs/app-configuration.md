@@ -18,6 +18,12 @@ Current configuration options include:
     "page_title": "",
     "documentation_url": "",
     "source_code_url": "",
+    "footer_links": [
+        {
+            "url": "",
+            "text": ""
+        }
+    ]
 }
 ```
 
@@ -25,6 +31,7 @@ Current configuration options include:
 - `page_title` is the title for the HTML page
 - `documentation_url` is the URL of the user documentation for the specific `shacl-vue` instance
 - `source_code_url` is the URL of the source code repository for the specific `shacl-vue` instance
+- `footer_links` is an array of objects, where each object contains the `url` and display `text` for a link that should be included in the application footer
 
 The HTML page title is set in [`shacl-vue/src/components/ShaclVue.vue`](https://github.com/psychoinformatics-de/shacl-vue/blob/main/src/components/ShaclVue.vue) based on values in the configuration file (`config.json`). The app uses the following priority when setting the title:
 

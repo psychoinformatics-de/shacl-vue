@@ -48,6 +48,7 @@ const mainVarsToLoad = {
     token_info_url: '',
     use_service: false,
     class_name_display: 'name',
+    footer_links: [],
 };
 
 export function useConfig(url) {
