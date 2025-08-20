@@ -25,7 +25,6 @@
                                 <v-list-item value="data"
                                     ><h4>Data Types</h4></v-list-item
                                 >
-                                <!-- <v-text-field variant="outlined" append-inner-icon="mdi-magnify" density="compact"></v-text-field> -->
                                 <v-list-item
                                     v-for="node in filteredNodeShapeNames"
                                     :prepend-icon="
@@ -61,6 +60,8 @@
                                         <span v-if="selectedIRI">
                                             <h2
                                                 class="mx-4 mb-4 truncate-heading"
+                                                @mouseenter="headingHover = true"
+                                                @mouseleave="headingHover = false"
                                             >
                                                 <span
                                                     v-if="
@@ -77,14 +78,32 @@
                                                     &nbsp;
                                                 </span>
 
-                                                {{
-                                                    getDisplayName(
-                                                        selectedIRI,
-                                                        configVarsMain,
-                                                        allPrefixes
-                                                    )
-                                                }}
+                                                <span class="display-text-wrapper">
+                                                    {{
+                                                        getDisplayName(
+                                                            selectedIRI,
+                                                            configVarsMain,
+                                                            allPrefixes
+                                                        )
+                                                    }}
+                                                    <span v-if="fetchedItemCount">
+                                                        <small>
+                                                            ({{fetchedItemCount}}<span v-if="totalItemCount && totalItemCount > fetchedItemCount">/{{ totalItemCount }}</span>
+                                                            record{{ fetchedItemCount == 1 ? '' : 's' }})
+                                                        </small>
+                                                    </span>
+                                                    <v-progress-linear
+                                                        v-model="currentProgress"
+                                                        height="5"
+                                                        :color="configVarsMain.appTheme.link_color"
+                                                        class="progress-underline"
+                                                        rounded
+                                                        :style="{ opacity: showProgress ? 1 : 0 }"
+                                                    >
+                                                    </v-progress-linear>
+                                                </span>
                                                 &nbsp;&nbsp;
+
                                                 <v-btn
                                                     icon="mdi-plus"
                                                     size="x-small"
@@ -134,6 +153,7 @@
                                                                     openForms.length >
                                                                     0
                                                                 "
+                                                                @update:modelValue="filterInstanceItems()"
                                                             >
                                                                 <template
                                                                     v-slot:append-inner
@@ -243,8 +263,8 @@
                                                             </DynamicScrollerItem>
                                                         </template>
                                                         <template #after>
-                                                            <div v-if="isFetchingPage" :style="'margin: auto; text-align: center; color: ' + configVarsMain.appTheme.link_color + ';'">
-                                                                <v-progress-circular indeterminate :size="40" :width="4"></v-progress-circular>
+                                                            <div class="after-loader" :style="'color: ' + configVarsMain.appTheme.link_color + ';'">
+                                                                <v-progress-circular v-show="showFetchingPageLoader" indeterminate :size="40" :width="4"></v-progress-circular>
                                                             </div>
                                                         </template>
                                                     </DynamicScroller>
@@ -418,6 +438,8 @@ const props = defineProps({
 // ---------- //
 // PAGINATION //
 // ---------- //
+const headingHover = ref(false);
+const totalItemCount = ref(0);
 const isFetchingPage = ref(false);
 const showScrollTopBtn = ref(false);
 const scrollerRef = ref(null);
@@ -443,6 +465,7 @@ const debouncedScrollEnd = debounce(async () => {
                 console.error(result.error);
             }
             getInstanceItems();
+            filterInstanceItems();
             isFetchingPage.value = false;
         } else {
             console.log("Last page already fetched")
@@ -458,6 +481,42 @@ function scrollToTop() {
         if (el) el.scrollTop = 0;
     });
 }
+const showProgress = computed(() => {
+    return searchText.value || headingHover.value
+})
+const currentProgress = computed(() => {
+    if (fetchedItemCount.value == null) {
+        return 0;
+    }
+    if (fetchedItemCount.value && totalItemCount.value) {
+        if (totalItemCount.value == 0) {
+            return 100;
+        } else {
+            return  Math.ceil(fetchedItemCount.value / totalItemCount.value * 100);
+        }
+    }
+    if (fetchedItemCount.value && (totalItemCount.value == null || totalItemCount.value == 0 )) {
+        return 100;
+    }
+})
+const showFetchingPageLoader = ref(false)
+let hideTimeout = null
+watch(isFetchingPage, (newVal) => {
+    if (newVal) {
+        // If fetching starts → show immediately
+        if (hideTimeout) {
+            clearTimeout(hideTimeout)
+            hideTimeout = null
+        }
+        showFetchingPageLoader.value = true
+    } else {
+        // If fetching stops → wait before hiding
+        hideTimeout = setTimeout(() => {
+            showFetchingPageLoader.value = false
+            hideTimeout = null
+        }, 1000)
+    }
+})
 
 // ---------------------------------------------------- //
 // CONFIGURATION, AND LOADING SHAPES/CLASSES/DATA/FORMS //
@@ -558,6 +617,7 @@ const superClasses = reactive({});
 provide('superClasses', superClasses);
 const searchText = ref('');
 const instanceItemsComp = ref([]);
+const filteredInstanceItemsComp = ref([]);
 var newTypeSelected = false;
 
 // ---------------------------------------------- //
@@ -671,6 +731,7 @@ const itemsTrigger = ref(false);
 const queried_id = ref(null);
 const classRecordsLoading = ref(false);
 const idRecordLoading = ref(false);
+const fetchedItemCount = ref(null)
 provide('editorMatchers', editorMatchers);
 provide('defaultEditor', defaultEditor);
 // Data for creating/editing items
@@ -703,6 +764,7 @@ const debouncedUpdate = debounce(() => {
     if (openForms.length == 0) {
         console.log('CHECK: graphdata shaclvue');
         getInstanceItems();
+        filterInstanceItems();
     }
 }, 500);
 watch(() => rdfDS.data.graphChanged, debouncedUpdate, { deep: true });
@@ -770,6 +832,7 @@ const formattedDescription = computed(() => {
 
 function clearField() {
     searchText.value = '';
+    filterInstanceItems();
 }
 
 async function selectType(IRI, fromUser, fromBackButton) {
@@ -777,6 +840,8 @@ async function selectType(IRI, fromUser, fromBackButton) {
     console.log(filteredNodeShapeNames.value);
     console.log(shapesDS.data.nodeShapeNames);
     console.log(selectedItem.value);
+    fetchedItemCount.value = null;
+    totalItemCount.value = 0
     isFetchingPage.value = false;
     showScrollTopBtn.value = false;
     newTypeSelected = true;
@@ -809,8 +874,21 @@ async function selectType(IRI, fromUser, fromBackButton) {
         } else {
             classRecordsLoading.value = false;
         }
+
+        // We want to keep track of the progress of currently fetched items
+        // vs total items, so we need the total item count of the current class
+        var totalItems = result.url.reduce((sum, item) => {
+            if (item.success && item.pageMeta && typeof item.pageMeta.total === "number") {
+                return sum + item.pageMeta.total;
+            }
+            return sum;
+        }, 0);
+        if (totalItems > 0) {
+            totalItemCount.value = totalItems
+        }
     }
     getInstanceItems();
+    filterInstanceItems();
     nextTick(() => {
         const el = mainContent.value?.$el || mainContent.value;
         if (el) el.scrollTop = 0;
@@ -1019,12 +1097,17 @@ function getInstanceItems() {
     });
     instanceItemsComp.value = [...instanceItemsArr];
     if (instanceItemsComp.value.length > 7) showScrollTopBtn.value = true;
+    fetchedItemCount.value = instanceItemsComp.value.length;
 }
 
-const filteredInstanceItemsComp = computed(() => {
+async function filterInstanceItems() {
     var c = orderTopDown.value ? 1 : -1;
-    if (!instanceItemsComp.value.length) return [];
-    return [...instanceItemsComp.value]
+    if (!instanceItemsComp.value.length) {
+        filteredInstanceItemsComp.value = [];
+        return;
+    }
+
+    var filteredItems = [...instanceItemsComp.value]
         .filter((item) => {
             if (searchText.value.length == 0) return true;
             return (
@@ -1043,12 +1126,36 @@ const filteredInstanceItemsComp = computed(() => {
                     ?.toLowerCase()
                     .localeCompare(b.props._prefLabel?.toLowerCase())
         );
-});
+
+    if (filteredItems.length == 0) {
+        if (config.value.use_service) {
+            if (hasUnfetchedPages(selectedIRI.value)) {
+                isFetchingPage.value = true;
+                // First fetch rdf data from configured service
+                var result = await fetchFromService('get-paginated-records', selectedIRI.value, allPrefixes);
+                // If there was an actual error during the try statement
+                // before making the requests, relay error and deactivate loader
+                if (result.status === null) {
+                    console.error(result.error);
+                }
+                getInstanceItems();
+                isFetchingPage.value = false;
+            } else {
+                console.log("Last page already fetched")
+            }
+        }
+    }
+
+    filteredInstanceItemsComp.value = filteredItems;
+    return;
+}
 
 async function handleInternalNavigation({ recordClass, recordPID }) {
     console.log('Received:', recordClass, recordPID);
     await selectType(recordClass, true);
+    selectedItem.value = [recordClass];
     searchText.value = recordPID;
+    filterInstanceItems()
 }
 
 const orderIcon = ref('mdi-arrow-down-thick');
@@ -1061,6 +1168,7 @@ function toggleOrder() {
     } else {
         orderIcon.value = 'mdi-arrow-up-thick';
     }
+    filterInstanceItems()
 }
 
 const openForms = reactive([]);
@@ -1108,6 +1216,7 @@ function removeForm(savedNode) {
         updateURL(selectedIRI.value, false);
         if (savedNode) {
             getInstanceItems();
+            filterInstanceItems();
         }
         classRecordsLoading.value = false;
     }
@@ -1180,5 +1289,23 @@ a:active {
     border-bottom: 1px solid #ddd !important; /* Adds a subtle divider between panels */
     box-shadow: none !important;
     border-radius: 8px; /* Optional: Adjust border rounding */
+}
+.display-text-wrapper {
+    position: relative; /* so the bar anchors under just the text */
+    display: inline-block;
+    padding-bottom: 0.3em;
+}
+.progress-underline {
+    position: absolute;   /* take it out of layout flow */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: translateY(1.45em);
+}
+.after-loader {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>

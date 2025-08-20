@@ -22,6 +22,7 @@
                     "
                     :prepend-inner-icon="selectedItemIcon"
                     :loading="fetchingRecordLoader"
+                    @update:modelValue="filterItems()"
                 >
                     <template v-slot:append-inner>
                         <v-icon
@@ -35,7 +36,23 @@
                     </template>
                 </v-text-field>
             </template>
-            <v-card style="margin-top: 0">
+            <v-card style="margin-top: 0; padding-top: 6px;">
+                <v-progress-linear
+                    v-if="showProgress"
+                    v-model="currentProgress"
+                    height="10"
+                    :color="configVarsMain.appTheme.link_color"
+                    class="menu-progress"
+                    rounded
+                >
+                    <template v-slot:default="{ value }">
+                        <span class="progress-text" v-if="!fetchingDataLoader">
+                            <span v-if="fetchedItemCount">
+                                {{fetchedItemCount}}<span v-if="totalItemCount && totalItemCount > fetchedItemCount">/{{ totalItemCount }}</span>
+                            </span>
+                        </span>
+                    </template>
+                </v-progress-linear>
                 <span v-if="fetchingDataLoader">
                     <v-list-item
                         ><em
@@ -52,7 +69,7 @@
                             <v-list-item-title>
                                 <!-- When there is only one item, just show a button -->
                                 <template v-if="propClassList.length === 1">
-                                    <v-btn variant="tonal" @click.stop="handleAddItemClick(propClassList[0])">
+                                    <v-btn style="margin-top: 5px;" variant="tonal" @click.stop="handleAddItemClick(propClassList[0])">
                                         Add new item &nbsp;&nbsp;
                                         <v-icon icon="mdi-play"></v-icon>
                                     </v-btn>
@@ -61,7 +78,7 @@
                                 <template v-else>
                                     <v-menu v-model="addItemMenu" location="end">
                                         <template v-slot:activator="{ props }">
-                                            <v-btn variant="tonal" v-bind="props"
+                                            <v-btn style="margin-top: 5px;" variant="tonal" v-bind="props"
                                                 >Add new item &nbsp;&nbsp;
                                                 <v-icon icon="item.icon"
                                                     >mdi-play</v-icon
@@ -217,8 +234,8 @@
                                 </DynamicScrollerItem>
                             </template>
                             <template #after>
-                                <div v-if="isFetchingPage" :style="'margin: auto; margin-bottom: 2em; text-align: center; color: ' + configVarsMain.appTheme.link_color + ';'">
-                                    <v-progress-circular indeterminate :size="26" :width="4"></v-progress-circular>
+                                <div class="after-loader" :style="'color: ' + configVarsMain.appTheme.link_color + ';'" >
+                                    <v-progress-circular v-show="showFetchingPageLoader" indeterminate :size="26" :width="4"></v-progress-circular>
                                 </div>
                             </template>
                         </DynamicScroller>
@@ -270,14 +287,19 @@ const props = defineProps({
 // ---- //
 // Data //
 // ---- //
-
+const showProgress = ref(true);
+// const currentProgress = ref(50);
+const totalItemCount = ref(0);
+const fetchedItemCount = ref(0);
+const filteredItemsComp = ref([]);
+const showFetchingPageLoader = ref(false)
+let hideTimeout = null
 const inputRef = ref(null);
 const queryText = ref('');
 const queryLabel = ref('');
 const menu = ref(false);
 const addItemMenu = ref(false);
 const scrollerRef = ref(null);
-
 const itemsToList = ref([]);
 const fetchingDataLoader = ref(false);
 const fetchingRecordLoader = ref(false);
@@ -348,6 +370,7 @@ function clearField() {
     subValues.value.selectedInstance = null;
     queryText.value = '';
     queryLabel.value = '';
+    filterItems();
 }
 function setSelectedValue() {
     // Set selected value if the prop has a value
@@ -396,10 +419,14 @@ onBeforeMount(async () => {
             allPrefixes
         );
         getItemsToList();
+        filterItems();
         await nextTick();
         setSelectedValue();
         scrollToSelectedItem();
         fetchingRecordLoader.value = false;
+        fetchedItemCount.value = itemsToList.value.length;
+        console.log("fetchedItemCount.value")
+        console.log(fetchedItemCount.value)
     }
 });
 
@@ -415,8 +442,18 @@ async function populateList() {
     fetchingDataLoader.value = true;
     if (config.value.use_service) {
         try {
-            await getAllRecordsFromService(allclass_array);
+            console.log(allclass_array)
+            var r = await getAllRecordsFromService(allclass_array);
+            console.log("getAllRecordsFromService")
+            console.log(r)
+            // We need to get total item count here in order to display progress
+            totalItemCount.value = getTotalItemCount(r)
+            console.log("totalItemCount.value")
+            console.log(totalItemCount.value)
             getItemsToList();
+            fetchedItemCount.value = itemsToList.value.length;
+            console.log("fetchedItemCount.value")
+            console.log(fetchedItemCount.value)
         } finally {
             fetchingDataLoader.value = false;
         }
@@ -428,9 +465,49 @@ async function populateList() {
     scrollToSelectedItem();
 }
 
+function getTotalItemCount(resultsArray) {
+    // Find the element with the matching IRI
+    const element = resultsArray.find(item => item.iri === propClass.value);
+
+    if (!element || !element.value || !Array.isArray(element.value.url)) {
+        return 0; // nothing found, or no url array
+    }
+
+    // Sum pageMeta.total for objects with success: true
+    return element.value.url.reduce((sum, obj) => {
+        if (obj.success && obj.pageMeta && typeof obj.pageMeta.total === "number") {
+            return sum + obj.pageMeta.total;
+        }
+        return sum;
+    }, 0);
+}
+
+watch(isFetchingPage, (newVal) => {
+    if (newVal) {
+        // If fetching starts → show immediately
+        if (hideTimeout) {
+            clearTimeout(hideTimeout)
+            hideTimeout = null
+        }
+        showFetchingPageLoader.value = true
+    } else {
+        // If fetching stops → wait before hiding
+        hideTimeout = setTimeout(() => {
+            showFetchingPageLoader.value = false
+            hideTimeout = null
+        }, 1000)
+    }
+})
+
 // ------------------- //
 // Computed properties //
 // ------------------- //
+
+const currentProgress = computed(() => {
+    if (fetchingDataLoader.value) return 0
+    if (!fetchedItemCount.value || !totalItemCount.value) return 0
+    return  Math.ceil(fetchedItemCount.value / totalItemCount.value * 100)
+})
 
 function onScrollEnd() {
     debouncedScrollEnd();
@@ -450,6 +527,7 @@ const debouncedScrollEnd = debounce(async () => {
                 }
             }
             getItemsToList();
+            filterItems();
         }
         finally {
             isFetchingPage.value = false;
@@ -486,6 +564,10 @@ watch(
                 // }
                 // First, let's make sure the list is updated to include the recently saved node:
                 getItemsToList();
+                filterItems();
+                fetchedItemCount.value = itemsToList.value.length;
+                console.log("fetchedItemCount.value")
+                console.log(fetchedItemCount.value)
                 // Then we need to set the selectedInstance. The itemsToList has items as objects,
                 // with value = quad.subject.value.
                 // We need to find the item that has the value being the same as the saved node's node_iri:
@@ -516,6 +598,10 @@ watch(
 const debouncedUpdate = debounce(() => {
     console.log('CHECK: graphdata instanceselecteditor');
     getItemsToList();
+    fetchedItemCount.value = itemsToList.value.length;
+    console.log("fetchedItemCount.value")
+    console.log(fetchedItemCount.value)
+    filterItems();
     setSelectedValue();
 }, 500);
 watch(() => rdfDS.data.graphChanged, debouncedUpdate, { deep: true });
@@ -585,11 +671,15 @@ function handleAddItemClick(item) {
 }
 
 async function getAllRecordsFromService(iri_array) {
+    
     const fetchPromises = iri_array.map((iri) =>
         fetchFromService('get-paginated-records', iri, allPrefixes)
     );
     const results = await Promise.allSettled(fetchPromises);
-    return results;
+    return results.map((result, index) => ({
+        iri: iri_array[index],
+        ...result
+    }));
 }
 
 function getItemsToList() {
@@ -656,8 +746,6 @@ function getItemsToList() {
         let labelParts = {}
         relatedTrips.forEach((quad) => {
             let predCuri = toCURIE(quad.predicate.value, allPrefixes)
-            
-            console.log(`current subject has predicate: ${predCuri}`)
             item.props[predCuri] = toCURIE(quad.object.value, allPrefixes);
             if (quad.predicate.value == SKOS.prefLabel.value) {
                 item.props.hasPrefLabel = true;
@@ -702,6 +790,60 @@ const filteredItems = computed(() => {
                 .localeCompare(b.props._prefLabel?.toLowerCase())
         );
 });
+
+
+async function filterItems() {
+    if (!itemsToList.value.length) {
+        filteredItemsComp.value = [];
+        return;
+    }
+
+    const searchText = queryText.value.toLowerCase();
+    var fItems = [...itemsToList.value]
+        .filter((item) => {
+            if (searchText.length == 0) return true;
+            return item.props._prefLabel
+                ?.toLowerCase()
+                .includes(searchText.toLowerCase());
+        })
+        .sort((a, b) =>
+            a.props._prefLabel
+                ?.toLowerCase()
+                .localeCompare(b.props._prefLabel?.toLowerCase())
+        );
+
+    if (fItems.length == 0) {
+        if (config.value.use_service) {
+            if (hasUnfetchedPages(propClass.value)) {
+                isFetchingPage.value = true;
+                // First fetch rdf data from configured service
+                var result = await fetchFromService('get-paginated-records', propClass.value, allPrefixes);
+                console.log('INSTANCES search fetchFromService result:');
+                console.log(result);
+                console.log('INSTANCES search fetchFromService result.status:');
+                console.log(result.status);
+                console.log('INSTANCES search fetchFromService result.url:');
+                console.log(result.url);
+                // If there was an actual error during the try statement
+                // before making the requests, relay error and deactivate loader
+                if (result.status === null) {
+                    console.error(result.error);
+                }
+                getItemsToList();
+                isFetchingPage.value = false;
+            } else {
+                console.log("Last page already fetched")
+            }
+        }
+    }
+
+    filteredItemsComp.value = fItems;
+    return;
+}
+
+
+
+
 </script>
 
 <!-- Component matching logic -->
@@ -724,5 +866,20 @@ export const matchingLogic = (shape) => {
 <style scoped>
 .info-tooltip {
     cursor: pointer;
+}
+.menu-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+.after-loader {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.progress-text {
+    font-size: xx-small;
 }
 </style>

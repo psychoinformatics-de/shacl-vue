@@ -1,5 +1,5 @@
 // useData.js
-import { watch, reactive } from 'vue';
+import { watch, reactive, toRaw } from 'vue';
 import { replaceServiceIdentifier } from '@/modules/utils';
 import { useToken } from '@/composables/tokens';
 import { ReactiveRdfDataset } from '@/classes/ReactiveRdfDataset';
@@ -102,11 +102,12 @@ export function useData(config) {
                 }
             }
 
-            let query_string = replaceServiceIdentifier(
+            let base_query_string = replaceServiceIdentifier(
                 arg,
                 serviceEndpoints[endpoint],
                 prefixes
             );
+            let query_string = base_query_string
 
             const results = [];
             let allFailed = true;
@@ -120,12 +121,13 @@ export function useData(config) {
                     // for this baseURL and for this class/arg, we set the page to 1
                     // else we set it to the next page, unless the next page exceeds the
                     // total number of pages, then we just skip.
-                    if (!fetchedPages[baseUrl].hasOwnProperty(arg)) {
-                        query_string = query_string.replace('{page_number}', '1')
-                    } else {
+                    if ( fetchedPages[baseUrl][arg]?.lastPageFetched) {
+                        console.log(`Previous page fetched: ${fetchedPages[baseUrl][arg].lastPageFetched}`)
+                        console.log(`Total pages: ${fetchedPages[baseUrl][arg].totalPages}`)
                         var nextPage = fetchedPages[baseUrl][arg].lastPageFetched + 1;
-
-                        query_string = query_string.replace('{page_number}', nextPage.toString())
+                        console.log(`Next page to fetch: ${nextPage}`)
+                        query_string = base_query_string.replace('{page_number}', nextPage.toString())
+                        console.log(`query_string: ${query_string}`)
                         if (nextPage > fetchedPages[baseUrl][arg].totalPages) {
                             console.log(
                                 `Skipping request: Last page of records already fetched for class '${arg}' at service URL '${baseUrl}' `
@@ -136,13 +138,17 @@ export function useData(config) {
                                 skipped: true,
                                 url: `${baseUrl}${query_string}`,
                                 allPagesFetched: true,
+                                pageMeta: {
+                                    total: fetchedPages[baseUrl][arg]["totalItems"]
+                                }
                             });
                             results_status.push('skipped');
                             continue;
                         }
+                    } else {
+                        query_string = base_query_string.replace('{page_number}', '1')
                     }
                 }
-
                 const getURL = `${baseUrl}${query_string}`;
                 if (fetchedRequests.has(getURL)) {
                     console.log(
@@ -207,6 +213,8 @@ export function useData(config) {
                             // assume the rest stays constant.
                             fetchedPages[baseUrl][arg]["lastPageFetched"] = result.pageMeta.page
                         }
+
+                        console.log(toRaw(fetchedPages))
                     }
                 }
             }
