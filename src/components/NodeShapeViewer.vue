@@ -254,7 +254,8 @@ onBeforeMount(async () => {
     fetchingRecords.value = true;
     await updateRecord(true);
     fetchingRecords.value = false;
-    if (configVarsMain['idResolvesExternally'].indexOf(props.classIRI) >= 0) {
+    let recordPIDprefix = toCURIE(props.quad.subject.value, allPrefixes, 'parts').prefix;
+    if (configVarsMain['idResolvesExternally'].indexOf(recordPIDprefix) >= 0) {
         resolveExternally.value = true;
     }
 });

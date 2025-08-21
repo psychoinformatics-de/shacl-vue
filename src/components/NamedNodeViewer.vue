@@ -18,7 +18,7 @@
 
 <script setup>
 import { onBeforeMount, ref, inject, onMounted } from 'vue';
-import { toIRI } from 'shacl-tulip';
+import { toIRI, toCURIE } from 'shacl-tulip';
 const props = defineProps({
     textVal: String,
     prefLabel: String,
@@ -46,24 +46,16 @@ onBeforeMount(() => {
     // Then it should display as a link, and the click action should call the
     // selectNamedNode function with the correct arguments: class and pid
 
-    // But first, we need to check the config to see if records for this class
-    // would be externally resolvable.
+    // We also need to check if the record has a prefix that is would be
+    // externally resolvable (i.e. included in configVarsMain['idResolvesExternally'])
     //
     // ==> If the quad exists and the class records resolve externally:
     // - name of record should be a link that navigates to internal record
     // - extra link button should open new tab with pid url
     //
-    // If the quad does not exist, we don't know what the class is and so we
-    // cannot check the config to see if the record should resolve externally.
-    // All we would know is that this is a NamedNode, and we would be able to
-    // get the "target class" of the node, from the property shape. However,
-    // this could mean the node is of that type, or of any of the associated
-    // subtypes. In the absence of more information, we take the target class.
-
-    // ==> If the quad does not exist, AND target class records resolve externally:
-    // - name of record should be a link that should open new tab with pid url
-    // ELSE
-    // - name should just be text (even if pid starts with http...)
+    // ==> If the quad DOES NOT exist and the class records resolve externally:
+    // - name of record should be text
+    // - extra link button should open new tab with pid url
 
     currentRecordPID.value = toIRI(props.textVal, allPrefixes);
     if (props.prefLabel) {
@@ -77,31 +69,23 @@ onBeforeMount(() => {
         currentClassIRI.value = props.quad.object.value;
         // name of record should be a link that navigates to internal record
         isLink.value = true;
-        // If the class records resolve externally
-        if (
-            configVarsMain['idResolvesExternally'].indexOf(
-                props.quad.object.value
-            ) >= 0
-        ) {
-            // extra link button should open new tab with pid url
-            resolveExternally.value = true;
-            hrefVal.value = currentRecordPID.value;
-        }
     }
     // If the quad does not exist
     else {
         currentClassIRI.value = props.targetClass;
         // name of record is just text (no internal navigation)
         isLink.value = false;
-        // If the target class records resolve externally
-        if (
-            configVarsMain['idResolvesExternally'].indexOf(props.targetClass) >=
-            0
-        ) {
-            // extra link button should open new tab with pid url
-            resolveExternally.value = true;
-            hrefVal.value = currentRecordPID.value;
-        }
+    }
+    // If the record has a prefix that resolves externally
+    let mainRecordPIDprefix = toCURIE(currentRecordPID.value, allPrefixes, 'parts').prefix;
+    if (
+        configVarsMain['idResolvesExternally'].indexOf(
+            mainRecordPIDprefix
+        ) >= 0
+    ) {
+        // extra link button should open new tab with pid url
+        resolveExternally.value = true;
+        hrefVal.value = currentRecordPID.value;
     }
 });
 </script>
