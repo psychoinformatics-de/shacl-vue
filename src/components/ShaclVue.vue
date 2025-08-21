@@ -26,7 +26,7 @@
                                     ><h4>Data Types</h4></v-list-item
                                 >
                                 <v-list-item
-                                    v-for="node in filteredNodeShapeNames"
+                                    v-for="node in orderedNodeShapeNames"
                                     :prepend-icon="
                                         getClassIcon(
                                             shapesDS.data.nodeShapeNames[node]
@@ -833,6 +833,25 @@ const filteredNodeShapeNames = computed(() => {
     }
     return shapeNames;
 });
+
+const orderedNodeShapeNames = computed(() => {
+    return filteredNodeShapeNames.value.sort((a, b) =>
+        getDisplayName(
+            shapesDS.data.nodeShapeNames[a],
+            configVarsMain,
+            allPrefixes,
+            shapesDS.data.nodeShapes[shapesDS.data.nodeShapeNames[a]]
+        ).toLowerCase()
+        .localeCompare(
+            getDisplayName(
+                shapesDS.data.nodeShapeNames[b],
+                configVarsMain,
+                allPrefixes,
+                shapesDS.data.nodeShapes[shapesDS.data.nodeShapeNames[b]]
+            ).toLowerCase()
+        )
+    );
+})
 
 function includeClass(class_iri) {
     var class_prefix = toCURIE(class_iri, allPrefixes, 'parts').prefix
