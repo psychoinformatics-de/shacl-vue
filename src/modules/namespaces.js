@@ -14,7 +14,7 @@ export const DLTHING = namespace(
 );
 export const DLTHINGS = namespace('https://concepts.datalad.org/s/things/v1/');
 export const DLTYPES = namespace(
-    'https://concepts.datalad.org/s/types/unreleased/'
+    'https://concepts.datalad.org/s/types/v1/'
 );
 export const DLCO = namespace('https://concepts.datalad.org/');
 export const SKOS = namespace('http://www.w3.org/2004/02/skos/core#');
