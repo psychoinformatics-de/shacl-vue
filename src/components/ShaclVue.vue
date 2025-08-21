@@ -813,22 +813,58 @@ const idFilteredNodeShapeNames = computed(() => {
 });
 const filteredNodeShapeNames = computed(() => {
     var names = idFilteredNodeShapeNames.value;
-    console.log(names);
-    if (configVarsMain.hideClasses.length == 0) {
+    // If all relevant config arrays are empty, show all classes
+    if (
+        configVarsMain.showClasses?.length == 0 &&
+        configVarsMain.showClassesWithPrefix?.length == 0 &&
+        configVarsMain.hideClasses?.length == 0 &&
+        configVarsMain.hideClassesWithPrefix?.length == 0
+    ) {
+        console.log("- include all classes")
         return names;
     }
     var shapeNames = [];
     for (var n of names) {
-        if (
-            configVarsMain.hideClasses.indexOf(
-                shapesDS.data.nodeShapeNames[n]
-            ) < 0
-        ) {
+        // First get IRI and prefix
+        var n_iri = shapesDS.data.nodeShapeNames[n]
+        if (includeClass(n_iri)) {
             shapeNames.push(n);
         }
     }
     return shapeNames;
 });
+
+function includeClass(class_iri) {
+    var class_prefix = toCURIE(class_iri, allPrefixes, 'parts').prefix
+    // Assume we include class by default
+    var include = true;
+    // If either showClasses or showClassesWithPrefix contain elements
+    // it means we include only some classes
+    // If the current class is not found in those classes, exclude it
+    if (
+        (
+            configVarsMain.showClasses?.length != 0 ||
+            configVarsMain.showClassesWithPrefix?.length != 0
+        ) && (
+            configVarsMain.showClasses?.indexOf(class_iri) < 0 &&
+            configVarsMain.showClassesWithPrefix?.indexOf(class_prefix) < 0
+        )
+    ) {
+        include = false;
+    }
+    // If a class is to be included based on the showClasses(...) options,
+    // only include it if it should not be explicitly hidden (i.e. include
+    // it if it isn't found in hideClasses(...) arrays
+    if (
+        include &&
+        configVarsMain.hideClasses?.indexOf(class_iri) < 0 &&
+        configVarsMain.hideClassesWithPrefix?.indexOf(class_prefix) < 0
+    ) {
+        return true
+    } else {
+        return false
+    }
+}
 
 const formattedDescription = computed(() => {
     // For the class description, use a regular expression to replace text between backticks with <code> tags
@@ -967,8 +1003,7 @@ async function setViewFromQuery() {
         // check if iri is in
         var nodeShapeIRI = toIRI(nodeShape, allPrefixes);
         if (shapesDS.data.nodeShapes[nodeShapeIRI]) {
-
-            if (configVarsMain.hideClasses.indexOf(nodeShapeIRI) < 0) {
+            if (includeClass(nodeShapeIRI)) {
                 await selectType(nodeShapeIRI);
                 if (edit) {
                     if (configVarsMain.noEditClasses.indexOf(nodeShapeIRI) >= 0) {
@@ -980,7 +1015,7 @@ async function setViewFromQuery() {
                 }
             }
             else {
-                console.log('Queried nodeshape found in shacl schema, but present in hide_classes or no_edit_classes config options');
+                console.log('Queried nodeshape found in shacl schema, but show/hide-config options specify that it should be hidden');
                 history.replaceState(null, '', window.location.pathname);
             }
         } else {

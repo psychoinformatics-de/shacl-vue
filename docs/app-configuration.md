@@ -115,7 +115,10 @@ The defaults for all input source URLs are the repository-local demo files.
 {
     "show_shapes_wo_id": true,
     "show_all_fields": true,
+    "show_classes": [],
+    "show_classes_with_prefix": [],
     "hide_classes": [],
+    "hide_classes_with_prefix": [],
     "no_edit_classes": [],
     "allow_edit_instances": [],
     "class_name_display": "",
@@ -131,7 +134,13 @@ The defaults for all input source URLs are the repository-local demo files.
 
 - `show_shapes_wo_id` shows data types (in the left-hand-side panel) for which the driving SHACL shapes do not have the `id_iri` property defined, when `true`
 - `show_all_fields` displays all properties in the form editor when a record is created/edited, when `true`. Properties in the form editor are displayed by default in order of reverse inheritance. For example, if the `Person` class is derived from the `Thing` class, the form editor for a `Person` would display the `Person`-properties in top, and the `Thing`-properties below that. Often, only the top-level properties are of immediate interest or importance to users and UX is improved by hiding other properties. The `show_all_fields` option, when `false`, would hide lower-level properties and display the top-level properties and required properties when a user opens the form editor to add/edit a record. In addition to the configuration option, the UI still allows the user to toggle between showing and hiding lower-level properties.
-- `hide_classes` is a list of class URIs to hide from the left-hand-side panel listing all data types (i.e. classes). Records of these classes:
+- `show_classes`, `show_classes_with_prefix`, `hide_classes`, and `hide_classes_with_prefix` are options that together specify which classes to show and hide in the left-hand-side panel listing all data types (i.e. classes):
+   - `show_classes`: an array of class URIs that should all be shown
+   - `show_classes_with_prefix`: an array of prefixes, all classes containing any of these prefixes should be shown
+   - `hide_classes`: an array of class URIs that should be hidden
+   - `hide_classes_with_prefix`: an array of prefixes, all classes containing any of these prefixes should be hidden
+
+   If both `show_classes` and `show_classes_with_prefix` are empty arrays, all classes are shown, apart from those in `hide_classes` or those with prefixes in `hide_classes_with_prefix`. Records that end up being hidden/excluded:
    - WILL NOT show up in the left-hand-side panel
    - CANNOT be navigated to using URL query parameters
    - by implication, CAN ALSO NOT be edited via URL query parameters
