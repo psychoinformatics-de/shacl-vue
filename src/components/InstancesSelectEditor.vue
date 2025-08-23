@@ -22,7 +22,6 @@
                     "
                     :prepend-inner-icon="selectedItemIcon"
                     :loading="fetchingRecordLoader"
-                    @update:modelValue="filterItems()"
                 >
                     <template v-slot:append-inner>
                         <v-icon
@@ -253,6 +252,7 @@
 import {
     inject,
     watch,
+    watchEffect,
     onBeforeMount,
     onMounted,
     ref,
@@ -288,10 +288,8 @@ const props = defineProps({
 // Data //
 // ---- //
 const showProgress = ref(true);
-// const currentProgress = ref(50);
 const totalItemCount = ref(0);
 const fetchedItemCount = ref(0);
-const filteredItemsComp = ref([]);
 const showFetchingPageLoader = ref(false)
 let hideTimeout = null
 const inputRef = ref(null);
@@ -370,7 +368,6 @@ function clearField() {
     subValues.value.selectedInstance = null;
     queryText.value = '';
     queryLabel.value = '';
-    filterItems();
 }
 function setSelectedValue() {
     // Set selected value if the prop has a value
@@ -419,7 +416,6 @@ onBeforeMount(async () => {
             allPrefixes
         );
         getItemsToList();
-        filterItems();
         await nextTick();
         setSelectedValue();
         scrollToSelectedItem();
@@ -433,7 +429,7 @@ onBeforeMount(async () => {
 const openMenu = () => {
     if (hasOpenedMenu.value == false) {
         populateList();
-        hasOpenedMenu.value == true
+        hasOpenedMenu.value = true
     }
     menu.value = true;
 };
@@ -442,18 +438,26 @@ async function populateList() {
     fetchingDataLoader.value = true;
     if (config.value.use_service) {
         try {
-            console.log(allclass_array)
-            var r = await getAllRecordsFromService(allclass_array);
-            console.log("getAllRecordsFromService")
-            console.log(r)
+            const result = await fetchFromService(
+                'get-paginated-records',
+                propClass.value,
+                allPrefixes
+            );
+            if (result.status === null) {
+                console.error(result.error);
+            }
+            console.log("populateList fetch from service result:")
+            console.log(result)
             // We need to get total item count here in order to display progress
-            totalItemCount.value = getTotalItemCount(r)
+            totalItemCount.value = getTotalItemCount(result)
             console.log("totalItemCount.value")
             console.log(totalItemCount.value)
             getItemsToList();
             fetchedItemCount.value = itemsToList.value.length;
             console.log("fetchedItemCount.value")
             console.log(fetchedItemCount.value)
+        } catch (err) {
+            console.error(err);
         } finally {
             fetchingDataLoader.value = false;
         }
@@ -465,16 +469,13 @@ async function populateList() {
     scrollToSelectedItem();
 }
 
-function getTotalItemCount(resultsArray) {
-    // Find the element with the matching IRI
-    const element = resultsArray.find(item => item.iri === propClass.value);
+function getTotalItemCount(results) {
 
-    if (!element || !element.value || !Array.isArray(element.value.url)) {
+    if (!results || !results.url || !Array.isArray(results.url)) {
         return 0; // nothing found, or no url array
     }
-
     // Sum pageMeta.total for objects with success: true
-    return element.value.url.reduce((sum, obj) => {
+    return results.url.reduce((sum, obj) => {
         if (obj.success && obj.pageMeta && typeof obj.pageMeta.total === "number") {
             return sum + obj.pageMeta.total;
         }
@@ -516,22 +517,8 @@ function onScrollEnd() {
 const debouncedScrollEnd = debounce(async () => {
     console.log("NEAR BOTTOM OF SCROLLER")
     if (config.value.use_service) {
-        isFetchingPage.value = true;
-        try {
-            for (const iri of allclass_array) {
-                if (hasUnfetchedPages(iri)) {
-                    var result = await fetchFromService('get-paginated-records', iri, allPrefixes)
-                    if (result.status === null) {
-                        console.error(result.error);
-                    }
-                }
-            }
-            getItemsToList();
-            filterItems();
-        }
-        finally {
-            isFetchingPage.value = false;
-        }
+        if (isFetchingPage.value) return;
+        fetchNextPage(propClass.value)
     }
 }, 1000);
 
@@ -564,7 +551,6 @@ watch(
                 // }
                 // First, let's make sure the list is updated to include the recently saved node:
                 getItemsToList();
-                filterItems();
                 fetchedItemCount.value = itemsToList.value.length;
                 console.log("fetchedItemCount.value")
                 console.log(fetchedItemCount.value)
@@ -601,7 +587,6 @@ const debouncedUpdate = debounce(() => {
     fetchedItemCount.value = itemsToList.value.length;
     console.log("fetchedItemCount.value")
     console.log(fetchedItemCount.value)
-    filterItems();
     setSelectedValue();
 }, 500);
 watch(() => rdfDS.data.graphChanged, debouncedUpdate, { deep: true });
@@ -668,18 +653,6 @@ function handleAddItemClick(item) {
     console.log(newNodeIdx.value);
     addItemMenu.value = false;
     addForm(selectedAddItemShapeIRI.value, newNodeIdx.value, 'new');
-}
-
-async function getAllRecordsFromService(iri_array) {
-    
-    const fetchPromises = iri_array.map((iri) =>
-        fetchFromService('get-paginated-records', iri, allPrefixes)
-    );
-    const results = await Promise.allSettled(fetchPromises);
-    return results.map((result, index) => ({
-        iri: iri_array[index],
-        ...result
-    }));
 }
 
 function getItemsToList() {
@@ -791,57 +764,40 @@ const filteredItems = computed(() => {
         );
 });
 
-
-async function filterItems() {
-    if (!itemsToList.value.length) {
-        filteredItemsComp.value = [];
-        return;
-    }
-
-    const searchText = queryText.value.toLowerCase();
-    var fItems = [...itemsToList.value]
-        .filter((item) => {
-            if (searchText.length == 0) return true;
-            return item.props._prefLabel
-                ?.toLowerCase()
-                .includes(searchText.toLowerCase());
-        })
-        .sort((a, b) =>
-            a.props._prefLabel
-                ?.toLowerCase()
-                .localeCompare(b.props._prefLabel?.toLowerCase())
-        );
-
-    if (fItems.length == 0) {
-        if (config.value.use_service) {
-            if (hasUnfetchedPages(propClass.value)) {
-                isFetchingPage.value = true;
-                // First fetch rdf data from configured service
-                var result = await fetchFromService('get-paginated-records', propClass.value, allPrefixes);
-                console.log('INSTANCES search fetchFromService result:');
-                console.log(result);
-                console.log('INSTANCES search fetchFromService result.status:');
-                console.log(result.status);
-                console.log('INSTANCES search fetchFromService result.url:');
-                console.log(result.url);
-                // If there was an actual error during the try statement
-                // before making the requests, relay error and deactivate loader
-                if (result.status === null) {
-                    console.error(result.error);
-                }
-                getItemsToList();
-                isFetchingPage.value = false;
-            } else {
-                console.log("Last page already fetched")
-            }
+watchEffect(async () => {
+    console.log("WATCHEFFECT")
+    if (config.value?.use_service && queryText.value && hasUnfetchedPages(propClass.value)) {
+        // Only trigger fetch if not already fetching
+        if (!isFetchingPage.value) {
+            await fetchNextPage(propClass.value);
         }
     }
+});
 
-    filteredItemsComp.value = fItems;
-    return;
+async function fetchNextPage(iri) {
+    if (!hasUnfetchedPages(iri)) {
+        console.log(`Does not have unfetched pages: ${iri}`)
+        return [];
+    }
+    isFetchingPage.value = true;
+    let result = null
+    try {
+        result = await fetchFromService(
+            'get-paginated-records',
+            iri,
+            allPrefixes
+        );
+        if (result.status === null) {
+            console.error(result.error);
+        }
+        getItemsToList();
+    } catch (err) {
+        console.error(err);
+    } finally {
+        isFetchingPage.value = false;
+        return result
+    }   
 }
-
-
 
 
 </script>

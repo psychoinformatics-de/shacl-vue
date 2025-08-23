@@ -161,7 +161,6 @@
                                                                     openForms.length >
                                                                     0
                                                                 "
-                                                                @update:modelValue="filterInstanceItems()"
                                                             >
                                                                 <template
                                                                     v-slot:append-inner
@@ -405,6 +404,7 @@ import {
     computed,
     provide,
     watch,
+    watchEffect,
     reactive,
     onBeforeUpdate,
     nextTick,
@@ -458,24 +458,8 @@ function onScrollEnd() {
 const debouncedScrollEnd = debounce(async () => {
     console.log("NEAR BOTTOM OF SCROLLER")
     if (config.value.use_service) {
-        if (hasUnfetchedPages(selectedIRI.value)) {
-            isFetchingPage.value = true;
-            // First fetch rdf data from configured service
-            var result = await fetchFromService('get-paginated-records', selectedIRI.value, allPrefixes);
-            console.log('scrollEnd fetchFromService result:');
-            console.log(result);
-            console.log('scrollEnd fetchFromService result.status:');
-            console.log(result.status);
-            console.log('scrollEnd fetchFromService result.url:');
-            console.log(result.url);
-            // If there was an actual error during the try statement
-            // before making the requests, relay error and deactivate loader
-            if (result.status === null) {
-                console.error(result.error);
-            }
-            getInstanceItems();
-            filterInstanceItems();
-            isFetchingPage.value = false;
+        if (hasUnfetchedPages(selectedIRI.value) && !isFetchingPage.value) {
+            await fetchNextPage();
         } else {
             console.log("Last page already fetched")
         }
@@ -626,7 +610,7 @@ const superClasses = reactive({});
 provide('superClasses', superClasses);
 const searchText = ref('');
 const instanceItemsComp = ref([]);
-const filteredInstanceItemsComp = ref([]);
+// const filteredInstanceItemsComp = ref([]);
 var newTypeSelected = false;
 
 // ---------------------------------------------- //
@@ -773,7 +757,6 @@ const debouncedUpdate = debounce(() => {
     if (openForms.length == 0) {
         console.log('CHECK: graphdata shaclvue');
         getInstanceItems();
-        filterInstanceItems();
     }
 }, 500);
 watch(() => rdfDS.data.graphChanged, debouncedUpdate, { deep: true });
@@ -896,7 +879,6 @@ const formattedDescription = computed(() => {
 
 function clearField() {
     searchText.value = '';
-    filterInstanceItems();
 }
 
 async function selectType(IRI, fromUser, fromBackButton) {
@@ -952,7 +934,6 @@ async function selectType(IRI, fromUser, fromBackButton) {
         }
     }
     getInstanceItems();
-    filterInstanceItems();
     nextTick(() => {
         const el = mainContent.value?.$el || mainContent.value;
         if (el) el.scrollTop = 0;
@@ -1163,14 +1144,9 @@ function getInstanceItems() {
     fetchedItemCount.value = instanceItemsComp.value.length;
 }
 
-async function filterInstanceItems() {
-    var c = orderTopDown.value ? 1 : -1;
-    if (!instanceItemsComp.value.length) {
-        filteredInstanceItemsComp.value = [];
-        return;
-    }
-
-    var filteredItems = [...instanceItemsComp.value]
+const filteredInstanceItemsComp = computed(() => {
+    const c = orderTopDown.value ? 1 : -1;
+    return [...instanceItemsComp.value]
         .filter((item) => {
             if (searchText.value.length == 0) return true;
             return (
@@ -1189,28 +1165,35 @@ async function filterInstanceItems() {
                     ?.toLowerCase()
                     .localeCompare(b.props._prefLabel?.toLowerCase())
         );
+});
 
-    if (filteredItems.length == 0) {
-        if (config.value.use_service) {
-            if (hasUnfetchedPages(selectedIRI.value)) {
-                isFetchingPage.value = true;
-                // First fetch rdf data from configured service
-                var result = await fetchFromService('get-paginated-records', selectedIRI.value, allPrefixes);
-                // If there was an actual error during the try statement
-                // before making the requests, relay error and deactivate loader
-                if (result.status === null) {
-                    console.error(result.error);
-                }
-                getInstanceItems();
-                isFetchingPage.value = false;
-            } else {
-                console.log("Last page already fetched")
-            }
+watchEffect(async () => {
+    if (config.value?.use_service && searchText.value && hasUnfetchedPages(selectedIRI.value)) {
+        // Only trigger fetch if not already fetching
+        if (!isFetchingPage.value) {
+            await fetchNextPage();
         }
     }
+});
 
-    filteredInstanceItemsComp.value = filteredItems;
-    return;
+async function fetchNextPage() {
+    if (isFetchingPage.value || !hasUnfetchedPages(selectedIRI.value)) return;
+    isFetchingPage.value = true;
+    try {
+        const result = await fetchFromService(
+            'get-paginated-records',
+            selectedIRI.value,
+            allPrefixes
+        );
+        if (result.status === null) {
+            console.error(result.error);
+        }
+        getInstanceItems(); // rebuild local store
+    } catch (err) {
+        console.error(err);
+    } finally {
+        isFetchingPage.value = false;
+    }
 }
 
 async function handleInternalNavigation({ recordClass, recordPID }) {
@@ -1218,7 +1201,6 @@ async function handleInternalNavigation({ recordClass, recordPID }) {
     await selectType(recordClass, true);
     selectedItem.value = [recordClass];
     searchText.value = recordPID;
-    filterInstanceItems()
 }
 
 const orderIcon = ref('mdi-arrow-down-thick');
@@ -1231,7 +1213,6 @@ function toggleOrder() {
     } else {
         orderIcon.value = 'mdi-arrow-up-thick';
     }
-    filterInstanceItems()
 }
 
 const openForms = reactive([]);
@@ -1279,7 +1260,6 @@ function removeForm(savedNode) {
         updateURL(selectedIRI.value, false);
         if (savedNode) {
             getInstanceItems();
-            filterInstanceItems();
         }
         classRecordsLoading.value = false;
     }
