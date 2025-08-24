@@ -101,9 +101,9 @@ onBeforeUnmount(() => {
     localNodeIdx.value = null;
 });
 
-// ------------------- //
-// Computed properties //
-// ------------------- //
+// --------- //
+// Functions //
+// --------- //
 
 function orderProperties(propertyShapes) {
     // The current class has a possible hierarchy of superclasses
@@ -139,6 +139,10 @@ function orderProperties(propertyShapes) {
     var currentSuperClasses = superClasses[localShapeIri.value];
     // If the class has no superclasses, all of the properties are from the single class
     if (currentSuperClasses.length == 0) {
+        // We have to order the properties first before returning
+        const sortedProps = _sortPropertiesByOrder(propertyPaths, propertyShapes)
+        // Assign sorted array back to the new object
+        classProps[localShapeIri.value] = sortedProps
         return classProps;
     }
     // Initialize all superclass property arrays -> empty
@@ -237,23 +241,28 @@ function orderProperties(propertyShapes) {
         // Get the array of properties for the current class
         const properties = classProps[classIRI];
         // Sort the properties based on the sh:order value in propertyShapes
-        const sortedProperties = properties.slice().sort((a, b) => {
-            const orderA = parseInt(
-                propertyShapes[a]?.['http://www.w3.org/ns/shacl#order'] ??
-                    Infinity,
-                10
-            );
-            const orderB = parseInt(
-                propertyShapes[b]?.['http://www.w3.org/ns/shacl#order'] ??
-                    Infinity,
-                10
-            );
-            return orderA - orderB;
-        });
+        const sortedProperties = _sortPropertiesByOrder(properties, propertyShapes)
         // Assign sorted array back to the new object
         sortedClassProps[classIRI] = sortedProperties;
     }
     return sortedClassProps;
+}
+
+function _sortPropertiesByOrder(properties, propertyShapes) {
+    // Sort array of properties based on the sh:order value in propertyShapes
+    return properties.slice().sort((a, b) => {
+        const orderA = parseInt(
+            propertyShapes[a]?.['http://www.w3.org/ns/shacl#order'] ??
+                Infinity,
+            10
+        );
+        const orderB = parseInt(
+            propertyShapes[b]?.['http://www.w3.org/ns/shacl#order'] ??
+                Infinity,
+            10
+        );
+        return orderA - orderB;
+    });
 }
 
 function removeArrayElement(arr, el) {
