@@ -25,15 +25,21 @@
                                 <v-list-item value="data"
                                     ><h4>Data Types</h4></v-list-item
                                 >
-                                <!-- <v-text-field variant="outlined" append-inner-icon="mdi-magnify" density="compact"></v-text-field> -->
                                 <v-list-item
-                                    v-for="node in filteredNodeShapeNames"
+                                    v-for="node in orderedNodeShapeNames"
                                     :prepend-icon="
                                         getClassIcon(
                                             shapesDS.data.nodeShapeNames[node]
                                         )
                                     "
-                                    :title="node"
+                                    :title="
+                                        getDisplayName(
+                                            shapesDS.data.nodeShapeNames[node],
+                                            configVarsMain,
+                                            allPrefixes,
+                                            shapesDS.data.nodeShapes[shapesDS.data.nodeShapeNames[node]]
+                                        )
+                                    "
                                     :value="shapesDS.data.nodeShapeNames[node]"
                                     @click="
                                         selectType(
@@ -61,6 +67,8 @@
                                         <span v-if="selectedIRI">
                                             <h2
                                                 class="mx-4 mb-4 truncate-heading"
+                                                @mouseenter="headingHover = true"
+                                                @mouseleave="headingHover = false"
                                             >
                                                 <span
                                                     v-if="
@@ -77,21 +85,41 @@
                                                     &nbsp;
                                                 </span>
 
-                                                {{
-                                                    getDisplayName(
-                                                        selectedIRI,
-                                                        configVarsMain,
-                                                        allPrefixes
-                                                    )
-                                                }}
+                                                <span class="display-text-wrapper">
+                                                    {{
+                                                        getDisplayName(
+                                                            selectedIRI,
+                                                            configVarsMain,
+                                                            allPrefixes,
+                                                            shapesDS.data.nodeShapes[selectedIRI]
+                                                        )
+                                                    }}
+                                                    <span v-if="fetchedItemCount">
+                                                        <small>
+                                                            ({{fetchedItemCount}}<span v-if="totalItemCount && totalItemCount > fetchedItemCount">/{{ totalItemCount }}</span>
+                                                            record{{ fetchedItemCount == 1 ? '' : 's' }})
+                                                        </small>
+                                                    </span>
+                                                    <v-progress-linear
+                                                        v-model="currentProgress"
+                                                        height="5"
+                                                        :color="configVarsMain.appTheme.link_color"
+                                                        class="progress-underline"
+                                                        rounded
+                                                        :style="{ opacity: showProgress ? 1 : 0 }"
+                                                    >
+                                                    </v-progress-linear>
+                                                </span>
                                                 &nbsp;&nbsp;
+
                                                 <v-btn
                                                     icon="mdi-plus"
                                                     size="x-small"
                                                     variant="tonal"
                                                     @click="addInstanceItem()"
                                                     :disabled="
-                                                        openForms.length > 0
+                                                        openForms.length > 0 ||
+                                                        !canEditClass
                                                     "
                                                 ></v-btn>
                                             </h2>
@@ -242,8 +270,8 @@
                                                             </DynamicScrollerItem>
                                                         </template>
                                                         <template #after>
-                                                            <div v-if="isFetchingPage" :style="'margin: auto; text-align: center; color: ' + configVarsMain.appTheme.link_color + ';'">
-                                                                <v-progress-circular indeterminate :size="40" :width="4"></v-progress-circular>
+                                                            <div class="after-loader" :style="'color: ' + configVarsMain.appTheme.link_color + ';'">
+                                                                <v-progress-circular v-show="showFetchingPageLoader" indeterminate :size="40" :width="4"></v-progress-circular>
                                                             </div>
                                                         </template>
                                                     </DynamicScroller>
@@ -301,7 +329,8 @@
                                                                 getDisplayName(
                                                                     f.shapeIRI,
                                                                     configVarsMain,
-                                                                    allPrefixes
+                                                                    allPrefixes,
+                                                                    shapesDS.data.nodeShapes[f.shapeIRI]
                                                                 )
                                                             }}
                                                         </em>
@@ -375,6 +404,7 @@ import {
     computed,
     provide,
     watch,
+    watchEffect,
     reactive,
     onBeforeUpdate,
     nextTick,
@@ -417,6 +447,8 @@ const props = defineProps({
 // ---------- //
 // PAGINATION //
 // ---------- //
+const headingHover = ref(false);
+const totalItemCount = ref(0);
 const isFetchingPage = ref(false);
 const showScrollTopBtn = ref(false);
 const scrollerRef = ref(null);
@@ -426,23 +458,8 @@ function onScrollEnd() {
 const debouncedScrollEnd = debounce(async () => {
     console.log("NEAR BOTTOM OF SCROLLER")
     if (config.value.use_service) {
-        if (hasUnfetchedPages(selectedIRI.value)) {
-            isFetchingPage.value = true;
-            // First fetch rdf data from configured service
-            var result = await fetchFromService('get-paginated-records', selectedIRI.value, allPrefixes);
-            console.log('scrollEnd fetchFromService result:');
-            console.log(result);
-            console.log('scrollEnd fetchFromService result.status:');
-            console.log(result.status);
-            console.log('scrollEnd fetchFromService result.url:');
-            console.log(result.url);
-            // If there was an actual error during the try statement
-            // before making the requests, relay error and deactivate loader
-            if (result.status === null) {
-                console.error(result.error);
-            }
-            getInstanceItems();
-            isFetchingPage.value = false;
+        if (hasUnfetchedPages(selectedIRI.value) && !isFetchingPage.value) {
+            await fetchNextPage();
         } else {
             console.log("Last page already fetched")
         }
@@ -457,6 +474,42 @@ function scrollToTop() {
         if (el) el.scrollTop = 0;
     });
 }
+const showProgress = computed(() => {
+    return searchText.value || headingHover.value
+})
+const currentProgress = computed(() => {
+    if (fetchedItemCount.value == null) {
+        return 0;
+    }
+    if (fetchedItemCount.value && totalItemCount.value) {
+        if (totalItemCount.value == 0) {
+            return 100;
+        } else {
+            return  Math.ceil(fetchedItemCount.value / totalItemCount.value * 100);
+        }
+    }
+    if (fetchedItemCount.value && (totalItemCount.value == null || totalItemCount.value == 0 )) {
+        return 100;
+    }
+})
+const showFetchingPageLoader = ref(false)
+let hideTimeout = null
+watch(isFetchingPage, (newVal) => {
+    if (newVal) {
+        // If fetching starts → show immediately
+        if (hideTimeout) {
+            clearTimeout(hideTimeout)
+            hideTimeout = null
+        }
+        showFetchingPageLoader.value = true
+    } else {
+        // If fetching stops → wait before hiding
+        hideTimeout = setTimeout(() => {
+            showFetchingPageLoader.value = false
+            hideTimeout = null
+        }, 1000)
+    }
+})
 
 // ---------------------------------------------------- //
 // CONFIGURATION, AND LOADING SHAPES/CLASSES/DATA/FORMS //
@@ -475,6 +528,7 @@ const { formData, submitFormData, savedNodes, submittedNodes, nodesToSubmit } =
     useForm(config);
 const { token, setToken, clearToken } = useToken();
 const ID_IRI = ref('');
+const canEditClass = ref(true)
 watch(
     configFetched,
     async (newValue) => {
@@ -556,6 +610,7 @@ const superClasses = reactive({});
 provide('superClasses', superClasses);
 const searchText = ref('');
 const instanceItemsComp = ref([]);
+// const filteredInstanceItemsComp = ref([]);
 var newTypeSelected = false;
 
 // ---------------------------------------------- //
@@ -669,6 +724,7 @@ const itemsTrigger = ref(false);
 const queried_id = ref(null);
 const classRecordsLoading = ref(false);
 const idRecordLoading = ref(false);
+const fetchedItemCount = ref(null)
 provide('editorMatchers', editorMatchers);
 provide('defaultEditor', defaultEditor);
 // Data for creating/editing items
@@ -740,25 +796,77 @@ const idFilteredNodeShapeNames = computed(() => {
 });
 const filteredNodeShapeNames = computed(() => {
     var names = idFilteredNodeShapeNames.value;
-    console.log(names);
-    if (configVarsMain.hideClasses.length == 0 && configVarsMain.noEditClasses.length == 0) {
+    // If all relevant config arrays are empty, show all classes
+    if (
+        configVarsMain.showClasses?.length == 0 &&
+        configVarsMain.showClassesWithPrefix?.length == 0 &&
+        configVarsMain.hideClasses?.length == 0 &&
+        configVarsMain.hideClassesWithPrefix?.length == 0
+    ) {
+        console.log("- include all classes")
         return names;
     }
     var shapeNames = [];
     for (var n of names) {
-        if (
-            configVarsMain.hideClasses.indexOf(
-                shapesDS.data.nodeShapeNames[n]
-            ) < 0 &&
-            configVarsMain.noEditClasses.indexOf(
-                shapesDS.data.nodeShapeNames[n]
-            ) < 0
-        ) {
+        // First get IRI and prefix
+        var n_iri = shapesDS.data.nodeShapeNames[n]
+        if (includeClass(n_iri)) {
             shapeNames.push(n);
         }
     }
     return shapeNames;
 });
+
+const orderedNodeShapeNames = computed(() => {
+    return filteredNodeShapeNames.value.sort((a, b) =>
+        getDisplayName(
+            shapesDS.data.nodeShapeNames[a],
+            configVarsMain,
+            allPrefixes,
+            shapesDS.data.nodeShapes[shapesDS.data.nodeShapeNames[a]]
+        ).toLowerCase()
+        .localeCompare(
+            getDisplayName(
+                shapesDS.data.nodeShapeNames[b],
+                configVarsMain,
+                allPrefixes,
+                shapesDS.data.nodeShapes[shapesDS.data.nodeShapeNames[b]]
+            ).toLowerCase()
+        )
+    );
+})
+
+function includeClass(class_iri) {
+    var class_prefix = toCURIE(class_iri, allPrefixes, 'parts').prefix
+    // Assume we include class by default
+    var include = true;
+    // If either showClasses or showClassesWithPrefix contain elements
+    // it means we include only some classes
+    // If the current class is not found in those classes, exclude it
+    if (
+        (
+            configVarsMain.showClasses?.length != 0 ||
+            configVarsMain.showClassesWithPrefix?.length != 0
+        ) && (
+            configVarsMain.showClasses?.indexOf(class_iri) < 0 &&
+            configVarsMain.showClassesWithPrefix?.indexOf(class_prefix) < 0
+        )
+    ) {
+        include = false;
+    }
+    // If a class is to be included based on the showClasses(...) options,
+    // only include it if it should not be explicitly hidden (i.e. include
+    // it if it isn't found in hideClasses(...) arrays
+    if (
+        include &&
+        configVarsMain.hideClasses?.indexOf(class_iri) < 0 &&
+        configVarsMain.hideClassesWithPrefix?.indexOf(class_prefix) < 0
+    ) {
+        return true
+    } else {
+        return false
+    }
+}
 
 const formattedDescription = computed(() => {
     // For the class description, use a regular expression to replace text between backticks with <code> tags
@@ -778,6 +886,8 @@ async function selectType(IRI, fromUser, fromBackButton) {
     console.log(filteredNodeShapeNames.value);
     console.log(shapesDS.data.nodeShapeNames);
     console.log(selectedItem.value);
+    fetchedItemCount.value = null;
+    totalItemCount.value = 0
     isFetchingPage.value = false;
     showScrollTopBtn.value = false;
     newTypeSelected = true;
@@ -786,6 +896,7 @@ async function selectType(IRI, fromUser, fromBackButton) {
     searchText.value = '';
     selectedIRI.value = IRI;
     selectedShape.value = shapesDS.data.nodeShapes[IRI];
+    canEditClass.value = configVarsMain.noEditClasses.indexOf(IRI) < 0 ? true : false
     if (config.value.use_service) {
         classRecordsLoading.value = true;
         // First fetch rdf data from configured service
@@ -808,6 +919,18 @@ async function selectType(IRI, fromUser, fromBackButton) {
             // do nothing
         } else {
             classRecordsLoading.value = false;
+        }
+
+        // We want to keep track of the progress of currently fetched items
+        // vs total items, so we need the total item count of the current class
+        var totalItems = result.url.reduce((sum, item) => {
+            if (item.success && item.pageMeta && typeof item.pageMeta.total === "number") {
+                return sum + item.pageMeta.total;
+            }
+            return sum;
+        }, 0);
+        if (totalItems > 0) {
+            totalItemCount.value = totalItems
         }
     }
     getInstanceItems();
@@ -880,18 +1003,19 @@ async function setViewFromQuery() {
         // check if iri is in
         var nodeShapeIRI = toIRI(nodeShape, allPrefixes);
         if (shapesDS.data.nodeShapes[nodeShapeIRI]) {
-
-            if (configVarsMain.hideClasses.indexOf(nodeShapeIRI) < 0 &&
-                configVarsMain.noEditClasses.indexOf(nodeShapeIRI) < 0
-            ) {
+            if (includeClass(nodeShapeIRI)) {
                 await selectType(nodeShapeIRI);
                 if (edit) {
-                    addInstanceItem();
-                    updateURL(nodeShapeIRI, true);
+                    if (configVarsMain.noEditClasses.indexOf(nodeShapeIRI) >= 0) {
+                        updateURL(nodeShapeIRI, false)
+                    } else {
+                        addInstanceItem();
+                        updateURL(nodeShapeIRI, true);
+                    }
                 }
             }
             else {
-                console.log('Queried nodeshape found in shacl schema, but present in hide_classes or no_edit_classes config options');
+                console.log('Queried nodeshape found in shacl schema, but show/hide-config options specify that it should be hidden');
                 history.replaceState(null, '', window.location.pathname);
             }
         } else {
@@ -1017,11 +1141,11 @@ function getInstanceItems() {
     });
     instanceItemsComp.value = [...instanceItemsArr];
     if (instanceItemsComp.value.length > 7) showScrollTopBtn.value = true;
+    fetchedItemCount.value = instanceItemsComp.value.length;
 }
 
 const filteredInstanceItemsComp = computed(() => {
-    var c = orderTopDown.value ? 1 : -1;
-    if (!instanceItemsComp.value.length) return [];
+    const c = orderTopDown.value ? 1 : -1;
     return [...instanceItemsComp.value]
         .filter((item) => {
             if (searchText.value.length == 0) return true;
@@ -1043,9 +1167,39 @@ const filteredInstanceItemsComp = computed(() => {
         );
 });
 
+watchEffect(async () => {
+    if (config.value?.use_service && searchText.value && hasUnfetchedPages(selectedIRI.value)) {
+        // Only trigger fetch if not already fetching
+        if (!isFetchingPage.value) {
+            await fetchNextPage();
+        }
+    }
+});
+
+async function fetchNextPage() {
+    if (isFetchingPage.value || !hasUnfetchedPages(selectedIRI.value)) return;
+    isFetchingPage.value = true;
+    try {
+        const result = await fetchFromService(
+            'get-paginated-records',
+            selectedIRI.value,
+            allPrefixes
+        );
+        if (result.status === null) {
+            console.error(result.error);
+        }
+        getInstanceItems(); // rebuild local store
+    } catch (err) {
+        console.error(err);
+    } finally {
+        isFetchingPage.value = false;
+    }
+}
+
 async function handleInternalNavigation({ recordClass, recordPID }) {
     console.log('Received:', recordClass, recordPID);
     await selectType(recordClass, true);
+    selectedItem.value = [recordClass];
     searchText.value = recordPID;
 }
 
@@ -1178,5 +1332,23 @@ a:active {
     border-bottom: 1px solid #ddd !important; /* Adds a subtle divider between panels */
     box-shadow: none !important;
     border-radius: 8px; /* Optional: Adjust border rounding */
+}
+.display-text-wrapper {
+    position: relative; /* so the bar anchors under just the text */
+    display: inline-block;
+    padding-bottom: 0.3em;
+}
+.progress-underline {
+    position: absolute;   /* take it out of layout flow */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: translateY(1.45em);
+}
+.after-loader {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>

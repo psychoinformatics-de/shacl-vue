@@ -18,6 +18,12 @@ Current configuration options include:
     "page_title": "",
     "documentation_url": "",
     "source_code_url": "",
+    "footer_links": [
+        {
+            "url": "",
+            "text": ""
+        }
+    ]
 }
 ```
 
@@ -25,6 +31,7 @@ Current configuration options include:
 - `page_title` is the title for the HTML page
 - `documentation_url` is the URL of the user documentation for the specific `shacl-vue` instance
 - `source_code_url` is the URL of the source code repository for the specific `shacl-vue` instance
+- `footer_links` is an array of objects, where each object contains the `url` and display `text` for a link that should be included in the application footer
 
 The HTML page title is set in [`shacl-vue/src/components/ShaclVue.vue`](https://github.com/psychoinformatics-de/shacl-vue/blob/main/src/components/ShaclVue.vue) based on values in the configuration file (`config.json`). The app uses the following priority when setting the title:
 
@@ -99,8 +106,8 @@ The defaults for all input source URLs are the repository-local demo files.
 
 - `id_iri` is the URI of the property that indicates the persistent identifier of an entity. It is central to the functioning of `shacl-vue` because it allows for the mapping between structured records and the representation of those records as named nodes in RDF graphs. The value of this option is dependent on the SHACL schema driving the `shacl-vue` instance. It defaults to `https://concepts.datalad.org/s/things/v1/pid` since the demo input sources are created from the `https://concepts.datalad.org/s/things/v1/` schema that implements that persistent identifier definition.
 - `id_autogenerate` is a dictionary mapping class IRIs to auto-generated identifier rules, and allows the `shacl-vue` instance to auto-generate the value of the `id_iri`-property (i.e. the `PID`) of a manually created record of a particular class. The auto-generated value is determined from two more configuration options, `id_autogenerate_prefix` and `id_autogenerate_prepend`, and a random component. `id_autogenerate_prefix` should be the name of a known prefix in the deployment (which can also be customized via configuration, see `prefixes` below), for example `dlthings`, and `id_autogenerate_prepend` can be any string e.g. '/people'. The construction is then `<resolved-prefix><prepended-string><random-string>`, where the random string part is generated with JavaScripts `crypto.randomUUID()`. For the given example strings, the `pid` field for a new record created manually in a `shacl-vue` instance will be: `https://concepts.datalad.org/s/things/v1/people/<randomUUID>'`.
-- `id_resolves_externally` is an array of class URIs for which their PIDs resolve online. Records of this class will have additional UI that allows them to be navigated to both inside the application and externally online.
-- `prefixes` is a JSON mapping from prefix to URI for prefixes used throughout a `shacl-vue` instance. While most namespaces known to a `shacl-vue` instance are derived from its input sources (SHACL schema, RDF data, class hierarchy information), this option allows additional prefixes to be supplied in order to support referencing external vocabularies and use-case specific naming conventions
+- `id_resolves_externally` is an array of prefix strings. Records for which the PID includes any of these prefixes will resolve online, and additional UI will become visible that allows such records to be navigated to both inside the application and externally online. Included prefixes should be known prefixes in the deployment, i.e. they should arrive via the input sources that drive the application or can be included via configuration (see `prefixes` below).
+- `prefixes` is a JSON mapping from prefix to URI for prefixes used throughout a `shacl-vue` instance. While most namespaces known to a `shacl-vue` instance are derived from its input sources (SHACL schema, RDF data, class hierarchy information), this option allows additional prefixes to be supplied in order to support referencing external vocabularies and use-case specific naming conventions.
 
 ## UI behavior
 
@@ -108,23 +115,91 @@ The defaults for all input source URLs are the repository-local demo files.
 {
     "show_shapes_wo_id": true,
     "show_all_fields": true,
+    "show_classes": [],
+    "show_classes_with_prefix": [],
     "hide_classes": [],
+    "hide_classes_with_prefix": [],
     "no_edit_classes": [],
+    "allow_edit_instances": [],
     "class_name_display": "",
     "class_icons": {
         "": ""
-    }
+    },
+    "editor_selection": {},
+    "editor_config": {},
+    "display_name_autogenerate": {},
+    "display_name_autogenerate_placeholder": {}
 }
 ```
 
 - `show_shapes_wo_id` shows data types (in the left-hand-side panel) for which the driving SHACL shapes do not have the `id_iri` property defined, when `true`
 - `show_all_fields` displays all properties in the form editor when a record is created/edited, when `true`. Properties in the form editor are displayed by default in order of reverse inheritance. For example, if the `Person` class is derived from the `Thing` class, the form editor for a `Person` would display the `Person`-properties in top, and the `Thing`-properties below that. Often, only the top-level properties are of immediate interest or importance to users and UX is improved by hiding other properties. The `show_all_fields` option, when `false`, would hide lower-level properties and display the top-level properties and required properties when a user opens the form editor to add/edit a record. In addition to the configuration option, the UI still allows the user to toggle between showing and hiding lower-level properties.
-- `hide_classes` is a list of class URIs to hide from the left-hand-side panel listing all data types (i.e. classes)
-- `no_edit_classes` prevents records of specific classes from being created or edited by users. It is a list of class URIs that will firstly be hidden from the left-hand-side panel, which duplicates the functionality of `hide_classes`. In addition:
-   - users will not be able to create records of these classes via the `Add New Item` selection in an `InstancesSelectEditor`, i.e. the dropdown that allows users to select a specific record.
-   - users will not be able to use URL query parameters to navigate to the main view displaying records of these classes.
-- `class_name_display` specifies whether to use the CURIE format or just the latter part of the CURIE for displaying class names in the `shacl-vue` UI. Allowed options are: 'curie' (for the full CURIE, e.g. `prov:Agent`) and 'name' (for the CURIE suffix, e.g. `Agent`) which is the default.
+- `show_classes`, `show_classes_with_prefix`, `hide_classes`, and `hide_classes_with_prefix` are options that together specify which classes to show and hide in the left-hand-side panel listing all data types (i.e. classes):
+   - `show_classes`: an array of class URIs that should all be shown
+   - `show_classes_with_prefix`: an array of prefixes, all classes containing any of these prefixes should be shown
+   - `hide_classes`: an array of class URIs that should be hidden
+   - `hide_classes_with_prefix`: an array of prefixes, all classes containing any of these prefixes should be hidden
+
+   If both `show_classes` and `show_classes_with_prefix` are empty arrays, all classes are shown, apart from those in `hide_classes` or those with prefixes in `hide_classes_with_prefix`. Records that end up being hidden/excluded:
+   - WILL NOT show up in the left-hand-side panel
+   - CANNOT be navigated to using URL query parameters
+   - by implication, CAN ALSO NOT be edited via URL query parameters
+   - CAN be created via `Add new item` button in `InstancesSelectEditor`, i.e. the dropdown that allows users to select a specific record.
+- `no_edit_classes` prevents records of specific classes from being created or edited by users. Records of these classes:
+   - WILL show up in the left-hand-side panel, EXCLUDING the option to create new records
+   - CAN be navigated to using URL query parameters
+   - CANNOT be edited via URL query parameters
+   - CANNOT be created via `Add new item` button in `InstancesSelectEditor`
+- `allow_edit_instances`, allows an edit button to be added for all instances in an `InstancesSelectEditor`, i.e. the dropdown that allows users to select a specific record. This edit button allows the user to edit the specific record directly, without having to navigate to the record editor via the left-hand-side panel. `allow_edit_instances` can take a boolean value of `true` to apply this setting for all instances of all classes, or alternatively an array with specific class URIs to apply the setting only for instances of specific classes. The edit button will be disabled if the record's class is included in `no_edit_classes`.
+- `class_name_display` specifies which format to use when displaying class names in the `shacl-vue` UI. Allowed options are:
+   - 'name': the value of the `sh:name` attribute in the class's nodeshape (e.g. `Originating Agent`); this option is the default
+   - 'reference': the reference of the class's nodeshape IRI in CURIE format (e.g. `Agent`); this option is used when 'name' is specified but the `sh:name` attribute is not available
+   - 'curie': the class's nodeshape IRI in full CURIE format (e.g. `prov:Agent`)
 - `class_icons` is a mapping of class URIs to [Material Design Icons](https://pictogrammers.com/library/mdi/). By default, `class_icons` that are not defined will display as empty circles.
+- `editor_selection`: this option allows the UI to use config-driven selection of an editor component instead of the [component matching procedure](./editor-component#the-matching-script) that `shacl-vue` uses by default. The object takes keys of a SHACL property shape as its keys in CURIE format (e.g. `sh:datatype`, `sh:path`, or `sh:nodeKind`), and the values are objects themselves. These objects will have the to-be-matched CURIEs as keys, and the corresponding value should be the exact name of the component that will be selected. An example is provided below.
+- `editor_config` allows component-specific parameters to be passed to name-identified components. Such parameters allow the customization of behavior or display in `shacl-vue` components. The object has the exact name of any editor component as its keys, and values are key-value parameter pairs that should feed into the associated editor components. An example is provided below.
+- `display_name_autogenerate`: by default `shacl-vue` uses the `skos:prefLabel` of a record, if available, as its display label. When not available, the `display_name_autogenerate` provides a means to autogenerate the display label of a record from a string serialization of other properties of the same record. This option should receive an object with class CURIEs as its keys and the values being string templates. Placeholders in such a template should be curly brackets containing the CURIE of a property of the class that should be used instead of the placeholder. See example usage below.
+- `display_name_autogenerate_placeholder`: when using the `display_name_autogenerate` option, it is possible that not all parameters in the template string exist as properties of an associated record for which a display label is being autogenerated. For such cases, the missing parameter will be replaced with a missing value placeholder string. This option allows for providing a `default` placeholder to be used for all missing values, or for providing a missing value placeholder per property. See example below.
+
+
+### Example
+
+In the example below, the `editor_selection` option specifies that, if a SHACL property shape is encountered where the `sh:datatype` is equal to `mydatetime:year`, the `W3CISO8601YearEditor` should be selected and rendered. The `editor_config` option specifies that, for the `W3CISO8601YearEditor`, the `yearStart` and `yearEnd` options should be set to `1925` and `2077`, which for this component defines the starting and ending years that together make up the range of options in the rendered year-picker.
+
+```json
+{
+    ...
+    "editor_selection": {
+        "sh:datatype": {
+            "mydatetime:year": "W3CISO8601YearEditor",
+        }
+    },
+    "editor_config": {
+        "W3CISO8601YearEditor": {
+            "yearStart": 1925,
+            "yearEnd": 2077
+        }
+    },
+    ...
+}
+```
+
+In this example `display_name_autogenerate` is used to generate a display label for records of class `myns:TimeDuration`, specifically for cases where such records do not already have an existing `skos:prefLabel`. The display label is generated by concatenating three values: the property `myns:start_date`, the string `" to "`, and the property `myns:end_date`. If for example `myns:start_date` is `2022-09-27` and `myns:end_date` was missing in the data, then the generated display label would be `2022-09-27 to [*END]`. If the same was true, but the `display_name_autogenerate_placeholder` config option did not contain the `"myns:start_date": "[*END]"` key-value pair, then the generated display label would be `2022-09-27 to [X]`.
+
+```json
+{
+    ...
+    "display_name_autogenerate": {
+        "myns:TimeDuration": "{myns:start_date} to {myns:end_date}"
+    },
+    "display_name_autogenerate_placeholder": {
+        "default": "[X]",
+        "myns:start_date": "[*START]",
+        "myns:start_date": "[*END]"
+    },
+    ...
+}
+```
 
 ## Service API integration
 

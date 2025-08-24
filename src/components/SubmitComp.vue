@@ -23,7 +23,8 @@
                                         getDisplayName(
                                             r.nodeshape_iri,
                                             configVarsMain,
-                                            allPrefixes
+                                            allPrefixes,
+                                            shapesDS.data.nodeShapes[r.nodeshape_iri]
                                         )
                                     }}:&nbsp;&nbsp;
                                     {{ r.node_iri }}
