@@ -564,6 +564,13 @@ watch(
                 );
                 if (inst) {
                     subValues.value.selectedInstance = inst;
+                    queryLabel.value = subValues.value.selectedInstance.props._prefLabel
+                    ? subValues.value.selectedInstance.props._prefLabel
+                    : (
+                        subValues.value.selectedInstance.props._displayLabel ?
+                        subValues.value.selectedInstance.props._displayLabel :
+                        '(selected item name unknown)'
+                    )
                 } else {
                     console.log(
                         'A node was recently saved but it could not be found in the itemsToList and was therefore not set as the selectedItem'
