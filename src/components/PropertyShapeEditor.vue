@@ -1,112 +1,142 @@
 <template>
-    <v-row
-        align="start"
-        no-gutters
-        v-if="formData.content[localNodeUid] && show_field"
-        :class="compDisabled ? 'disabled-row' : ''"
+    <v-tooltip
+        v-model="showTooltip"
+        location="top start"
+        max-width="400px"
+        max-height="400px"
+        :open-on-click="true"
+        :open-on-hover="false"
+        :close-on-back="true"
+        scroll-strategy="close"
+        @click:outside="showTooltip = false"
+        :interactive="true"
     >
-        <v-col cols="4">
-            <span
-                >{{
-                    nameOrCURIE(
-                        localPropertyShape,
-                        shapesDS.data.prefixes,
-                        true
-                    )
-                }}<span v-if="isRequired" style="color: red"> *</span>:
-                <v-tooltip
-                    activator="parent"
-                    location="right"
-                    max-width="400px"
-                    max-height="400px"
-                >
-                    <p
-                        v-html="
-                            addCodeTagsToText(
-                                localPropertyShape[SHACL.description.value]
-                            )
-                        "
-                    ></p>
-                </v-tooltip>
-            </span>
-        </v-col>
-        <v-col cols="8">
-            <span v-if="formData.content[localNodeUid][localNodeIdx]">
-                <v-row
-                    no-gutters
-                    v-for="(triple, triple_idx) in formData.content[
-                        localNodeUid
-                    ][localNodeIdx][my_uid]"
-                    :key="localNodeUid + '-' + my_uid + '-' + triple_idx"
-                >
-                    <v-col cols="9">
-                        <Suspense>
-                            <template #default>
-                                <component
-                                    v-model="
-                                        formData.content[localNodeUid][
-                                            localNodeIdx
-                                        ][my_uid][triple_idx]
+        <template v-slot:activator="{ props }">   
+            <v-row
+                v-bind="props"
+                align="center"
+                no-gutters
+                v-if="formData.content[localNodeUid] && show_field"
+                :class="compDisabled ? 'main-row disabled-row' : 'main-row'"
+                @mouseleave="showTooltip = false"
+            >
+                <v-col cols="4">
+                    <span>
+                        <span class="row-label"
+                            >{{
+                                nameOrCURIE(
+                                    localPropertyShape,
+                                    shapesDS.data.prefixes,
+                                    true
+                                )
+                            }}</span>
+                            <span v-if="isRequired" style="color: red"> *</span>:
+                    </span>
+                </v-col>
+                <v-col cols="8">
+                    <span v-if="formData.content[localNodeUid][localNodeIdx]">
+                        <v-row
+                            align="center"
+                            no-gutters
+                            v-for="(triple, triple_idx) in formData.content[
+                                localNodeUid
+                            ][localNodeIdx][my_uid]"
+                            :key="localNodeUid + '-' + my_uid + '-' + triple_idx"
+                        >
+                            <v-col cols="9" class="d-flex align-center" @click.stop="showTooltip = false">      
+                                &nbsp;              
+                                <Suspense>
+                                    <template #default>
+                                            <component
+                                                v-model="
+                                                    formData.content[localNodeUid][
+                                                        localNodeIdx
+                                                    ][my_uid][triple_idx]
+                                                "
+                                                :is="configMatchedComponent || matchedComponent"
+                                                :property_shape="localPropertyShape"
+                                                :node_uid="localNodeUid"
+                                                :node_idx="localNodeIdx"
+                                                :triple_uid="my_uid"
+                                                :triple_idx="triple_idx"
+                                                :disabled="compDisabled"
+                                                @click.stop="showTooltip = false"
+                                                @focus="showTooltip = false"
+                                                @focusin="showTooltip = false"
+                                            >
+                                            </component>
+                                    </template>
+                                    <template #fallback>
+                                        <v-skeleton-loader
+                                            :elevation="2"
+                                            type="list-item-avatar"
+                                        ></v-skeleton-loader>
+                                    </template>
+                                </Suspense>
+                            </v-col>
+                            <v-col>
+                                &nbsp;
+                                <!-- Remove button -->
+                                <v-btn
+                                    v-if="allowRemoveTriple(triple_idx)"
+                                    rounded="0"
+                                    elevation="1"
+                                    icon="mdi-delete-outline"
+                                    @click.stop="
+                                        formData.removeObject(
+                                            localNodeUid,
+                                            localNodeIdx,
+                                            my_uid,
+                                            triple_idx
+                                        )
                                     "
-                                    :is="configMatchedComponent || matchedComponent"
-                                    :property_shape="localPropertyShape"
-                                    :node_uid="localNodeUid"
-                                    :node_idx="localNodeIdx"
-                                    :triple_uid="my_uid"
-                                    :triple_idx="triple_idx"
+                                    density="comfortable"
                                     :disabled="compDisabled"
-                                >
-                                </component>
-                            </template>
-                            <template #fallback>
-                                <v-skeleton-loader
-                                    :elevation="2"
-                                    type="list-item-avatar"
-                                ></v-skeleton-loader>
-                            </template>
-                        </Suspense>
-                    </v-col>
-                    <v-col>
-                        &nbsp;
-                        <!-- Remove button -->
-                        <v-btn
-                            v-if="allowRemoveTriple(triple_idx)"
-                            rounded="0"
-                            elevation="1"
-                            icon="mdi-delete-outline"
-                            @click="
-                                formData.removeObject(
-                                    localNodeUid,
-                                    localNodeIdx,
-                                    my_uid,
-                                    triple_idx
-                                )
-                            "
-                            density="comfortable"
-                            :disabled="compDisabled"
-                        ></v-btn>
-                        &nbsp;
-                        <!-- Add button -->
-                        <v-btn
-                            v-if="allowAddTriple(triple_idx)"
-                            rounded="0"
-                            elevation="1"
-                            icon="mdi-plus-circle-outline"
-                            @click="
-                                formData.addObject(
-                                    localNodeUid,
-                                    localNodeIdx,
-                                    my_uid
-                                )
-                            "
-                            density="comfortable"
-                            :disabled="compDisabled"
-                        ></v-btn>
-                    </v-col>
-                </v-row>
+                                ></v-btn>
+                                &nbsp;
+                                <!-- Add button -->
+                                <v-btn
+                                    v-if="allowAddTriple(triple_idx)"
+                                    rounded="0"
+                                    elevation="1"
+                                    icon="mdi-plus-circle-outline"
+                                    @click.stop="
+                                        formData.addObject(
+                                            localNodeUid,
+                                            localNodeIdx,
+                                            my_uid
+                                        )
+                                    "
+                                    density="comfortable"
+                                    :disabled="compDisabled"
+                                ></v-btn>
+                            </v-col>
+                        </v-row>
+                    </span>
+                </v-col>
+            </v-row>
+        </template>
+        <template #default>
+            <span style="display: flex;">
+                <v-btn
+                    class="d-flex d-lg-none"
+                    style="margin-left: auto;"
+                    variant="text"
+                    density="compact"
+                    size="x-small"
+                    icon="mdi-close-circle-outline"
+                    @click="showTooltip = false">
+                </v-btn>
             </span>
-        </v-col>
-    </v-row>
+            <p
+                v-html="
+                    addCodeTagsToText(
+                        localPropertyShape[SHACL.description.value]
+                    )
+                "
+            ></p>
+        </template>
+    </v-tooltip>
 </template>
 
 <script setup>
@@ -142,7 +172,7 @@ const props = defineProps({
 // ---- //
 
 const my_uid = ref('');
-
+const showTooltip = ref(false);
 const localPropertyShape = ref(props.property_shape);
 const localNodeUid = ref(props.node_uid);
 const localNodeIdx = ref(props.node_idx);
@@ -335,9 +365,41 @@ function allowRemoveTriple(idx) {
 </script>
 
 <style scoped>
+
+.main-row {
+  background-color: transparent; /* default */
+  transition: background-color 0.2s ease;
+  border-radius: 4px; /* optional */
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 0.5em 0.5em;
+}
+.main-row:hover {
+  background-color: #f5f5f5;
+  cursor: pointer; /* optional */
+}
+.main-row:hover .row-label {
+  text-decoration: underline;
+}
+@media (max-width: 960px) {
+  .row-label {
+    text-decoration: underline !important;
+  }
+}
+/* .main-row:hover {
+    border: 2px solid black;
+    background-color: #f5f5f5;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+} */
 .disabled-row {
     opacity: 0.5;
     /* color: grey; */
+}
+.disabled-row:hover {
+    background-color: inherit; /* prevent hover highlight */
+    cursor: not-allowed;
 }
 </style>
 
