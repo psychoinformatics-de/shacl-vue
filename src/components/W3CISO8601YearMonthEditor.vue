@@ -16,6 +16,7 @@
                     style="margin-left: auto;"
                     :items="yearItems"
                     class="text-caption"
+                    hide-details="auto"
                 >
                 </v-autocomplete>
             </v-col>
@@ -28,6 +29,7 @@
                     style="margin-left: auto;"
                     :items="monthItems"
                     class="text-caption"
+                    hide-details="auto"
                 >
                 </v-autocomplete>
             </v-col>

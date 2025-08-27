@@ -5,16 +5,7 @@
         ref="fieldRef"
         :id="inputId"
         hide-details="auto"
-        style="margin-bottom: 1em"
     >
-        <!-- <v-text-field
-            v-model="subValues.decimal"
-            density="compact"
-            variant="outlined"
-            label="add decimal value"
-            hide-details="auto"
-        >
-        </v-text-field> -->
         <v-select
             :items="inList"
             v-model="subValues.selected_item"
@@ -24,17 +15,8 @@
             item-value="value"
             item-text="title"
             ref="selector"
+            hide-details="auto"
         >
-            <!-- <template v-slot:item="data">
-                <v-list-item @click="selectORelement(data.item)">
-                    <v-list-item-title>{{  }}</v-list-item-title>
-                    <span v-for="(value, key, index) in data.item.props">
-                        <span v-if="['title', 'subtitle', 'name', 'value'].indexOf(key) < 0">
-                            <strong>{{ toCURIE(key, shapePrefixes) }}</strong>: {{ toCURIE(value, shapePrefixes) }} <br>
-                        </span>
-                    </span>
-                </v-list-item>
-            </template> -->
         </v-select>
     </v-input>
 </template>

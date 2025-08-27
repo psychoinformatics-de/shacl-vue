@@ -5,7 +5,7 @@
         ref="fieldRef"
         :id="inputId"
         hide-details="auto"
-        :style="orElementSelected ? 'margin-bottom: 1em;' : ''"
+        :style="orElementSelected ? '' : ''"
     >
         <v-col>
         <v-row>

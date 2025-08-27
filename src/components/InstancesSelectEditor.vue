@@ -6,7 +6,7 @@
         :id="inputId"
         hide-details="auto"
     >
-        <v-menu v-model="menu" location="bottom">
+        <v-menu v-model="menu" location="bottom"  hide-details="auto">
             <template #activator="{ props }">
                 <v-text-field
                     v-model="queryText"
@@ -22,6 +22,7 @@
                     "
                     :prepend-inner-icon="selectedItemIcon"
                     :loading="fetchingRecordLoader"
+                     hide-details="auto"
                 >
                     <template v-slot:append-inner>
                         <v-icon

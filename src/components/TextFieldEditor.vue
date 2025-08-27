@@ -5,7 +5,6 @@
         ref="fieldRef"
         :id="inputId"
         hide-details="auto"
-        style="margin-bottom: 1em"
     >
         <v-text-field
             v-model="subValues.text"

@@ -5,7 +5,6 @@
         ref="fieldRef"
         :id="inputId"
         hide-details="auto"
-        style="margin-bottom: 1em"
     >
         <v-row justify="start" no-gutters>
             <v-col cols="9">

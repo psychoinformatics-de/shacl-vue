@@ -5,7 +5,6 @@
         ref="fieldRef"
         :id="inputId"
         hide-details="auto"
-        style="margin-bottom: 1em"
     >
         <v-switch
             v-model="subValues.switchVal"
@@ -16,6 +15,7 @@
             hide-details="auto"
         >
         </v-switch>
+        l;kjhg
     </v-input>
 </template>
 
