@@ -5,7 +5,7 @@
         max-width="400px"
         max-height="400px"
         :open-on-click="true"
-        :open-on-hover="false"
+        :open-on-hover="!$vuetify.display.mobile"
         :close-on-back="true"
         scroll-strategy="close"
         @click:outside="showTooltip = false"
@@ -43,7 +43,7 @@
                             ][localNodeIdx][my_uid]"
                             :key="localNodeUid + '-' + my_uid + '-' + triple_idx"
                         >
-                            <v-col cols="9" class="d-flex align-center" @click.stop="showTooltip = false">      
+                            <v-col cols="9" class="d-flex align-center" @click.stop="showTooltip = false" @mouseenter="showTooltip = false">      
                                 &nbsp;              
                                 <Suspense>
                                     <template #default>
@@ -125,7 +125,8 @@
                     density="compact"
                     size="x-small"
                     icon="mdi-close-circle-outline"
-                    @click="showTooltip = false">
+                    @click="showTooltip = false"
+                >
                 </v-btn>
             </span>
             <p
