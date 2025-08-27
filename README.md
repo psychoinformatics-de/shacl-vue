@@ -114,7 +114,11 @@ npm run test
 
 In an effort to generalize `shacl-vue` for improved use by and interoperability with other applications, the underlying functionality was factored out and packaged as the [`shacl-tulip`](https://github.com/psychoinformatics-de/shacl-tulip) library (like "`shacl-vue`-lib"). `shacl-tulip` provides the main (derived) classes for handling RDF data and related form data. It is completely independent of VueJS, yet class constructors allow passing reactive objects as arguments, which `shacl-tulip` handles seamlessly. It also focuses purely on library-level functionality (including utilities that were previously part of `shacl-vue`), and contains no frontend code. `shacl-vue` imports `shacl-tulip` classes and uses them mainly in its composable code.
 
-### Acknowledgements
+## Access to external webservices
+
+Unless configured to connect to specific API endpoints (see [Service API integration docs](https://psychoinformatics-de.github.io/shacl-vue/docs/app-configuration.html#service-api-integration)), a client accessing a bundled `shacl-vue` deployment does not load any external resources. All required resources are loaded from the server where the bundled application is hosted.
+
+## Acknowledgements
 
 This work was funded, in part, by
 
