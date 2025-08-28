@@ -131,11 +131,6 @@ export function useForm(config) {
                             node_iri: record_id,
                             result,
                         }))
-                        .catch((error) => ({
-                            nodeshape_iri: class_uri,
-                            node_iri: record_id,
-                            error,
-                        }))
                 );
                 // await postRDF(postURL, ds,'text/turtle', headers, prefixes)
             }
@@ -170,10 +165,8 @@ export function useForm(config) {
                 }
             }
             const failed = results
-                .filter((result) => result.value.result.success === false)
-                .map((r) => {
-                    return r.value.result;
-                });
+                .map((r) => r.value.result)
+                .filter((r) => r.success === false);
 
             if (failed.length > 0) {
                 return {
