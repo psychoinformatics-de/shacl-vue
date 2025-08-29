@@ -389,7 +389,7 @@ function setSelectedValue() {
                 )
         } else {
             subValues.value.selectedInstance = null;
-            queryLabel.value = '';
+            queryLabel.value = props.modelValue;
         }
     }
 }
