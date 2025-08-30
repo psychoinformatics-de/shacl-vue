@@ -1,5 +1,5 @@
 <template>
-    <v-sheet class="pa-4 scaled-sheet" border rounded elevation="2">
+    <v-sheet ref="mainSheet" class="pa-4 scaled-sheet" border rounded elevation="2">
         <div style="display: flex; position: relative">
             <h3>
                 {{ getDisplayName(localShapeIri, configVarsMain, allPrefixes, shape_obj) }}
@@ -81,11 +81,16 @@
                     :node_idx="localNodeIdx"
                 />
                 <div style="display: flex">
-                    <v-btn
-                        icon="mdi-arrow-up-bold"
-                        @click="scrollToTop()"
-                        style="margin-left: auto"
-                    ></v-btn>
+                    <v-tooltip text="Scroll to top" location="top">
+                        <template v-slot:activator="{ props }">
+                            <v-btn
+                                icon="mdi-arrow-up-bold"
+                                @click="scrollToTop()"
+                                style="margin-left: auto"
+                                v-bind="props"
+                            ></v-btn>
+                        </template>
+                    </v-tooltip>
                 </div>
             </v-form>
         </span>
@@ -103,7 +108,7 @@ import {
     reactive,
     computed,
     toRaw,
-    onUpdated,
+    nextTick,
 } from 'vue';
 import { SHACL } from '../modules/namespaces';
 import {
@@ -124,6 +129,7 @@ const props = defineProps({
 // ---- //
 // Data //
 // ---- //
+const mainSheet = ref(null)
 const localShapeIri = ref(props.shape_iri);
 const localNodeIdx = ref(props.node_idx);
 const shapesDS = inject('shapesDS');
@@ -315,8 +321,21 @@ function cancelForm() {
     }
 }
 
+function scrollAllParentsToTop(el) {
+  while (el) {
+    if (el.scrollTop > 0) {
+      el.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    el = el.parentElement;
+  }
+}
+
 function scrollToTop() {
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    nextTick(() => {
+        const baseEl = mainSheet.value?.$el || mainSheet.value;
+        if (baseEl) scrollAllParentsToTop(baseEl);
+    });
 }
 
 function goToError(e) {

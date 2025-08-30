@@ -200,13 +200,18 @@
                                                         </v-col>
                                                         <v-col> </v-col>
                                                     </v-row>
-                                                    <v-fab
-                                                        v-if="showScrollTopBtn && openForms.length == 0"
-                                                        @click="scrollToTop"
-                                                        icon="mdi-arrow-up-bold"
-                                                        :app="true"
-                                                        style="bottom: 2em;"
-                                                    ></v-fab>
+                                                    <v-tooltip text="Scroll to top" location="top end">
+                                                        <template v-slot:activator="{ props }">
+                                                            <v-fab
+                                                                v-if="showScrollTopBtn && openForms.length == 0"
+                                                                @click="scrollToTop"
+                                                                icon="mdi-arrow-up-bold"
+                                                                :app="true"
+                                                                style="bottom: 2em;"
+                                                                v-bind="props"
+                                                            ></v-fab>
+                                                        </template>
+                                                    </v-tooltip>
                                                     <DynamicScroller
                                                         :items="
                                                             filteredInstanceItemsComp
