@@ -777,8 +777,8 @@ watchEffect(async () => {
     console.log("WATCHEFFECT")
     if (config.value?.use_service &&
         queryText.value && queryText.value.length >= configVarsMain.serviceConstrainedSearch.min_characters &&
-        firstPageFetched(selectedIRI.value, queryText.value) &&
-        hasUnfetchedPages(selectedIRI.value, queryText.value)) {
+        firstPageFetched(propClass.value, queryText.value) &&
+        hasUnfetchedPages(propClass.value, queryText.value)) {
         // Only trigger fetch if not already fetching
         if (!isFetchingPage.value) {
             await fetchNextPage(propClass.value, queryText.value);
