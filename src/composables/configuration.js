@@ -50,6 +50,10 @@ const mainVarsToLoad = {
     token_info: '',
     token_info_url: '',
     use_service: false,
+    service_constrained_search: {
+        min_characters: 4,
+        typing_debounce: 800,
+    },
     class_name_display: 'name',
     footer_links: [],
 };
