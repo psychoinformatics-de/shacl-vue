@@ -45,7 +45,7 @@ rules.value.push((value) => {
     const regex = new RegExp('^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$');
     if (!value) return true;
     if (regex.test(value)) return true;
-    return 'Regular expression matching failed';
+    return 'Input does not match the required format';
     // TODO: this should be replaced by pattern-specific messaging, possibly using sh:message as source
 });
 
