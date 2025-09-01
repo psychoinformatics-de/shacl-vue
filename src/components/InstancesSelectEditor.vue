@@ -12,7 +12,11 @@
                     v-model="queryText"
                     v-bind="props"
                     variant="outlined"
-                    placeholder="select an item"
+                    :placeholder="
+                    configVarsMain.serviceConstrainedSearch.min_characters ?
+                    `select an item | enter at least ${configVarsMain.serviceConstrainedSearch.min_characters} characters to search all records` :
+                    `search/select an item`
+                    "
                     style="margin-bottom: 0"
                     :label="queryLabel"
                     ref="inputRef"
@@ -56,7 +60,7 @@
                 <span v-if="fetchingDataLoader">
                     <v-list-item
                         ><em
-                            >Fetching items (this might take a while)</em
+                            >Fetching records...</em
                         ></v-list-item
                     >
                     <v-skeleton-loader
@@ -236,6 +240,7 @@
                             <template #after>
                                 <div class="after-loader" :style="'color: ' + configVarsMain.appTheme.link_color + ';'" >
                                     <v-progress-circular v-show="showFetchingPageLoader" indeterminate :size="26" :width="4"></v-progress-circular>
+                                    <span v-if="!showFetchingPageLoader && filteredItems.length == 0" style="color: grey"><em>No items</em></span>
                                 </div>
                             </template>
                         </DynamicScroller>
@@ -309,6 +314,8 @@ const classDS = inject('classDS');
 const config = inject('config');
 const fetchFromService = inject('fetchFromService');
 const hasUnfetchedPages = inject('hasUnfetchedPages');
+const getTotalItems = inject('getTotalItems');
+const firstPageFetched = inject('firstPageFetched');
 const isFetchingPage = ref(false);
 const hasOpenedMenu = ref(false);
 const configVarsMain = inject('configVarsMain')
@@ -355,6 +362,7 @@ const saveDialogForm = () => {
     newNodeIdx.value = null;
 };
 provide('saveFormHandler', saveDialogForm);
+let debounceTypingTimer = null;
 
 
 const showClearIcon = computed(() => {
@@ -440,7 +448,7 @@ async function populateList() {
     if (config.value.use_service) {
         try {
             const result = await fetchFromService(
-                'get-paginated-records',
+                'get-paginated-records-constrained',
                 propClass.value,
                 allPrefixes
             );
@@ -450,7 +458,7 @@ async function populateList() {
             console.log("populateList fetch from service result:")
             console.log(result)
             // We need to get total item count here in order to display progress
-            totalItemCount.value = getTotalItemCount(result)
+            totalItemCount.value = getTotalItems(propClass.value)
             console.log("totalItemCount.value")
             console.log(totalItemCount.value)
             getItemsToList();
@@ -470,19 +478,6 @@ async function populateList() {
     scrollToSelectedItem();
 }
 
-function getTotalItemCount(results) {
-
-    if (!results || !results.url || !Array.isArray(results.url)) {
-        return 0; // nothing found, or no url array
-    }
-    // Sum pageMeta.total for objects with success: true
-    return results.url.reduce((sum, obj) => {
-        if (obj.success && obj.pageMeta && typeof obj.pageMeta.total === "number") {
-            return sum + obj.pageMeta.total;
-        }
-        return sum;
-    }, 0);
-}
 
 watch(isFetchingPage, (newVal) => {
     if (newVal) {
@@ -517,6 +512,12 @@ function onScrollEnd() {
 
 const debouncedScrollEnd = debounce(async () => {
     console.log("NEAR BOTTOM OF SCROLLER")
+    // Only fetch new items at bottom of scroller if there is not any queryText
+    // Continued fetching of more items while there is queryText will be handled
+    // by the watcheffect function.
+    if (queryText.value) {
+        return
+    }
     if (config.value.use_service) {
         if (isFetchingPage.value) return;
         fetchNextPage(propClass.value)
@@ -774,16 +775,19 @@ const filteredItems = computed(() => {
 
 watchEffect(async () => {
     console.log("WATCHEFFECT")
-    if (config.value?.use_service && queryText.value && hasUnfetchedPages(propClass.value)) {
+    if (config.value?.use_service &&
+        queryText.value && queryText.value.length >= configVarsMain.serviceConstrainedSearch.min_characters &&
+        firstPageFetched(selectedIRI.value, queryText.value) &&
+        hasUnfetchedPages(selectedIRI.value, queryText.value)) {
         // Only trigger fetch if not already fetching
         if (!isFetchingPage.value) {
-            await fetchNextPage(propClass.value);
+            await fetchNextPage(propClass.value, queryText.value);
         }
     }
 });
 
-async function fetchNextPage(iri) {
-    if (!hasUnfetchedPages(iri)) {
+async function fetchNextPage(iri, matchText='') {
+    if (!hasUnfetchedPages(iri, matchText)) {
         console.log(`Does not have unfetched pages: ${iri}`)
         return [];
     }
@@ -791,9 +795,10 @@ async function fetchNextPage(iri) {
     let result = null
     try {
         result = await fetchFromService(
-            'get-paginated-records',
+            'get-paginated-records-constrained',
             iri,
-            allPrefixes
+            allPrefixes,
+            matchText
         );
         if (result.status === null) {
             console.error(result.error);
@@ -805,6 +810,21 @@ async function fetchNextPage(iri) {
         isFetchingPage.value = false;
         return result
     }   
+}
+
+watch(queryText, (newVal) => {
+    // clear previous timers
+    clearTimeout(debounceTypingTimer);
+    // wait X ms after last keystroke
+    debounceTypingTimer = setTimeout(() => {
+        onTypingPause(newVal);
+    }, configVarsMain.serviceConstrainedSearch.typing_debounce);
+});
+
+async function onTypingPause(textVal) {
+    console.log(`TYPING PAUSED: ${textVal}`)
+    if (!queryText.value || queryText.value.length < configVarsMain.serviceConstrainedSearch.min_characters ) return;
+    await fetchNextPage(propClass.value, queryText.value);
 }
 
 

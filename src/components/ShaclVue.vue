@@ -600,6 +600,8 @@ provide('classDS', classDS);
 provide('formData', formData);
 provide('fetchFromService', fetchFromService);
 provide('hasUnfetchedPages', hasUnfetchedPages);
+provide('getTotalItems', getTotalItems);
+provide('firstPageFetched', firstPageFetched);
 provide('submitFormData', submitFormData);
 provide('savedNodes', savedNodes);
 provide('submittedNodes', submittedNodes);
