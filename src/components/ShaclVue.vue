@@ -145,14 +145,14 @@
                                                             instanceItemsComp.length
                                                         "
                                                     >
-                                                        <v-col cols="7">
+                                                        <v-col cols="8">
                                                             <v-text-field
                                                                 v-model="
                                                                     searchText
                                                                 "
                                                                 density="compact"
                                                                 variant="outlined"
-                                                                label="Enter search text"
+                                                                :label="`Enter at least ${configVarsMain.serviceConstrainedSearch.min_characters} characters to search all records`"
                                                                 hide-details="auto"
                                                                 style="
                                                                     margin: 1em;
@@ -457,6 +457,14 @@ function onScrollEnd() {
 }
 const debouncedScrollEnd = debounce(async () => {
     console.log("NEAR BOTTOM OF SCROLLER")
+
+    // Only fetch new items at bottom of scroller if there isnt any search text
+    // Continued fetching of more items while there is search text will be handled
+    // by the watcheffect function.
+    if (searchText.value) {
+        return
+    }
+
     if (config.value.use_service) {
         if (hasUnfetchedPages(selectedIRI.value) && !isFetchingPage.value) {
             await fetchNextPage();
@@ -521,7 +529,7 @@ const config_ready = ref(false);
 const itemRefs = ref([]);
 const { config, configFetched, configError, configVarsMain, loadConfigVars } =
     useConfig(props.configUrl);
-const { rdfDS, getRdfData, fetchFromService, fetchedPages, hasUnfetchedPages } = useData(config);
+const { rdfDS, getRdfData, fetchFromService, fetchedPages, hasUnfetchedPages, getTotalItems, firstPageFetched } = useData(config);
 const { classDS, getClassData } = useClasses(config);
 const { shapesDS, getSHACLschema } = useShapes(config);
 const { formData, submitFormData, savedNodes, submittedNodes, nodesToSubmit } =
@@ -745,6 +753,7 @@ const editMode = reactive({
     form: false,
     graph: false,
 });
+let debounceTypingTimer = null;
 provide('editMode', editMode);
 provide('formOpen', formOpen);
 onBeforeUpdate(() => {
@@ -900,7 +909,9 @@ async function selectType(IRI, fromUser, fromBackButton) {
     if (config.value.use_service) {
         classRecordsLoading.value = true;
         // First fetch rdf data from configured service
-        var result = await fetchFromService('get-paginated-records', IRI, allPrefixes);
+        // The first fetch (when a class/type is selected) is always without a
+        // matching parameter, to get info about total items on server
+        var result = await fetchFromService('get-paginated-records-constrained', IRI, allPrefixes);
         console.log('fetchFromService result:');
         console.log(result);
         console.log('fetchFromService result.status:');
@@ -923,12 +934,7 @@ async function selectType(IRI, fromUser, fromBackButton) {
 
         // We want to keep track of the progress of currently fetched items
         // vs total items, so we need the total item count of the current class
-        var totalItems = result.url.reduce((sum, item) => {
-            if (item.success && item.pageMeta && typeof item.pageMeta.total === "number") {
-                return sum + item.pageMeta.total;
-            }
-            return sum;
-        }, 0);
+        var totalItems = getTotalItems(IRI)
         if (totalItems > 0) {
             totalItemCount.value = totalItems
         }
@@ -1168,33 +1174,75 @@ const filteredInstanceItemsComp = computed(() => {
 });
 
 watchEffect(async () => {
-    if (config.value?.use_service && searchText.value && hasUnfetchedPages(selectedIRI.value)) {
+    // If we are using a backend service AND
+    // there are a minimum amount of characters in the search field AND
+    // and the first page has already been fetched for the current IRI and searchText AND
+    // any of the configured service base URLs have unfetched pages for the current IRI AND searchText
+    if (config.value?.use_service &&
+        searchText.value && searchText.value.length >= configVarsMain.serviceConstrainedSearch.min_characters &&
+        firstPageFetched(selectedIRI.value, searchText.value) &&
+        hasUnfetchedPages(selectedIRI.value, searchText.value)) {
         // Only trigger fetch if not already fetching
         if (!isFetchingPage.value) {
-            await fetchNextPage();
+            await fetchNextPage(searchText.value);
         }
     }
 });
 
-async function fetchNextPage() {
-    if (isFetchingPage.value || !hasUnfetchedPages(selectedIRI.value)) return;
+watch(searchText, (newVal) => {
+    // clear previous timers
+    clearTimeout(debounceTypingTimer);
+
+    // wait X ms after last keystroke
+    debounceTypingTimer = setTimeout(() => {
+        onTypingPause(newVal);
+    }, configVarsMain.serviceConstrainedSearch.typing_debounce);
+});
+
+async function onTypingPause(textVal) {
+    console.log(`TYPING PAUSED: ${textVal}`)
+    if (!searchText.value || searchText.value.length < configVarsMain.serviceConstrainedSearch.min_characters ) return;
+    await fetchNextPage(searchText.value);
+}
+
+
+// User types, debounce effect monitors pauses and waits for configured time
+// before making the first constrained request.
+
+// After that, watcheffect checks that there is a minimum amount of characters
+// and that the first request has already been made for the current IRI and
+// matching parameter. If true, it will continue to fetch next pages for the
+// constrained request until finished.
+
+// Only fetch new items at bottom of scroller if there isnt any search text
+// Continued fetching of more items while there is search text is handled by
+// the watcheffect function.
+
+async function fetchNextPage(matchText='') {
+    console.log('Inside fetchNextPage')
+    // console.log(isFetchingPage.value)
+    // console.log(hasUnfetchedPages(selectedIRI.value, matchText))
+    if (isFetchingPage.value || !hasUnfetchedPages(selectedIRI.value, matchText)) return;
+    // console.log('Inside fetchNextPage going to fetch now')
     isFetchingPage.value = true;
     try {
         const result = await fetchFromService(
-            'get-paginated-records',
+            'get-paginated-records-constrained',
             selectedIRI.value,
-            allPrefixes
+            allPrefixes,
+            matchText
         );
         if (result.status === null) {
             console.error(result.error);
         }
-        getInstanceItems(); // rebuild local store
+        getInstanceItems(); // rebuild local list of items
     } catch (err) {
         console.error(err);
     } finally {
         isFetchingPage.value = false;
     }
 }
+
 
 async function handleInternalNavigation({ recordClass, recordPID }) {
     console.log('Received:', recordClass, recordPID);

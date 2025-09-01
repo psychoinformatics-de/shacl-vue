@@ -1,6 +1,6 @@
 // useData.js
 import { watch, reactive, toRaw } from 'vue';
-import { replaceServiceIdentifier } from '@/modules/utils';
+import { findObjectByKey, replaceServiceIdentifier } from '@/modules/utils';
 import { useToken } from '@/composables/tokens';
 import { ReactiveRdfDataset } from '@/classes/ReactiveRdfDataset';
 
@@ -67,10 +67,13 @@ export function useData(config) {
         };
     }
 
-    async function fetchFromService(endpoint, arg, prefixes) {
+    async function fetchFromService(endpoint, arg, prefixes, matchText = '') {
         // endpoint: the name of the endpoint defined in the config
+        // - e.g.: 'get-paginated-records'
         // arg: the URI of the parameter to be formatted and made part of the query string
-
+        // - e.g.: 'https://concepts.trr379.de/s/dfg-cp-survey/unreleased/DSCOrganization'
+        // prefixes: object with prefixes and associated namespaces, necessary for constructing GET request url
+        // matchText: text for constrained request
         try {
             const serviceBaseURL = config.value.service_base_url;
             const serviceEndpoints = config.value.service_endpoints;
@@ -116,21 +119,33 @@ export function useData(config) {
             const results_status = [];
 
             for (const baseUrl of baseUrls) {
-                if (endpoint == 'get-paginated-records') {
+                if (endpoint.includes('get-paginated-records')) {
                     // If this is the first time that a paginated request will be made
-                    // for this baseURL and for this class/arg, we set the page to 1
-                    // else we set it to the next page, unless the next page exceeds the
-                    // total number of pages, then we just skip.
-                    if ( fetchedPages[baseUrl][arg]?.lastPageFetched) {
-                        console.log(`Previous page fetched: ${fetchedPages[baseUrl][arg].lastPageFetched}`)
-                        console.log(`Total pages: ${fetchedPages[baseUrl][arg].totalPages}`)
-                        var nextPage = fetchedPages[baseUrl][arg].lastPageFetched + 1;
+                    // for this baseURL and for this class/arg and for this matching parameter,
+                    // we set the page to 1, else we set it to the next page, unless the next
+                    // page exceeds the total number of pages, then we just skip.
+                    if (
+                        !fetchedPages[baseUrl].hasOwnProperty(arg) ||
+                        (
+                            fetchedPages[baseUrl].hasOwnProperty(arg) &&
+                            !fetchedPages[baseUrl][arg].hasOwnProperty(matchText)
+                        )
+                    ) {
+                        query_string = base_query_string.replace('{page_number}', '1')
+                        query_string = query_string.replace('{match_string}', matchText)
+                    } else {
+                        console.log(`Previous page fetched: ${fetchedPages[baseUrl][arg][matchText].lastPageFetched}`)
+                        console.log(`Total pages: ${fetchedPages[baseUrl][arg][matchText].totalPages}`)
+                        
+                        var nextPage = fetchedPages[baseUrl][arg][matchText].lastPageFetched + 1;
                         console.log(`Next page to fetch: ${nextPage}`)
+
                         query_string = base_query_string.replace('{page_number}', nextPage.toString())
+                        query_string = query_string.replace('{match_string}', matchText)
                         console.log(`query_string: ${query_string}`)
-                        if (nextPage > fetchedPages[baseUrl][arg].totalPages) {
+                        if (nextPage > fetchedPages[baseUrl][arg][matchText].totalPages) {
                             console.log(
-                                `Skipping request: Last page of records already fetched for class '${arg}' at service URL '${baseUrl}' `
+                                `Skipping request: Last page of records already fetched for class '${arg}' and matching string '${matchText}' at service URL '${baseUrl}' `
                             );
                             // Add result to array, then continue to next baseUrl
                             results.push({
@@ -138,15 +153,14 @@ export function useData(config) {
                                 skipped: true,
                                 url: `${baseUrl}${query_string}`,
                                 allPagesFetched: true,
+                                // NOTE: this might be unnecessary given the new use of getTotalItems
                                 pageMeta: {
-                                    total: fetchedPages[baseUrl][arg]["totalItems"]
+                                    total: fetchedPages[baseUrl][arg][matchText]["totalItems"]
                                 }
                             });
                             results_status.push('skipped');
                             continue;
                         }
-                    } else {
-                        query_string = base_query_string.replace('{page_number}', '1')
                     }
                 }
                 const getURL = `${baseUrl}${query_string}`;
@@ -166,7 +180,7 @@ export function useData(config) {
 
                 fetchedRequests.add(getURL);
                 let result;
-                if (endpoint == 'get-paginated-records') {
+                if (endpoint.includes('get-paginated-records')) {
                     result = await getPaginatedRdfData(getURL);
                 } else {
                     result = await getRdfData(getURL);
@@ -196,13 +210,17 @@ export function useData(config) {
                     if (result.pageMeta){
                         console.log("Storing pagemeta now")
                         // add the complete getURL to the Set of fetched urls
-                        // The plan is to use it somewhare but this not used yet
+                        // The plan is to use it somewhere but this not used yet
                         fetchedPages[baseUrl].fetchedRequests.add(getURL)
                         // If, for the current baseurl, we have NOT fetched records
-                        // of the current class (arg) before, we need to set the first
-                        // value from the page metadata
+                        // of the current class (arg) AND matchText before, we need
+                        // to set the first value from the page metadata
+
                         if (!fetchedPages[baseUrl].hasOwnProperty(arg)) {
-                            fetchedPages[baseUrl][arg] = {
+                            fetchedPages[baseUrl][arg] = {}
+                        }
+                        if (!fetchedPages[baseUrl][arg].hasOwnProperty(matchText)) {
+                            fetchedPages[baseUrl][arg][matchText] = {
                                 totalItems: result.pageMeta.total,
                                 totalPages: result.pageMeta.pages,
                                 lastPageFetched: result.pageMeta.page,
@@ -211,9 +229,9 @@ export function useData(config) {
                             // If records for the current class (arg) have already been
                             // fetched before, only set the lastPageFetched value. we
                             // assume the rest stays constant.
-                            fetchedPages[baseUrl][arg]["lastPageFetched"] = result.pageMeta.page
+                            fetchedPages[baseUrl][arg][matchText]["lastPageFetched"] = result.pageMeta.page
                         }
-
+                        console.log("fetchedPages:")
                         console.log(toRaw(fetchedPages))
                     }
                 }
@@ -293,12 +311,51 @@ export function useData(config) {
 
     }
 
-    function hasUnfetchedPages(IRI) {
-        for (const topLevelKey in fetchedPages) {
-            const section = fetchedPages[topLevelKey];
-            if (section[IRI]) {
-                if (section[IRI].totalPages > section[IRI].lastPageFetched) {
-                    return true;
+    function hasUnfetchedPages(IRI, matchText='') {
+        let hasAnyIRI = false;
+        let hasAnyMatchText = false;
+        for (const serviceURL in fetchedPages) {
+            const endpoint = fetchedPages[serviceURL];
+            if (endpoint[IRI]) {
+                hasAnyIRI = true;
+                if (endpoint[IRI][matchText]) {
+                    hasAnyMatchText = true;
+                    if (endpoint[IRI][matchText].totalPages > endpoint[IRI][matchText].lastPageFetched) {
+                        return true;
+                    }
+                }
+            }
+        }
+        // Additional conditions:
+        if (!hasAnyIRI) {
+            return true;
+        }
+        if (hasAnyIRI && !hasAnyMatchText) {
+            return true;
+        }
+        return false;
+    }
+
+    function getTotalItems(IRI) {
+        let total = 0;
+        for (const serviceURL in fetchedPages) {
+            const endpoint = fetchedPages[serviceURL];
+            if (endpoint[IRI]) {
+                if (endpoint[IRI][''] && endpoint[IRI][''].totalItems) {
+                    total += endpoint[IRI][''].totalItems
+                }
+            }
+        }
+        return total;
+    }
+
+
+    function firstPageFetched(IRI, matchText='') {
+        for (const serviceURL in fetchedPages) {
+            const endpoint = fetchedPages[serviceURL];
+            if (endpoint[IRI]) {
+                if (endpoint[IRI][matchText] && endpoint[IRI][matchText].totalItems) {
+                    return true
                 }
             }
         }
@@ -312,5 +369,7 @@ export function useData(config) {
         fetchFromService,
         fetchedPages,
         hasUnfetchedPages,
+        getTotalItems,
+        firstPageFetched
     };
 }
