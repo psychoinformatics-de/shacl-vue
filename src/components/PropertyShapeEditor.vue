@@ -13,14 +13,13 @@
     >
         <template v-slot:activator="{ props }">   
             <v-row
-                v-bind="props"
                 align="center"
                 no-gutters
                 v-if="formData.content[localNodeUid] && show_field"
                 :class="compDisabled ? 'main-row disabled-row' : 'main-row'"
                 @mouseleave="showTooltip = false"
             >
-                <v-col cols="4">
+                <v-col cols="4" v-bind="props">
                     <span>
                         <span class="row-label"
                             >{{
