@@ -463,7 +463,7 @@ function onScrollEnd() {
 const debouncedScrollEnd = debounce(async () => {
     console.log("NEAR BOTTOM OF SCROLLER")
 
-    // Only fetch new items at bottom of scroller if there isnt any search text
+    // Only fetch new items at bottom of scroller if there is not any search text
     // Continued fetching of more items while there is search text will be handled
     // by the watcheffect function.
     if (searchText.value) {
@@ -1219,7 +1219,7 @@ async function onTypingPause(textVal) {
 // matching parameter. If true, it will continue to fetch next pages for the
 // constrained request until finished.
 
-// Only fetch new items at bottom of scroller if there isnt any search text
+// Only fetch new items at bottom of scroller if there is not any search text
 // Continued fetching of more items while there is search text is handled by
 // the watcheffect function.
 
