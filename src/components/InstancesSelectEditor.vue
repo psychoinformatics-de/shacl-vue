@@ -366,7 +366,7 @@ let debounceTypingTimer = null;
 
 
 const showClearIcon = computed(() => {
-    if (queryText.value || subValues.value.selectedInstance) {
+    if ((!menu.value) && subValues.value.selectedInstance) {
         return true;
     }
     return false;
@@ -442,6 +442,12 @@ const openMenu = () => {
     }
     menu.value = true;
 };
+
+watch(menu, (newVal) => {
+    if (!newVal) {
+        queryText.value = '';
+    }
+})
 
 async function populateList() {
     fetchingDataLoader.value = true;
