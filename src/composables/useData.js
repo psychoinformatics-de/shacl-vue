@@ -132,7 +132,7 @@ export function useData(config) {
                         )
                     ) {
                         query_string = base_query_string.replace('{page_number}', '1')
-                        query_string = query_string.replace('{match_string}', matchText)
+                        query_string = _handleMatchingParam(query_string, matchText)
                     } else {
                         console.log(`Previous page fetched: ${fetchedPages[baseUrl][arg][matchText].lastPageFetched}`)
                         console.log(`Total pages: ${fetchedPages[baseUrl][arg][matchText].totalPages}`)
@@ -141,7 +141,7 @@ export function useData(config) {
                         console.log(`Next page to fetch: ${nextPage}`)
 
                         query_string = base_query_string.replace('{page_number}', nextPage.toString())
-                        query_string = query_string.replace('{match_string}', matchText)
+                        query_string = _handleMatchingParam(query_string, matchText)
                         console.log(`query_string: ${query_string}`)
                         if (nextPage > fetchedPages[baseUrl][arg][matchText].totalPages) {
                             console.log(
@@ -363,6 +363,18 @@ export function useData(config) {
             }
         }
         return false;
+    }
+
+    function _handleMatchingParam(query_str, matchText) {
+        // config template is:
+        // "records/p/{name}?format=ttl&matching=%25{match_string}%25&size=100&page={page_number}"
+        let myStr;
+        if (matchText) {
+            myStr = query_str.replace('{match_string}', matchText)
+        } else {
+            myStr = query_str.replace('&matching=%25{match_string}%25', '')
+        }
+        return myStr
     }
 
     // expose managed state as return value
