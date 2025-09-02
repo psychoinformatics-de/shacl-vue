@@ -280,7 +280,10 @@ export function useData(config) {
             headers['X-DumpThings-Token'] = token.value;
         }
         try {
-            const response = await fetch(getURL, headers);
+            const response = await fetch(getURL, {
+                method: 'GET',
+                headers: headers,
+            });
             if (!response.ok) {
                 throw new Error(`Response status: ${response.status}`);
             }
