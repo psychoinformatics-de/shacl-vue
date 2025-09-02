@@ -45,6 +45,7 @@ const mainVarsToLoad = {
         visited_color: '#41b882',
         logo: 'shacl_vue_logo.svg',
     },
+    front_page_content: "",
     id_resolves_externally: [],
     use_token: false,
     token_info: '',
@@ -96,6 +97,23 @@ export function useConfig(url) {
         }
     });
 
+    async function loadMainPage(configVars) {
+        if (!configVars.frontPageContent) {
+            return null
+        }
+        try {
+            const response = await fetch(configVars.frontPageContent, { cache: 'no-cache' });
+            if (!response.ok) {
+                console.error(`Error fetching frontpage content file: ${response.statusText}`)
+                return null
+            }
+            return await response.text();
+        } catch (error) {
+            console.error('Error fetching frontpage content file:', error);
+            return null
+        }
+    }
+
     function loadConfigVars() {
         // only supports one level of recursion into objects
         for (const [key, val] of Object.entries(mainVarsToLoad)) {
@@ -117,5 +135,6 @@ export function useConfig(url) {
         configError,
         configVarsMain,
         loadConfigVars,
+        loadMainPage,
     };
 }

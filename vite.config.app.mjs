@@ -7,6 +7,8 @@ import ViteFonts from 'unplugin-fonts/vite';
 // Utilities
 import { defineConfig } from 'vite';
 import { fileURLToPath, URL } from 'node:url';
+import fs from 'fs';
+import path from 'path';
 
 // Git repo version
 import { execSync } from 'child_process';
@@ -35,6 +37,22 @@ export default defineConfig({
                 ],
             },
         }),
+        {
+            name: 'no-spa-fallback-for-html',
+            configureServer(server) {
+                server.middlewares.use((req, res, next) => {
+                if (req.url && req.url.endsWith('.html')) {
+                    const filePath = path.join(process.cwd(), 'public', req.url);
+                    if (!fs.existsSync(filePath)) {
+                    res.statusCode = 404;
+                    res.end('Not Found');
+                    return; // stop here
+                    }
+                }
+                next();
+                });
+            },
+        },
     ],
     define: {
         'process.env': {},

@@ -293,6 +293,15 @@
                                             </span>
                                         </span>
                                         <span
+                                            v-else-if="frontPageHTML"
+                                            style="
+                                                margin-top: 1em;
+                                                margin-left: 1em;
+                                            "
+                                        >
+                                            <div v-html="frontPageHTML"></div>
+                                        </span>
+                                        <span
                                             v-else
                                             style="
                                                 margin-top: 1em;
@@ -301,6 +310,7 @@
                                         >
                                             <em>Select a data type</em>
                                         </span>
+
                                     </v-col>
                                     <v-col v-if="formOpen" cols="9">
                                         <v-expansion-panels
@@ -532,7 +542,7 @@ const firstNavigationDone = ref(false);
 const mainContent = ref(null);
 const config_ready = ref(false);
 const itemRefs = ref([]);
-const { config, configFetched, configError, configVarsMain, loadConfigVars } =
+const { config, configFetched, configError, configVarsMain, loadConfigVars, loadMainPage} =
     useConfig(props.configUrl);
 const { rdfDS, getRdfData, fetchFromService, fetchedPages, hasUnfetchedPages, getTotalItems, firstPageFetched } = useData(config);
 const { classDS, getClassData } = useClasses(config);
@@ -542,6 +552,7 @@ const { formData, submitFormData, savedNodes, submittedNodes, nodesToSubmit } =
 const { token, setToken, clearToken } = useToken();
 const ID_IRI = ref('');
 const canEditClass = ref(true)
+const frontPageHTML = ref(null)
 watch(
     configFetched,
     async (newValue) => {
@@ -579,6 +590,8 @@ watch(
             } else {
                 document.title = 'shacl-vue';
             }
+            // Load main page content if provided
+            frontPageHTML.value = await loadMainPage(configVarsMain)
             config_ready.value = true;
             formData.ID_IRI = ID_IRI.value;
 
