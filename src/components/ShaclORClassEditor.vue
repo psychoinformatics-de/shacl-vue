@@ -5,7 +5,7 @@
         ref="fieldRef"
         :id="inputId"
         hide-details="auto"
-        :style="orElementSelected ? 'margin-bottom: 1em;' : ''"
+        :style="orElementSelected ? '' : ''"
     >
         <v-col>
         <v-row>
@@ -89,6 +89,43 @@
                                                 </v-row>
                                             </span>
                                         </span>
+                                        <template v-slot:append>
+                                            <v-tooltip
+                                                v-if="
+                                                    item.props.hasNote &&
+                                                    item.props[toCURIE(SKOS.note.value,allPrefixes)]
+                                                "
+                                                :text="item.props[toCURIE(SKOS.note.value,allPrefixes)]"
+                                                location="top"
+                                                max-width="400px"
+                                                max-height="400px"
+                                                persistent
+                                            >
+                                                <template v-slot:activator="{ props }">
+                                                    <v-icon
+                                                        icon="mdi-information-outline"
+                                                        size="small"
+                                                        v-bind="props"
+                                                    ></v-icon>
+                                                </template>
+                                            </v-tooltip>
+                                            <v-btn
+                                                v-if="
+                                                    configVarsMain.allowEditInstances === true ||
+                                                    configVarsMain.allowEditInstances.indexOf(item.props.itemQuad.object.value) >= 0
+                                                "
+                                                icon="mdi-pencil"
+                                                variant="text"
+                                                size="x-small"
+                                                @click="editInstanceItem(
+                                                    {
+                                                        quad: item.props.itemQuad,
+                                                        value: item.value
+                                                    }
+                                                )"
+                                                :disabled="!canEditClass"
+                                            ></v-btn>
+                                        </template>
                                     </v-list-item>
                                     <v-divider></v-divider>
                                     <v-divider></v-divider>
@@ -170,6 +207,7 @@ const menu = ref(false)
 const queryText = ref('');
 const queryLabel = ref('');
 const scrollerRef = ref(null);
+const editInstanceItem = inject('editInstanceItem');
 
 function onScrollEnd() {
     debouncedScrollEnd();
@@ -414,8 +452,10 @@ function getItemsToList() {
             title: quad.subject.value + extra,
             value: quad.subject.value,
             props: {
+                itemQuad: quad,
                 subtitle: toCURIE(quad.object.value, allPrefixes),
                 hasPrefLabel: false,
+                hasNote: false,
             },
         };
         relatedTrips.forEach((quad) => {
@@ -426,6 +466,10 @@ function getItemsToList() {
             if (quad.predicate.value == SKOS.prefLabel.value) {
                 item.props.hasPrefLabel = true;
                 item.props._prefLabel = quad.object.value;
+            }
+            if (quad.predicate.value == SKOS.note.value) {
+                item.props.hasNote = true;
+                item.props._note = quad.object.value;
             }
         });
         itemsToListArr.push(item);

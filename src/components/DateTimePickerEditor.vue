@@ -90,12 +90,9 @@ export const matchingLogic = (shape) => {
         if (shape[SHACL.nodeKind.value] == SHACL.Literal.value) {
             // sh:datatype exists
             if (shape.hasOwnProperty(SHACL.datatype.value)) {
-                // sh:datatype == xsd:dateTime ||
-                // sh:datatype == "https://www.w3.org/TR/NOTE-datetime"
+                // sh:datatype == xsd:dateTime
                 return (
-                    shape[SHACL.datatype.value] == XSD.dateTime.value ||
-                    shape[SHACL.datatype.value] ==
-                        'https://www.w3.org/TR/NOTE-datetime'
+                    shape[SHACL.datatype.value] == XSD.dateTime.value
                 );
             }
         }

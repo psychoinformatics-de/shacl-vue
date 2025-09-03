@@ -6,13 +6,17 @@
         :id="inputId"
         hide-details="auto"
     >
-        <v-menu v-model="menu" location="bottom">
+        <v-menu v-model="menu" location="bottom"  hide-details="auto">
             <template #activator="{ props }">
                 <v-text-field
                     v-model="queryText"
                     v-bind="props"
                     variant="outlined"
-                    placeholder="select an item"
+                    :placeholder="
+                    configVarsMain.serviceConstrainedSearch.min_characters ?
+                    `select an item | enter at least ${configVarsMain.serviceConstrainedSearch.min_characters} characters to search all records` :
+                    `search/select an item`
+                    "
                     style="margin-bottom: 0"
                     :label="queryLabel"
                     ref="inputRef"
@@ -22,6 +26,7 @@
                     "
                     :prepend-inner-icon="selectedItemIcon"
                     :loading="fetchingRecordLoader"
+                     hide-details="auto"
                 >
                     <template v-slot:append-inner>
                         <v-icon
@@ -35,11 +40,27 @@
                     </template>
                 </v-text-field>
             </template>
-            <v-card style="margin-top: 0">
+            <v-card style="margin-top: 0; padding-top: 6px;">
+                <v-progress-linear
+                    v-if="showProgress"
+                    v-model="currentProgress"
+                    height="10"
+                    :color="configVarsMain.appTheme.link_color"
+                    class="menu-progress"
+                    rounded
+                >
+                    <template v-slot:default="{ value }">
+                        <span class="progress-text" v-if="!fetchingDataLoader">
+                            <span v-if="fetchedItemCount">
+                                {{fetchedItemCount}}<span v-if="totalItemCount && totalItemCount > fetchedItemCount">/{{ totalItemCount }}</span>
+                            </span>
+                        </span>
+                    </template>
+                </v-progress-linear>
                 <span v-if="fetchingDataLoader">
                     <v-list-item
                         ><em
-                            >Fetching items (this might take a while)</em
+                            >Fetching records...</em
                         ></v-list-item
                     >
                     <v-skeleton-loader
@@ -50,27 +71,37 @@
                     <span v-if="canEditClass">
                         <v-list-item @click.stop :active="false">
                             <v-list-item-title>
-                                <v-menu v-model="addItemMenu" location="end">
-                                    <template v-slot:activator="{ props }">
-                                        <v-btn variant="tonal" v-bind="props"
-                                            >Add new item &nbsp;&nbsp;
-                                            <v-icon icon="item.icon"
-                                                >mdi-play</v-icon
-                                            ></v-btn
-                                        >
-                                    </template>
+                                <!-- When there is only one item, just show a button -->
+                                <template v-if="propClassList.length === 1">
+                                    <v-btn style="margin-top: 5px;" variant="tonal" @click.stop="handleAddItemClick(propClassList[0])">
+                                        Add new item &nbsp;&nbsp;
+                                        <v-icon icon="mdi-play"></v-icon>
+                                    </v-btn>
+                                </template>
+                                <!-- When there are more items, show the menu -->
+                                <template v-else>
+                                    <v-menu v-model="addItemMenu" location="end">
+                                        <template v-slot:activator="{ props }">
+                                            <v-btn style="margin-top: 5px;" variant="tonal" v-bind="props"
+                                                >Add new item &nbsp;&nbsp;
+                                                <v-icon icon="item.icon"
+                                                    >mdi-play</v-icon
+                                                ></v-btn
+                                            >
+                                        </template>
 
-                                    <v-list ref="addItemList">
-                                        <v-list-item
-                                            v-for="item in propClassList"
-                                            @click.stop="handleAddItemClick(item)"
-                                        >
-                                            <v-list-item-title>{{
-                                                item.title
-                                            }}</v-list-item-title>
-                                        </v-list-item>
-                                    </v-list>
-                                </v-menu>
+                                        <v-list ref="addItemList">
+                                            <v-list-item
+                                                v-for="item in propClassList"
+                                                @click.stop="handleAddItemClick(item)"
+                                            >
+                                                <v-list-item-title>{{
+                                                    item.title
+                                                }}</v-list-item-title>
+                                            </v-list-item>
+                                        </v-list>
+                                    </v-menu>
+                                </template>
                             </v-list-item-title>
                         </v-list-item>
                     </span>
@@ -125,6 +156,9 @@
                                                 ]
                                             }}
                                         </span>
+                                        <span v-else-if="item.props.hasDisplayLabel">
+                                            {{ item.props._displayLabel }}
+                                        </span>
                                         <span v-else>
                                             <span
                                                 v-for="(
@@ -139,6 +173,7 @@
                                                             'subtitle',
                                                             'name',
                                                             'value',
+                                                            'itemQuad',
                                                             RDF.type.value,
                                                             toCURIE(
                                                                 RDF.type.value,
@@ -160,14 +195,52 @@
                                                 </v-row>
                                             </span>
                                         </span>
+                                        <template v-slot:append>
+                                            <v-tooltip
+                                                v-if="
+                                                    item.props.hasNote &&
+                                                    item.props[toCURIE(SKOS.note.value,allPrefixes)]
+                                                "
+                                                :text="item.props[toCURIE(SKOS.note.value,allPrefixes)]"
+                                                location="top"
+                                                max-width="400px"
+                                                max-height="400px"
+                                                persistent
+                                            >
+                                                <template v-slot:activator="{ props }">
+                                                    <v-icon
+                                                        icon="mdi-information-outline"
+                                                        size="small"
+                                                        v-bind="props"
+                                                    ></v-icon>
+                                                </template>
+                                            </v-tooltip>
+                                            <v-btn
+                                                v-if="
+                                                    configVarsMain.allowEditInstances === true ||
+                                                    configVarsMain.allowEditInstances.indexOf(item.props.itemQuad.object.value) >= 0
+                                                "
+                                                icon="mdi-pencil"
+                                                variant="text"
+                                                size="x-small"
+                                                @click="editInstanceItem(
+                                                    {
+                                                        quad: item.props.itemQuad,
+                                                        value: item.value
+                                                    }
+                                                )"
+                                                :disabled="!canEditClass"
+                                            ></v-btn>
+                                        </template>
                                     </v-list-item>
                                     <v-divider></v-divider>
                                     <v-divider></v-divider>
                                 </DynamicScrollerItem>
                             </template>
                             <template #after>
-                                <div v-if="isFetchingPage" :style="'margin: auto; margin-bottom: 2em; text-align: center; color: ' + configVarsMain.appTheme.link_color + ';'">
-                                    <v-progress-circular indeterminate :size="26" :width="4"></v-progress-circular>
+                                <div class="after-loader" :style="'color: ' + configVarsMain.appTheme.link_color + ';'" >
+                                    <v-progress-circular v-show="showFetchingPageLoader" indeterminate :size="26" :width="4"></v-progress-circular>
+                                    <span v-if="!showFetchingPageLoader && filteredItems.length == 0" style="color: grey"><em>No items</em></span>
                                 </div>
                             </template>
                         </DynamicScroller>
@@ -185,6 +258,7 @@
 import {
     inject,
     watch,
+    watchEffect,
     onBeforeMount,
     onMounted,
     ref,
@@ -195,7 +269,7 @@ import {
 import { useRules } from '../composables/rules';
 import { DataFactory } from 'n3';
 import { SHACL, RDF, RDFS, SKOS } from '@/modules/namespaces';
-import { findObjectByKey, getAllClasses } from '../modules/utils';
+import { findObjectByKey, getAllClasses, hasConfigDisplayLabel, getConfigDisplayLabel} from '../modules/utils';
 import { toCURIE, toIRI } from 'shacl-tulip';
 import { useRegisterRef } from '../composables/refregister';
 import { useBaseInput } from '@/composables/base';
@@ -219,23 +293,29 @@ const props = defineProps({
 // ---- //
 // Data //
 // ---- //
-
+const showProgress = ref(true);
+const totalItemCount = ref(0);
+const fetchedItemCount = ref(0);
+const showFetchingPageLoader = ref(false)
+let hideTimeout = null
 const inputRef = ref(null);
 const queryText = ref('');
 const queryLabel = ref('');
 const menu = ref(false);
 const addItemMenu = ref(false);
 const scrollerRef = ref(null);
-
 const itemsToList = ref([]);
 const fetchingDataLoader = ref(false);
 const fetchingRecordLoader = ref(false);
+const editInstanceItem = inject('editInstanceItem');
 const rdfDS = inject('rdfDS');
 const allPrefixes = inject('allPrefixes');
 const classDS = inject('classDS');
 const config = inject('config');
 const fetchFromService = inject('fetchFromService');
 const hasUnfetchedPages = inject('hasUnfetchedPages');
+const getTotalItems = inject('getTotalItems');
+const firstPageFetched = inject('firstPageFetched');
 const isFetchingPage = ref(false);
 const hasOpenedMenu = ref(false);
 const configVarsMain = inject('configVarsMain')
@@ -282,10 +362,11 @@ const saveDialogForm = () => {
     newNodeIdx.value = null;
 };
 provide('saveFormHandler', saveDialogForm);
+let debounceTypingTimer = null;
 
 
 const showClearIcon = computed(() => {
-    if (queryText.value || subValues.value.selectedInstance) {
+    if ((!menu.value) && subValues.value.selectedInstance) {
         return true;
     }
     return false;
@@ -309,10 +390,14 @@ function setSelectedValue() {
             subValues.value.selectedInstance = inst;
             queryLabel.value = subValues.value.selectedInstance.props._prefLabel
                 ? subValues.value.selectedInstance.props._prefLabel
-                : '(selected item name unknown)';
+                : (
+                    subValues.value.selectedInstance.props._displayLabel ?
+                    subValues.value.selectedInstance.props._displayLabel :
+                    '(selected item name unknown)'
+                )
         } else {
             subValues.value.selectedInstance = null;
-            queryLabel.value = '';
+            queryLabel.value = props.modelValue;
         }
     }
 }
@@ -344,23 +429,50 @@ onBeforeMount(async () => {
         setSelectedValue();
         scrollToSelectedItem();
         fetchingRecordLoader.value = false;
+        fetchedItemCount.value = itemsToList.value.length;
+        console.log("fetchedItemCount.value")
+        console.log(fetchedItemCount.value)
     }
 });
 
 const openMenu = () => {
     if (hasOpenedMenu.value == false) {
         populateList();
-        hasOpenedMenu.value == true
+        hasOpenedMenu.value = true
     }
     menu.value = true;
 };
+
+watch(menu, (newVal) => {
+    if (!newVal) {
+        queryText.value = '';
+    }
+})
 
 async function populateList() {
     fetchingDataLoader.value = true;
     if (config.value.use_service) {
         try {
-            await getAllRecordsFromService(allclass_array);
+            const result = await fetchFromService(
+                'get-paginated-records-constrained',
+                propClass.value,
+                allPrefixes
+            );
+            if (result.status === null) {
+                console.error(result.error);
+            }
+            console.log("populateList fetch from service result:")
+            console.log(result)
+            // We need to get total item count here in order to display progress
+            totalItemCount.value = getTotalItems(propClass.value)
+            console.log("totalItemCount.value")
+            console.log(totalItemCount.value)
             getItemsToList();
+            fetchedItemCount.value = itemsToList.value.length;
+            console.log("fetchedItemCount.value")
+            console.log(fetchedItemCount.value)
+        } catch (err) {
+            console.error(err);
         } finally {
             fetchingDataLoader.value = false;
         }
@@ -372,9 +484,33 @@ async function populateList() {
     scrollToSelectedItem();
 }
 
+
+watch(isFetchingPage, (newVal) => {
+    if (newVal) {
+        // If fetching starts → show immediately
+        if (hideTimeout) {
+            clearTimeout(hideTimeout)
+            hideTimeout = null
+        }
+        showFetchingPageLoader.value = true
+    } else {
+        // If fetching stops → wait before hiding
+        hideTimeout = setTimeout(() => {
+            showFetchingPageLoader.value = false
+            hideTimeout = null
+        }, 1000)
+    }
+})
+
 // ------------------- //
 // Computed properties //
 // ------------------- //
+
+const currentProgress = computed(() => {
+    if (fetchingDataLoader.value) return 0
+    if (!fetchedItemCount.value || !totalItemCount.value) return 0
+    return  Math.ceil(fetchedItemCount.value / totalItemCount.value * 100)
+})
 
 function onScrollEnd() {
     debouncedScrollEnd();
@@ -382,22 +518,15 @@ function onScrollEnd() {
 
 const debouncedScrollEnd = debounce(async () => {
     console.log("NEAR BOTTOM OF SCROLLER")
+    // Only fetch new items at bottom of scroller if there is not any queryText
+    // Continued fetching of more items while there is queryText will be handled
+    // by the watcheffect function.
+    if (queryText.value) {
+        return
+    }
     if (config.value.use_service) {
-        isFetchingPage.value = true;
-        try {
-            for (const iri of allclass_array) {
-                if (hasUnfetchedPages(iri)) {
-                    var result = await fetchFromService('get-paginated-records', iri, allPrefixes)
-                    if (result.status === null) {
-                        console.error(result.error);
-                    }
-                }
-            }
-            getItemsToList();
-        }
-        finally {
-            isFetchingPage.value = false;
-        }
+        if (isFetchingPage.value) return;
+        fetchNextPage(propClass.value)
     }
 }, 1000);
 
@@ -430,6 +559,9 @@ watch(
                 // }
                 // First, let's make sure the list is updated to include the recently saved node:
                 getItemsToList();
+                fetchedItemCount.value = itemsToList.value.length;
+                console.log("fetchedItemCount.value")
+                console.log(fetchedItemCount.value)
                 // Then we need to set the selectedInstance. The itemsToList has items as objects,
                 // with value = quad.subject.value.
                 // We need to find the item that has the value being the same as the saved node's node_iri:
@@ -440,6 +572,13 @@ watch(
                 );
                 if (inst) {
                     subValues.value.selectedInstance = inst;
+                    queryLabel.value = subValues.value.selectedInstance.props._prefLabel
+                    ? subValues.value.selectedInstance.props._prefLabel
+                    : (
+                        subValues.value.selectedInstance.props._displayLabel ?
+                        subValues.value.selectedInstance.props._displayLabel :
+                        '(selected item name unknown)'
+                    )
                 } else {
                     console.log(
                         'A node was recently saved but it could not be found in the itemsToList and was therefore not set as the selectedItem'
@@ -460,6 +599,9 @@ watch(
 const debouncedUpdate = debounce(() => {
     console.log('CHECK: graphdata instanceselecteditor');
     getItemsToList();
+    fetchedItemCount.value = itemsToList.value.length;
+    console.log("fetchedItemCount.value")
+    console.log(fetchedItemCount.value)
     setSelectedValue();
 }, 500);
 watch(() => rdfDS.data.graphChanged, debouncedUpdate, { deep: true });
@@ -501,8 +643,12 @@ function selectItem(item) {
     console.log(item);
     subValues.value.selectedInstance = item;
     queryLabel.value = subValues.value.selectedInstance.props._prefLabel
-        ? subValues.value.selectedInstance.props._prefLabel
-        : '(selected item name unknown)';
+                ? subValues.value.selectedInstance.props._prefLabel
+                : (
+                    subValues.value.selectedInstance.props._displayLabel ?
+                    subValues.value.selectedInstance.props._displayLabel :
+                    '(selected item name unknown)'
+                )
     queryText.value = '';
     menu.value = false;
 }
@@ -522,14 +668,6 @@ function handleAddItemClick(item) {
     console.log(newNodeIdx.value);
     addItemMenu.value = false;
     addForm(selectedAddItemShapeIRI.value, newNodeIdx.value, 'new');
-}
-
-async function getAllRecordsFromService(iri_array) {
-    const fetchPromises = iri_array.map((iri) =>
-        fetchFromService('get-paginated-records', iri, allPrefixes)
-    );
-    const results = await Promise.allSettled(fetchPromises);
-    return results;
 }
 
 function getItemsToList() {
@@ -585,20 +723,39 @@ function getItemsToList() {
             title: quad.subject.value + extra,
             value: quad.subject.value,
             props: {
+                itemQuad: quad,
                 subtitle: toCURIE(quad.object.value, allPrefixes),
                 hasPrefLabel: false,
+                hasDisplayLabel: false,
+                hasNote: false,
             },
         };
+        let labelTemplate = hasConfigDisplayLabel(quad.object.value, allPrefixes, configVarsMain)
+        let labelParts = {}
         relatedTrips.forEach((quad) => {
-            item.props[toCURIE(quad.predicate.value, allPrefixes)] = toCURIE(
-                quad.object.value,
-                allPrefixes
-            );
+            let predCuri = toCURIE(quad.predicate.value, allPrefixes)
+            item.props[predCuri] = toCURIE(quad.object.value, allPrefixes);
             if (quad.predicate.value == SKOS.prefLabel.value) {
                 item.props.hasPrefLabel = true;
                 item.props._prefLabel = quad.object.value;
             }
+            if (quad.predicate.value == SKOS.note.value) {
+                item.props.hasNote = true;
+                item.props._note = quad.object.value;
+            }
+            // If current predicate is used for display label generation, store it
+            if ( labelTemplate && labelTemplate.includes(predCuri)) {
+                labelParts[predCuri] = quad.object.value
+            }
         });
+        // Generate display label if possible
+        if (labelTemplate) {
+            let displayLabel = getConfigDisplayLabel(labelTemplate, labelParts, configVarsMain)
+            if (displayLabel) {
+                item.props.hasDisplayLabel = true;
+                item.props._displayLabel = displayLabel;
+            }
+        }
         itemsToListArr.push(item);
     });
     itemsToList.value = itemsToListArr;
@@ -621,6 +778,62 @@ const filteredItems = computed(() => {
                 .localeCompare(b.props._prefLabel?.toLowerCase())
         );
 });
+
+watchEffect(async () => {
+    console.log("WATCHEFFECT")
+    if (config.value?.use_service &&
+        queryText.value && queryText.value.length >= configVarsMain.serviceConstrainedSearch.min_characters &&
+        firstPageFetched(propClass.value, queryText.value) &&
+        hasUnfetchedPages(propClass.value, queryText.value)) {
+        // Only trigger fetch if not already fetching
+        if (!isFetchingPage.value) {
+            await fetchNextPage(propClass.value, queryText.value);
+        }
+    }
+});
+
+async function fetchNextPage(iri, matchText='') {
+    if (!hasUnfetchedPages(iri, matchText)) {
+        console.log(`Does not have unfetched pages: ${iri}`)
+        return [];
+    }
+    isFetchingPage.value = true;
+    let result = null
+    try {
+        result = await fetchFromService(
+            'get-paginated-records-constrained',
+            iri,
+            allPrefixes,
+            matchText
+        );
+        if (result.status === null) {
+            console.error(result.error);
+        }
+        getItemsToList();
+    } catch (err) {
+        console.error(err);
+    } finally {
+        isFetchingPage.value = false;
+        return result
+    }   
+}
+
+watch(queryText, (newVal) => {
+    // clear previous timers
+    clearTimeout(debounceTypingTimer);
+    // wait X ms after last keystroke
+    debounceTypingTimer = setTimeout(() => {
+        onTypingPause(newVal);
+    }, configVarsMain.serviceConstrainedSearch.typing_debounce);
+});
+
+async function onTypingPause(textVal) {
+    console.log(`TYPING PAUSED: ${textVal}`)
+    if (!queryText.value || queryText.value.length < configVarsMain.serviceConstrainedSearch.min_characters ) return;
+    await fetchNextPage(propClass.value, queryText.value);
+}
+
+
 </script>
 
 <!-- Component matching logic -->
@@ -643,5 +856,20 @@ export const matchingLogic = (shape) => {
 <style scoped>
 .info-tooltip {
     cursor: pointer;
+}
+.menu-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+.after-loader {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.progress-text {
+    font-size: xx-small;
 }
 </style>

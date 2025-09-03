@@ -27,7 +27,7 @@ export function useRules(propShape) {
             // to show upon validation error, and then displayed. If not, display default message.
             const message = propShape.hasOwnProperty(SHACL.message.value)
                 ? String(propShape[SHACL.message.value])
-                : 'Regular expression matching failed';
+                : 'Input does not match the required format';
             // Required rule -> “Field can't be empty”
             // Pattern rule -> “Field doesn't match the regex”
             // Let “required” handle emptiness

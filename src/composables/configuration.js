@@ -11,8 +11,27 @@ const mainVarsToLoad = {
     app_name: 'shacl-vue',
     page_title: 'shacl-vue',
     show_shapes_wo_id: true,
+    show_classes: [],
+    show_classes_with_prefix: [],
     hide_classes: [],
+    hide_classes_with_prefix: [],
     no_edit_classes: [],
+    allow_edit_instances: [],
+    editor_selection: {},
+    editor_config: {
+        W3CISO8601YearEditor: {
+            yearStart: 1925,
+            yearEnd: 2077
+        },
+        W3CISO8601YearMonthEditor: {
+            yearStart: 1925,
+            yearEnd: 2077
+        },
+    },
+    display_name_autogenerate: {},
+    display_name_autogenerate_placeholder: {
+        default: "[?]"
+    },
     id_autogenerate: {},
     prefixes: {},
     class_icons: {},
@@ -26,12 +45,18 @@ const mainVarsToLoad = {
         visited_color: '#41b882',
         logo: 'shacl_vue_logo.svg',
     },
+    front_page_content: "",
     id_resolves_externally: [],
     use_token: false,
     token_info: '',
     token_info_url: '',
     use_service: false,
+    service_constrained_search: {
+        min_characters: 4,
+        typing_debounce: 800,
+    },
     class_name_display: 'name',
+    footer_links: [],
 };
 
 export function useConfig(url) {
@@ -72,6 +97,23 @@ export function useConfig(url) {
         }
     });
 
+    async function loadMainPage(configVars) {
+        if (!configVars.frontPageContent) {
+            return null
+        }
+        try {
+            const response = await fetch(configVars.frontPageContent, { cache: 'no-cache' });
+            if (!response.ok) {
+                console.error(`Error fetching frontpage content file: ${response.statusText}`)
+                return null
+            }
+            return await response.text();
+        } catch (error) {
+            console.error('Error fetching frontpage content file:', error);
+            return null
+        }
+    }
+
     function loadConfigVars() {
         // only supports one level of recursion into objects
         for (const [key, val] of Object.entries(mainVarsToLoad)) {
@@ -93,5 +135,6 @@ export function useConfig(url) {
         configError,
         configVarsMain,
         loadConfigVars,
+        loadMainPage,
     };
 }

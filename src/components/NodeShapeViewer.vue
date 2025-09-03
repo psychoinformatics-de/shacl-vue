@@ -3,7 +3,7 @@
         <v-card-title class="text-h6">
             <v-icon>{{ getClassIcon(props.classIRI) }}</v-icon
             >&nbsp;
-            {{ record.prefLabel ? record.prefLabel : record.title }}
+            {{ record.prefLabel ? record.prefLabel : ( record.displayLabel ? record.displayLabel : record.title) }}
             <span v-if="resolveExternally">
                 <sup
                     ><a
@@ -17,17 +17,17 @@
         </v-card-title>
         <v-card-subtitle>
             Type: <em>{{ toCURIE(record.subtitle, allPrefixes) }}</em>
-            &nbsp;
             <span v-if="!props.formOpen">
                 <v-tooltip text="Edit record" location="bottom">
                     <template v-slot:activator="{ props }">
+                        &nbsp;
                         <v-btn
                             icon="mdi-pencil"
                             variant="tonal"
                             size="x-small"
                             class="rounded-lg"
                             @click="editInstanceItem(record)"
-                            :disabled="props.formOpen"
+                            :disabled="props.formOpen || !canEditClass"
                             v-bind="props"
                         ></v-btn>
                     </template>
@@ -206,6 +206,8 @@ import {
     dlTTL,
     toSnakeCase,
     quadsToTTL,
+    hasConfigDisplayLabel,
+    getConfigDisplayLabel,
 } from '../modules/utils';
 import { RDF, SHACL } from '@/modules/namespaces';
 // Define component properties
@@ -239,8 +241,8 @@ const ttlDialog_icon = ref('');
 const ttlDialog_name = ref('');
 const ttlDialog_type = ref('');
 const ttlDialog_content = ref('');
-
 const fetchingRecords = ref(false);
+const canEditClass = ref(false)
 
 const emit = defineEmits(['namedNodeSelected']);
 function selectNamedNode(recordClass, recordPID) {
@@ -249,10 +251,12 @@ function selectNamedNode(recordClass, recordPID) {
 provide('selectNamedNode', selectNamedNode);
 
 onBeforeMount(async () => {
+    canEditClass.value = configVarsMain.noEditClasses.indexOf(props.classIRI) < 0 ? true : false
     fetchingRecords.value = true;
     await updateRecord(true);
     fetchingRecords.value = false;
-    if (configVarsMain['idResolvesExternally'].indexOf(props.classIRI) >= 0) {
+    let recordPIDprefix = toCURIE(props.quad.subject.value, allPrefixes, 'parts').prefix;
+    if (configVarsMain['idResolvesExternally'].indexOf(recordPIDprefix) >= 0) {
         resolveExternally.value = true;
     }
 });
@@ -311,6 +315,7 @@ async function updateRecord(fetchData) {
     record.value = props.quad.subject.value;
     record.subtitle = props.quad.object.value;
     record.relatedQuads = rdfDS.getSubjectTriples(props.quad.subject);
+    record.relatedTriples = {}
     record.prefLabel = getPrefLabel(props.quad.subject, rdfDS, allPrefixes);
     record.triples = {
         Literal: {},
@@ -318,8 +323,18 @@ async function updateRecord(fetchData) {
         NamedNode: {},
     };
     for (const rQ of record.relatedQuads) {
+        let predCuri = toCURIE(rQ.predicate.value, allPrefixes)
+        record.relatedTriples[predCuri] = rQ.object.value
         await addRecordProperty(rQ, fetchData);
     }
+    record.displayLabel = ''
+    let labelTemplate = hasConfigDisplayLabel(record.quad.object.value, allPrefixes, configVarsMain)
+    if (labelTemplate) {
+        let displayLabel = getConfigDisplayLabel(labelTemplate, record.relatedTriples, configVarsMain)
+        if (displayLabel) {
+            record.displayLabel = displayLabel;
+        }
+    }    
 }
 
 async function addRecordProperty(quad, fetchData) {

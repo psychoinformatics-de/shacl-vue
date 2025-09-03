@@ -23,7 +23,8 @@
                                         getDisplayName(
                                             r.nodeshape_iri,
                                             configVarsMain,
-                                            allPrefixes
+                                            allPrefixes,
+                                            shapesDS.data.nodeShapes[r.nodeshape_iri]
                                         )
                                     }}:&nbsp;&nbsp;
                                     {{ r.node_iri }}
@@ -79,11 +80,20 @@
                     <br /><br />
                     <span v-for="(e, i) in responseErrors">
                         <strong>Error {{ i + 1 }}</strong> <br />
-                        <strong>Status: </strong>{{ e.error.status }} <br />
+                        <strong>Status: </strong>{{ e.status }}  {{ e.statusText }}<br />
                         <strong>Message: </strong>{{ e.message }} <br />
-                        <strong>Stack: </strong> <br />
+                        <div style="display: flex;">
+                            <strong>Response body: </strong>
+                            <v-btn
+                                :icon="copiedIndex === i ? 'mdi-check' : 'mdi-content-copy'"
+                                :style="copiedIndex === i ? 'color: green;' : ''"
+                                @click="copyErrorText(e.body, i)"
+                                density="compact" size="small" variant="text"
+                                style="margin-left: auto;"
+                            ></v-btn>
+                        </div>
                         <small>
-                            <pre class="error-stack">{{ e.error.stack }}</pre>
+                            <pre class="error-stack">{{ e.body || '(no body returned)' }}</pre>
                         </small>
                     </span>
                 </span>
@@ -139,6 +149,7 @@ const responseTextFull = ref('');
 const responseErrors = ref([]);
 
 const failureToggleIcon = ref('mdi-chevron-right');
+const copiedIndex = ref(null);
 
 function toggleFailureResponse() {
     showCompleteFailure.value = !showCompleteFailure.value;
@@ -191,12 +202,10 @@ async function submit() {
             Array.isArray(submit_result.error) &&
             submit_result.error.length > 0
         ) {
-            responseErrors.value = [];
+            responseErrors.value = submit_result.error;
             for (var e of submit_result.error) {
-                console.error(e.error);
-                responseErrors.value.push(e);
+                console.error(e);
             }
-            // responseTextFull.value += "\n\nDetails:\n" + submit_result.details.join("\n\n");
         }
     }
     responseReceived.value = true;
@@ -213,6 +222,18 @@ onBeforeMount(() => {
         tokenExists.value = true;
     }
 });
+
+async function copyErrorText(text, i) {
+    try {
+        await navigator.clipboard.writeText(text);
+        copiedIndex.value = i;
+        setTimeout(() => {
+            if (copiedIndex.value === i) copiedIndex.value = null;
+        }, 1000);
+    } catch (err) {
+        console.error('Clipboard copy failed:', err);
+    }
+}
 </script>
 
 <style scoped>

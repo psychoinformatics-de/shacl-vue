@@ -2,13 +2,8 @@
  * @module io.js
  * @description This module provides common functionality for reading and writing
  * to files or endpoints
- *
- * It depends mainly on https://github.com/rdfjs-base/fetch-lite for reading RDF data
- * into streams and writing stream data to serialized RDF formats
  */
 
-import formats from '@rdfjs/formats-common';
-import fetch from '@rdfjs/fetch-lite';
 import { Writer } from 'n3';
 
 export async function postRDF(
@@ -35,25 +30,34 @@ export async function postRDF(
 
         const response = await fetch(url, {
             method: 'POST',
-            formats,
             headers,
             body,
-            prefixes,
         });
 
         if (!response.ok) {
-            // throw new Error(`readRDF error: ${res.statusText}`)
-            const code = response.status || 'Unknown';
-            const error = new Error(`postRDF error: HTTP ${code} from ${url}`);
-            error.status = code;
-            error.url = url;
-            error.response = response;
-            throw error;
-        }
+            let errorBody = null;
+            try {
+                var jsonresponse = await response.json()
+                errorBody = jsonresponse.detail
+            } catch {
+                errorBody = '<could not read response body>';
+            }
 
+            var res = {
+                success: false,
+                url,
+                status: response.status,
+                statusText: response.statusText,
+                body: errorBody,
+                message: `postRDF error: HTTP ${response.status} ${response.statusText} from ${url}`,
+            };
+            return res;
+        }
         return {
             success: true,
-            url: url,
+            url,
+            status: response.status,
+            statusText: response.statusText,
             message: 'RDF data POSTed successfully',
         };
     } catch (error) {
@@ -62,6 +66,7 @@ export async function postRDF(
             error,
             url: url,
             message: error.message,
+            stack: error.stack,
         };
     }
 }
