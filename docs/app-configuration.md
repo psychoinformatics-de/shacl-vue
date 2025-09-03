@@ -33,7 +33,7 @@ Current configuration options include:
 - `source_code_url` is the URL of the source code repository for the specific `shacl-vue` instance
 - `footer_links` is an array of objects, where each object contains the `url` and display `text` for a link that should be included in the application footer
 
-The HTML page title is set in [`shacl-vue/src/components/ShaclVue.vue`](https://github.com/psychoinformatics-de/shacl-vue/blob/main/src/components/ShaclVue.vue) based on values in the configuration file (`config.json`). The app uses the following priority when setting the title:
+The HTML page title of the main application is set in [`shacl-vue/src/components/ShaclVue.vue`](https://github.com/psychoinformatics-de/shacl-vue/blob/main/src/components/ShaclVue.vue) based on values in the configuration file (`config.json`). The app uses the following priority when setting the title:
 
 1. IF `page_title` is defined, use it;
 2. ELSE IF `app_name` is defined, use it;
@@ -41,7 +41,7 @@ The HTML page title is set in [`shacl-vue/src/components/ShaclVue.vue`](https://
 
 URLs should be unique and resolvable online URIs.
 
-## Theming settings (`app_theme`)
+## Theming settings
 
 ```json
 {
@@ -52,9 +52,12 @@ URLs should be unique and resolvable online URIs.
         "vistied_color": "",
         "panel_color": "",
         "logo": "",
+    },
+    "front_page_content": ""
 }
 ```
 
+Colors schemes and application logo can be set via the `app_theme` option:
 - `link_color` is the default link color
 - `hover_color` is the link hover color
 - `active_color` is the link active state color
@@ -63,6 +66,8 @@ URLs should be unique and resolvable online URIs.
 - `logo` is the path to the logo used in the HTML page header.  The logo path should either be a unique and absolute online URI, or a path relative to `shacl-vue/public` in the case of a file local to the repository.
 
 All colors should be defined using hexadecimal color codes (#RRGGBB).
+
+The `front_page_content` option allows the inclusion of arbitrary HTML content as the front page of a `shacl-vue` deployment, which will display when no data type is selected from the left-hand-side panel. The `front_page_content` option should contain the name of the HTML page to be included (e.g. `frontpage.html`), the file content should be standard HTML wrapped in `<html></html>` tags, and the file itself should be placed in the root distribution directory of the deployment.
 
 ##  [Application inputs](./app-inputs) sources
 
@@ -222,7 +227,11 @@ While source data is specified in the [Application Inputs section](./app-inputs)
     },
     "service_fetch_before": {
         "": []
-    }
+    },
+    "service_constrained_search": {
+        "min_characters": 4,
+        "typing_debounce": 800,
+    },
 }
 ```
 
@@ -233,24 +242,32 @@ While source data is specified in the [Application Inputs section](./app-inputs)
 - `service_base_url` is a list of URLs (minimum 1) of the integrated service. The `url` property's value should be the actual base URL, and the `type` property's value can be either `read` or `write`. This option allows a single `shacl-vue` instance to be integrated with multiple services, for example in curation use cases where user-submitted records should be pushed to a `write` backend, while records that the user should be able to see but not edit will be retrieved from a `read` backend.
 - `service_endpoints` is a mapping to endpoint templates, for the custom part of the endpoint URL that will be appended to the base URL before a request is made. These templates are typically useful for encoding query parameters. Template variables are included in curly brackets, and current options are `{name}` and `{curie}`, which follow the same definitions as given above for the `class_name_display` option. The `service_endpoint` options included in the example below are specific to integration with the `dump-things-service`.
 - `service_fetch_before` is a list of class URLs indicating from which endpoints records should be fetched upon application startup, i.e. before these classes are actually selected and viewed by the user.
+- `service_constrained_search` supports `shacl-vue`'s type-ahead search functionality in combination with the `get-paginated-records-constrained` service endpoint (see example below). This option is an object with two fields:
+   - `min_characters`: the minimum number of characters that a user should type before a constrained query is made using the `get-paginated-records-constrained` service endpoint; defaults to 4.
+   - `typing_debounce`: the period (in milliseconds) that qualifies as a pause in typing, triggering the constrained request to be sent; defaults to 800 ms.
 
 URLs should be unique and absolute online URIs.
 
 ### Example
 
-An example usage of `service endpoints` and `service_fetch_before` is as follows:
+An example usage of the `service_fetch_before`, `service_endpoints`, and `service_constrained_search` options is given below. Of particular note is the `get-paginated-records-constrained` endpoint, which when used for a request will return paginated records for which the JSON-string representation matches the included query parameter. This is used for `shacl-vue`'s type-ahead search functionality, which is further configurable using the `service_constrained_search` option:
 
 ```json
 {
+    "service_fetch_before": {
+        "get-record": [],
+        "get-records": ["https://concepts.inm7.de/s/flat-base/unreleased/Person"]
+    },
     "service_endpoints":  {
         "post-record": "record/{name}?format=ttl",
         "get-record": "record?pid={curie}&format=ttl",
         "get-records": "records/{name}?format=ttl",
-        "get-paginated-records": "records/p/{name}?format=ttl&size=50&page={page_number}"
+        "get-paginated-records": "records/p/{name}?format=ttl&size=50&page={page_number}",
+        "get-paginated-records-constrained": "records/p/{name}?format=ttl&matching=%25{match_string}%25&size=100&page={page_number}"
     },
-    "service_fetch_before": {
-        "get-record": [],
-        "get-records": ["https://concepts.inm7.de/s/flat-base/unreleased/Person"]
+    "service_constrained_search": {
+        "min_characters": 4,
+        "typing_debounce": 800,
     }
 }
 ```
