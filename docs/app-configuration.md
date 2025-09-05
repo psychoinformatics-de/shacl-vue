@@ -171,6 +171,8 @@ The defaults for all input source URLs are the repository-local demo files.
 
 In the example below, the `editor_selection` option specifies that, if a SHACL property shape is encountered where the `sh:datatype` is equal to `mydatetime:year`, the `W3CISO8601YearEditor` should be selected and rendered. The `editor_config` option specifies that, for the `W3CISO8601YearEditor`, the `yearStart` and `yearEnd` options should be set to `1925` and `2077`, which for this component defines the starting and ending years that together make up the range of options in the rendered year-picker.
 
+The `editor_config` option also specifies that, for the `InstancesSelectEditor`, the `fetchingsRecordsText` should be set to `Fetching records (this might take a while)...`, which for this component defines the text that a user sees when more records are fetched from a configured service endpoint. This option is useful for providing users with an explanation of why a request might be taking a long time. The text displayed by default is `Fetching records...`.
+
 ```json
 {
     ...
@@ -183,6 +185,9 @@ In the example below, the `editor_selection` option specifies that, if a SHACL p
         "W3CISO8601YearEditor": {
             "yearStart": 1925,
             "yearEnd": 2077
+        },
+        "InstancesSelectEditor": {
+            "fetchingsRecordsText": "Fetching records (this might take a while)..."
         }
     },
     ...

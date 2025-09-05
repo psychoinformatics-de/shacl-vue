@@ -27,6 +27,9 @@ const mainVarsToLoad = {
             yearStart: 1925,
             yearEnd: 2077
         },
+        InstancesSelectEditor: {
+            fetchingsRecordsText: "Fetching records..."
+        }
     },
     display_name_autogenerate: {},
     display_name_autogenerate_placeholder: {

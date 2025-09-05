@@ -57,197 +57,195 @@
                         </span>
                     </template>
                 </v-progress-linear>
+                <span v-if="canEditClass">
+                    <v-list-item @click.stop :active="false">
+                        <v-list-item-title>
+                            <!-- When there is only one item, just show a button -->
+                            <template v-if="propClassList.length === 1">
+                                <v-btn style="margin-top: 5px;" variant="tonal" @click.stop="handleAddItemClick(propClassList[0])">
+                                    Add new item &nbsp;&nbsp;
+                                    <v-icon icon="mdi-play"></v-icon>
+                                </v-btn>
+                            </template>
+                            <!-- When there are more items, show the menu -->
+                            <template v-else>
+                                <v-menu v-model="addItemMenu" location="end">
+                                    <template v-slot:activator="{ props }">
+                                        <v-btn style="margin-top: 5px;" variant="tonal" v-bind="props"
+                                            >Add new item &nbsp;&nbsp;
+                                            <v-icon icon="item.icon"
+                                                >mdi-play</v-icon
+                                            ></v-btn
+                                        >
+                                    </template>
+
+                                    <v-list ref="addItemList">
+                                        <v-list-item
+                                            v-for="item in propClassList"
+                                            @click.stop="handleAddItemClick(item)"
+                                        >
+                                            <v-list-item-title>{{
+                                                item.title
+                                            }}</v-list-item-title>
+                                        </v-list-item>
+                                    </v-list>
+                                </v-menu>
+                            </template>
+                        </v-list-item-title>
+                    </v-list-item>
+                </span>
                 <span v-if="fetchingDataLoader">
-                    <v-list-item
-                        ><em
-                            >Fetching records...</em
-                        ></v-list-item
+                    <v-list-item>
+                        <small>
+                        <em>
+                            {{ fetchingText }}
+                        </em>
+                        </small>
+                        <v-progress-linear :color="configVarsMain.appTheme.link_color" indeterminate></v-progress-linear>
+                    </v-list-item>
+                </span>
+                <span v-if="itemsToList.length">
+                    <DynamicScroller
+                        style="max-height: 200px; overflow-y: auto"
+                        :items="filteredItems"
+                        :min-item-size="10"
+                        overflow-y
+                        key-field="value"
+                        class="virtual-scroller"
+                        ref="scrollerRef"
+                        @scroll-end="onScrollEnd"
                     >
-                    <v-skeleton-loader
-                        type="list-item-avatar"
-                    ></v-skeleton-loader>
+                        <template v-slot="{ item, index, active }">
+                            <DynamicScrollerItem
+                                :item="item"
+                                :active="active"
+                                class="scroller-item"
+                            >
+                                <v-list-item
+                                    @click.stop="selectItem(item)"
+                                    rounded
+                                    :active="
+                                        subValues.selectedInstance?.value ==
+                                        item.value
+                                    "
+                                    class="myInstancesList"
+                                >
+                                    <template v-slot:prepend>
+                                        <v-icon>{{
+                                            getClassIcon(
+                                                toIRI(
+                                                    item.props[
+                                                        toCURIE(
+                                                            RDF.type.value,
+                                                            allPrefixes
+                                                        )
+                                                    ],
+                                                    allPrefixes
+                                                )
+                                            )
+                                        }}</v-icon>
+                                    </template>
+                                    <span v-if="item.props.hasPrefLabel">
+                                        {{
+                                            item.props[
+                                                toCURIE(
+                                                    SKOS.prefLabel.value,
+                                                    allPrefixes
+                                                )
+                                            ]
+                                        }}
+                                    </span>
+                                    <span v-else-if="item.props.hasDisplayLabel">
+                                        {{ item.props._displayLabel }}
+                                    </span>
+                                    <span v-else>
+                                        <span
+                                            v-for="(
+                                                value, key, index
+                                            ) in item.props"
+                                        >
+                                            <v-row
+                                                no-gutters
+                                                v-if="
+                                                    [
+                                                        'title',
+                                                        'subtitle',
+                                                        'name',
+                                                        'value',
+                                                        'itemQuad',
+                                                        RDF.type.value,
+                                                        toCURIE(
+                                                            RDF.type.value,
+                                                            allPrefixes
+                                                        ),
+                                                    ].indexOf(key) < 0
+                                                "
+                                            >
+                                                <v-col cols="6"
+                                                    ><small>{{
+                                                        key
+                                                    }}</small></v-col
+                                                >
+                                                <v-col
+                                                    ><small>{{
+                                                        value
+                                                    }}</small></v-col
+                                                >
+                                            </v-row>
+                                        </span>
+                                    </span>
+                                    <template v-slot:append>
+                                        <v-tooltip
+                                            v-if="
+                                                item.props.hasNote &&
+                                                item.props[toCURIE(SKOS.note.value,allPrefixes)]
+                                            "
+                                            :text="item.props[toCURIE(SKOS.note.value,allPrefixes)]"
+                                            location="top"
+                                            max-width="400px"
+                                            max-height="400px"
+                                            persistent
+                                        >
+                                            <template v-slot:activator="{ props }">
+                                                <v-icon
+                                                    icon="mdi-information-outline"
+                                                    size="small"
+                                                    v-bind="props"
+                                                ></v-icon>
+                                            </template>
+                                        </v-tooltip>
+                                        <v-btn
+                                            v-if="
+                                                configVarsMain.allowEditInstances === true ||
+                                                configVarsMain.allowEditInstances.indexOf(item.props.itemQuad.object.value) >= 0
+                                            "
+                                            icon="mdi-pencil"
+                                            variant="text"
+                                            size="x-small"
+                                            @click="editInstanceItem(
+                                                {
+                                                    quad: item.props.itemQuad,
+                                                    value: item.value
+                                                }
+                                            )"
+                                            :disabled="!canEditClass"
+                                        ></v-btn>
+                                    </template>
+                                </v-list-item>
+                                <v-divider></v-divider>
+                                <v-divider></v-divider>
+                            </DynamicScrollerItem>
+                        </template>
+                        <template #after>
+                            <div class="after-loader" :style="'color: ' + configVarsMain.appTheme.link_color + ';'" >
+                                <v-progress-circular v-show="showFetchingPageLoader" indeterminate :size="26" :width="4"></v-progress-circular>
+                                <span v-if="!showFetchingPageLoader && filteredItems.length == 0" style="color: grey"><em>No items</em></span>
+                            </div>
+                        </template>
+                    </DynamicScroller>
                 </span>
                 <span v-else>
-                    <span v-if="canEditClass">
-                        <v-list-item @click.stop :active="false">
-                            <v-list-item-title>
-                                <!-- When there is only one item, just show a button -->
-                                <template v-if="propClassList.length === 1">
-                                    <v-btn style="margin-top: 5px;" variant="tonal" @click.stop="handleAddItemClick(propClassList[0])">
-                                        Add new item &nbsp;&nbsp;
-                                        <v-icon icon="mdi-play"></v-icon>
-                                    </v-btn>
-                                </template>
-                                <!-- When there are more items, show the menu -->
-                                <template v-else>
-                                    <v-menu v-model="addItemMenu" location="end">
-                                        <template v-slot:activator="{ props }">
-                                            <v-btn style="margin-top: 5px;" variant="tonal" v-bind="props"
-                                                >Add new item &nbsp;&nbsp;
-                                                <v-icon icon="item.icon"
-                                                    >mdi-play</v-icon
-                                                ></v-btn
-                                            >
-                                        </template>
-
-                                        <v-list ref="addItemList">
-                                            <v-list-item
-                                                v-for="item in propClassList"
-                                                @click.stop="handleAddItemClick(item)"
-                                            >
-                                                <v-list-item-title>{{
-                                                    item.title
-                                                }}</v-list-item-title>
-                                            </v-list-item>
-                                        </v-list>
-                                    </v-menu>
-                                </template>
-                            </v-list-item-title>
-                        </v-list-item>
-                    </span>
-                    <span v-if="itemsToList.length">
-                        <DynamicScroller
-                            style="max-height: 200px; overflow-y: auto"
-                            :items="filteredItems"
-                            :min-item-size="10"
-                            overflow-y
-                            key-field="value"
-                            class="virtual-scroller"
-                            ref="scrollerRef"
-                            @scroll-end="onScrollEnd"
-                        >
-                            <template v-slot="{ item, index, active }">
-                                <DynamicScrollerItem
-                                    :item="item"
-                                    :active="active"
-                                    class="scroller-item"
-                                >
-                                    <v-list-item
-                                        @click.stop="selectItem(item)"
-                                        rounded
-                                        :active="
-                                            subValues.selectedInstance?.value ==
-                                            item.value
-                                        "
-                                        class="myInstancesList"
-                                    >
-                                        <template v-slot:prepend>
-                                            <v-icon>{{
-                                                getClassIcon(
-                                                    toIRI(
-                                                        item.props[
-                                                            toCURIE(
-                                                                RDF.type.value,
-                                                                allPrefixes
-                                                            )
-                                                        ],
-                                                        allPrefixes
-                                                    )
-                                                )
-                                            }}</v-icon>
-                                        </template>
-                                        <span v-if="item.props.hasPrefLabel">
-                                            {{
-                                                item.props[
-                                                    toCURIE(
-                                                        SKOS.prefLabel.value,
-                                                        allPrefixes
-                                                    )
-                                                ]
-                                            }}
-                                        </span>
-                                        <span v-else-if="item.props.hasDisplayLabel">
-                                            {{ item.props._displayLabel }}
-                                        </span>
-                                        <span v-else>
-                                            <span
-                                                v-for="(
-                                                    value, key, index
-                                                ) in item.props"
-                                            >
-                                                <v-row
-                                                    no-gutters
-                                                    v-if="
-                                                        [
-                                                            'title',
-                                                            'subtitle',
-                                                            'name',
-                                                            'value',
-                                                            'itemQuad',
-                                                            RDF.type.value,
-                                                            toCURIE(
-                                                                RDF.type.value,
-                                                                allPrefixes
-                                                            ),
-                                                        ].indexOf(key) < 0
-                                                    "
-                                                >
-                                                    <v-col cols="6"
-                                                        ><small>{{
-                                                            key
-                                                        }}</small></v-col
-                                                    >
-                                                    <v-col
-                                                        ><small>{{
-                                                            value
-                                                        }}</small></v-col
-                                                    >
-                                                </v-row>
-                                            </span>
-                                        </span>
-                                        <template v-slot:append>
-                                            <v-tooltip
-                                                v-if="
-                                                    item.props.hasNote &&
-                                                    item.props[toCURIE(SKOS.note.value,allPrefixes)]
-                                                "
-                                                :text="item.props[toCURIE(SKOS.note.value,allPrefixes)]"
-                                                location="top"
-                                                max-width="400px"
-                                                max-height="400px"
-                                                persistent
-                                            >
-                                                <template v-slot:activator="{ props }">
-                                                    <v-icon
-                                                        icon="mdi-information-outline"
-                                                        size="small"
-                                                        v-bind="props"
-                                                    ></v-icon>
-                                                </template>
-                                            </v-tooltip>
-                                            <v-btn
-                                                v-if="
-                                                    configVarsMain.allowEditInstances === true ||
-                                                    configVarsMain.allowEditInstances.indexOf(item.props.itemQuad.object.value) >= 0
-                                                "
-                                                icon="mdi-pencil"
-                                                variant="text"
-                                                size="x-small"
-                                                @click="editInstanceItem(
-                                                    {
-                                                        quad: item.props.itemQuad,
-                                                        value: item.value
-                                                    }
-                                                )"
-                                                :disabled="!canEditClass"
-                                            ></v-btn>
-                                        </template>
-                                    </v-list-item>
-                                    <v-divider></v-divider>
-                                    <v-divider></v-divider>
-                                </DynamicScrollerItem>
-                            </template>
-                            <template #after>
-                                <div class="after-loader" :style="'color: ' + configVarsMain.appTheme.link_color + ';'" >
-                                    <v-progress-circular v-show="showFetchingPageLoader" indeterminate :size="26" :width="4"></v-progress-circular>
-                                    <span v-if="!showFetchingPageLoader && filteredItems.length == 0" style="color: grey"><em>No items</em></span>
-                                </div>
-                            </template>
-                        </DynamicScroller>
-                    </span>
-                    <span v-else>
-                        <v-card-text> No items </v-card-text>
-                    </span>
+                    <span v-if="!fetchingDataLoader"><v-card-text> No items </v-card-text></span>
                 </span>
             </v-card>
         </v-menu>
@@ -363,6 +361,7 @@ const saveDialogForm = () => {
 };
 provide('saveFormHandler', saveDialogForm);
 let debounceTypingTimer = null;
+const fetchingText = configVarsMain.editorConfig?.InstancesSelectEditor?.fetchingsRecordsText;
 
 
 const showClearIcon = computed(() => {
@@ -451,6 +450,7 @@ watch(menu, (newVal) => {
 
 async function populateList() {
     fetchingDataLoader.value = true;
+    getItemsToList();
     if (config.value.use_service) {
         try {
             const result = await fetchFromService(
@@ -477,7 +477,6 @@ async function populateList() {
             fetchingDataLoader.value = false;
         }
     } else {
-        getItemsToList();
         fetchingDataLoader.value = false;
     }
     setSelectedValue();
@@ -772,11 +771,18 @@ const filteredItems = computed(() => {
                 ?.toLowerCase()
                 .includes(searchText.toLowerCase());
         })
-        .sort((a, b) =>
-            a.props._prefLabel
-                ?.toLowerCase()
-                .localeCompare(b.props._prefLabel?.toLowerCase())
-        );
+        .sort((a, b) => {
+            const aLabel = a.props._prefLabel?.toLowerCase();
+            const bLabel = b.props._prefLabel?.toLowerCase();
+            // if both are missing labels, consider them equal
+            if (!aLabel && !bLabel) return 0;
+            // if only a is missing, a goes first
+            if (!aLabel) return -1;
+            // if only b is missing, b goes first
+            if (!bLabel) return 1;
+            // otherwise compare alphabetically
+            return aLabel.localeCompare(bLabel);
+        });
 });
 
 watchEffect(async () => {
