@@ -4,7 +4,7 @@ layout: doc
 
 # Core Concepts
 
-`shacl-vue`'s functionality rests on several core concepts from its constituent technologies: SHACL, VueJS, and RDF-Ext.
+`shacl-vue`'s functionality rests on several core concepts from its constituent technologies: SHACL, VueJS, N3.js, and `shacl-tulip`.
 
 ## SHACL
 
@@ -48,13 +48,20 @@ The application makes extensive use of:
 - [Composables](https://vuejs.org/guide/reusability/composables.html) to manage generalizable and reusable code across components.
 - [Vuetify](https://vuetifyjs.com/en/) as a framework for existing UI components. Of note is the generic [`v-input`](https://vuetifyjs.com/en/components/inputs/#inputs) which acts as a wrapper for `shacl-vue` input components in order to standardize the API.
 
-## RDF-Ext
+## N3.js
 
-[RDF-Ext](https://github.com/rdf-ext/rdf-ext) is a
+[N3.js](https://github.com/rdfjs/N3.js) is:
 
-> JavaScript library that extends the [RDF/JS specs](https://rdf.js.org/) to handle RDF data in a developer-friendly way.
+> - an implementation of the RDF.js low-level specification that lets you handle RDF in JavaScript easily
+> - Lightning fast, spec-compatible, streaming RDF for JavaScript
 
-`shacl-vue` mainly uses RDF-Ext to:
+`shacl-vue` mainly uses N3.js, via `shacl-tulip`, to:
 - read RDF data into the application's graph store, which is managed as a VueJS-reactive [`rdf.dataset()`](https://rdf.js.org/dataset-spec/)
-- add quads to the graphh store (`rdf.dataset().add(quad)`)
-- traverse a graph in order to find specific nodes, using [`grapoi`](https://github.com/rdf-ext/grapoi)
+- add quads to the graphh store
+- traverse a graph in order to find specific nodes
+
+## `shacl-tulip`
+
+In an effort to generalize `shacl-vue` for improved use by and interoperability with other applications, the underlying functionality was factored out and packaged as the [`shacl-tulip`](https://github.com/psychoinformatics-de/shacl-tulip) library (like "`shacl-vue`-lib", but flowery).
+
+`shacl-tulip` provides the main (derived) classes for handling RDF data and related form data. It is completely independent of VueJS, yet class constructors allow passing reactive objects as arguments, which `shacl-tulip` handles seamlessly. It also focuses purely on library-level functionality (including utilities that were previously part of `shacl-vue`), and contains no frontend code. `shacl-vue` imports `shacl-tulip` classes and uses them mainly in its composable code.

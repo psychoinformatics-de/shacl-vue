@@ -1,13 +1,17 @@
 import { defineConfig } from 'vitepress'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 
 // https://vitepress.dev/reference/site-config
-export default defineConfig({
+const config = defineConfig({
   base: "/shacl-vue/docs/",
   title: "shacl-vue",
   description: "Automatic generation of user interfaces from SHACL",
   head: [['link', { rel: 'icon', href: '/shacl-vue/docs/favicon.ico' }]],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
+    search: {
+      provider: 'local'
+    },
     logo: '/shacl_vue.svg',
     nav: [
       { text: 'Home', link: '/' },
@@ -58,3 +62,5 @@ export default defineConfig({
     ]
   }
 })
+
+export default withMermaid(config)

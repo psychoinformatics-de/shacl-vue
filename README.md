@@ -4,11 +4,11 @@
 
 ## Overview
 
-`shacl-vue` is an effort to create a web-based user interface for entering, editing, and viewing linked (meta)data using a [VueJS](https://vuejs.org/) application driven by the [Shapes Constraint Language (SHACL)](https://www.w3.org/TR/shacl/).
+`shacl-vue` is a web-based user interface for entering, editing, and viewing linked (meta)data using a [VueJS](https://vuejs.org/) application driven by the [Shapes Constraint Language (SHACL)](https://www.w3.org/TR/shacl/).
 
 Think of it as an automatic builder that you just have to feed with a model of your data. If you have a SHACL schema, or a schema in a format that can be exported to SHACL, then you're good to go. No need to build custom forms for data entry, no need to struggle with post-entry data validation, no need to create a catalog application that renders all the entered data. `shacl-vue` does all of this automatically.
 
-`shacl-vue` is built with [VueJS 3](https://vuejs.org/), [Vuetify frontend components](https://vuetifyjs.com/en/), and [Vite build tools](https://vitejs.dev/), and was heavily inspired by the WC3 Draft: [Form Generation using SHACL and DASH](https://datashapes.org/forms.html). For reading, manipulating, and writing RDF data (including shacl), the package uses libraries compatible with the [RDF/JS](https://rdf.js.org/) specifications (see also: https://github.com/rdfjs-base)
+`shacl-vue` is built with [VueJS 3](https://vuejs.org/), [Vuetify frontend components](https://vuetifyjs.com/en/), and [Vite build tools](https://vitejs.dev/), and was heavily inspired by the WC3 Draft: [Form Generation using SHACL and DASH](https://datashapes.org/forms.html). For reading, manipulating, and writing RDF data (including SHACL), the package uses libraries compatible with the [RDF/JS](https://rdf.js.org/) specifications (see also: https://github.com/rdfjs-base)
 
 ## Links
 

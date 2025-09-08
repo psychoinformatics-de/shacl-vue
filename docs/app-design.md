@@ -14,14 +14,10 @@ One linked-data tool, the Shapes Constraint Language (SHACL), provides a means t
 
 `shacl-vue` is programmed with [VueJS 3](https://vuejs.org/), and uses [Vuetify](https://vuetifyjs.com) UI components and [Vite](https://vitejs.dev/) for the build process.
 
-Under the hood, `shacl-vue` uses libraries compatible with the [RDF/JS](https://rdf.js.org/) specifications for reading, manipulating, storing, and writing RDF data (including SHACL), in particular [RDF-Ext](https://github.com/rdf-ext/rdf-ext).
+Under the hood, `shacl-vue` uses libraries compatible with the [RDF/JS](https://rdf.js.org/) specifications for reading, manipulating, storing, and writing RDF data (including SHACL), in particular [N3.js](https://github.com/rdfjs/N3.js) and [`shacl-tulip`](https://github.com/psychoinformatics-de/shacl-tulip).
 
 
 ## The main concept
-
-::: info
-Currently, only the form generation part (editor) of `shacl-vue` is functional, and not yet the data rendering part (viewer)
-:::
 
 `shacl-vue` was heavily inspired by the WC3 Draft: [Form Generation using SHACL and DASH](https://datashapes.org/forms.html).
 

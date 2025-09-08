@@ -7,7 +7,7 @@ layout: doc
 ## What is `shacl-vue`?
 
 ::: warning
-ALL CONTENT HERE AND IN THE SOURCE CODE REPOSITORY IS UNDER CONTINUOUS DEVELOPMENT, IS CONSIDERED UNRELEASED, AND MAY CHANGE AT ANY TIME.
+ALL CONTENT HERE AND IN THE SOURCE CODE REPOSITORY IS UNDER CONTINUOUS DEVELOPMENT AND MAY CHANGE AT ANY TIME.
 :::
 
 `shacl-vue` is a browser-based JavaScript application that uses the [Shapes Constraint Language](https://www.w3.org/TR/shacl/) (SHACL) to generate user interfaces for entering, editing, and viewing data.
@@ -24,11 +24,11 @@ Think of it as an automatic builder that you just have to feed with a model of y
 
 `shacl-vue` can be installed from `npm` or from sources.
 
-It is usually a good idea to start with a virtual environment. You can for example create a `NodeJS` environment with [miniconda](https://docs.anaconda.com/miniconda/):
+It is usually a good idea to start with a virtual environment. You can for example create a `NodeJS` environment with [micromamba](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html#):
 
 ```
-conda create -yn <my-env-name> nodejs
-conda activate <my-env-name>
+micromamba create -n <my-env-name> nodejs
+micromamba activate <my-env-name>
 ```
 
 Then install `shacl-vue`:
@@ -65,4 +65,4 @@ npm run docs:dev
 
 To roll your own instance while using the existing set of editor components that are used for the demo instance, together with the demo data, just install and run the application locally as explained above.
 
-To work with a completely different set of shapes, classes and data, you can use the application config to customize your instance. This involves updating the config file that is located at `shacl-vue/src/assets/config.json`. Details are provided in the [App configuration section](./app-configuration). After editing the config file, while running a local development server, just refresh your browser page and the customizations should be available.
+To work with a completely different set of shapes, classes and data, you can use the application config to customize your instance. This involves updating the config file that is located at `shacl-vue/public/config.json`. Details are provided in the [App configuration section](./app-configuration). After editing the config file, while running a local development server, just refresh your browser page and the customizations should be available.
