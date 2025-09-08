@@ -414,7 +414,6 @@
 
 <script setup>
 import {
-    effect,
     ref,
     computed,
     provide,
@@ -424,7 +423,6 @@ import {
     onBeforeUpdate,
     nextTick,
     toRaw,
-    defineAsyncComponent,
     onMounted,
     onBeforeUnmount,
 } from 'vue';
