@@ -26,7 +26,6 @@ Let's use the [HexEditor.vue](https://github.com/psychoinformatics-de/shacl-vue/
         ref="fieldRef"
         :id="inputId"
         hide-details="auto"
-        style="margin-bottom: 1em;"
     >
         <v-text-field
             v-model="subValues.hex_text"
@@ -54,7 +53,7 @@ The custom nature of an editor component is established by adding any number of 
 
 ```vue
 <script setup>
-    import { useRules } from '../composables/rules'
+    import { useRules } from '../composables/rules';
     import { useRegisterRef } from '../composables/refregister';
     import { useBaseInput } from '@/composables/base';
 
@@ -62,10 +61,11 @@ The custom nature of an editor component is established by adding any number of 
         modelValue: String,
         property_shape: Object,
         node_uid: String,
+        node_idx: String,
         triple_uid: String,
-        triple_idx: Number
-    })
-    const { rules } = useRules(props.property_shape)
+        triple_idx: Number,
+    });
+    const { rules } = useRules(props.property_shape);
     const inputId = `input-${Date.now()}`;
     const { fieldRef } = useRegisterRef(inputId, props);
     const emit = defineEmits(['update:modelValue']);
@@ -80,14 +80,13 @@ The custom nature of an editor component is established by adding any number of 
         // Parsing internalValue into ref values for separate subcomponent(s)
         return {
             hex_text: value,
-        }
+        };
     }
 
     function valueCombiner(values) {
         // Determine internalValue from subvalues/subcomponents
-        return values.hex_text
+        return values.hex_text;
     }
-
 </script>
 ```
 
@@ -147,16 +146,16 @@ TODO: the current matching procedure will return a boolean value when matched, w
 
 ## Component discovery
 
-Custom components can be created as outlined above and will then need to be placed inside the `shacl-vue/src/components` directory in order to be auto-discovered by the application.
+Custom components can be created as outlined above. The component filename needs to end in `...Editor.vue`, and the file will then need to be placed inside the `shacl-vue/src/components` directory in order to be auto-discovered by the application.
 
 
 ## Component matching
 
-The [`editors.js` module](https://github.com/psychoinformatics-de/shacl-vue/blob/main/src/modules/editors.js), which is used once in the `MainForm` component upon application startup, provides the necessary code for grabbing the matching logic of all custom Vue components and making that available (via `Provide/Inject`) to the `PropertyShapeEditor` editor that dynamically matches the correct editor component to the `sh:PropertyShape`.
+The [`editors.js` module](https://github.com/psychoinformatics-de/shacl-vue/blob/main/src/modules/editors.js) provides the necessary code for grabbing the matching logic of all custom Vue components and making that available (via `Provide/Inject`) to the `PropertyShapeEditor` editor that dynamically matches the correct editor component to the `sh:PropertyShape`.
 
 In the `PropertyShapeEditor`, a computed property determines the correct match:
 
-```vue
+```javascript
 const matchedComponent = computed(() => {
     for (const key in editorMatchers) {
         if (editorMatchers[key].match(props.property_shape)) {
