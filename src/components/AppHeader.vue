@@ -22,7 +22,23 @@
             <span v-if="configVarsMain.useToken">
                 <v-tooltip text="Token" location="bottom">
                     <template v-slot:activator="{ props }">
+                        <v-badge
+                            v-if="http401response"
+                            dot
+                            color="deep-orange"
+                            overlap
+                            offset-x="12"
+                            offset-y="12"
+                        >
+                            <v-btn
+                                icon="mdi-key-variant"
+                                @click="tokenFn()"
+                                v-bind="props"
+                                :disabled="!canSubmit"
+                            ></v-btn>
+                        </v-badge>
                         <v-btn
+                            v-else
                             icon="mdi-key-variant"
                             @click="tokenFn()"
                             v-bind="props"
@@ -125,6 +141,7 @@
                         placeholder="token"
                         prepend-inner-icon="mdi-lock-outline"
                         variant="outlined"
+                        :error-messages="customError"
                         @click:append-inner="visible = !visible"
                     ></v-text-field>
                 </v-form>
@@ -142,7 +159,7 @@
     </v-dialog>
 </template>
 <script setup>
-import { inject, onBeforeMount, ref, computed } from 'vue';
+import { inject, onBeforeMount, ref, watch } from 'vue';
 import { useToken } from '@/composables/tokens';
 
 const props = defineProps({
@@ -155,6 +172,7 @@ const canSubmit = inject('canSubmit');
 const nodesToSubmit = inject('nodesToSubmit');
 const formOpen = inject('formOpen');
 const configVarsMain = inject('configVarsMain');
+const http401response = inject('http401response')
 const visible = ref(false);
 const tokenDialog = ref(false);
 const tokenExists = ref(false);
@@ -166,6 +184,8 @@ const rules = [
         return 'A token is required';
     },
 ];
+const customError = ref('')
+const emit = defineEmits(['tokenDialogOpened'])
 
 onBeforeMount(() => {
     if (token.value !== null && token.value !== 'null') {
@@ -193,18 +213,49 @@ function cancel() {
 
 function reset() {
     tokenval.value = '';
+    http401response.value = false;
+    customError.value = ''
     clearToken();
+}
+
+watch(
+    http401response,
+    (newValue) => {
+        if (newValue) {
+            forceError()
+            tokenDialog.value = true;
+        }
+    },
+    { immediate: true }
+);
+
+watch(
+    tokenDialog,
+    (newValue) => {
+        if (newValue) {
+            emit('tokenDialogOpened')
+        }
+    },
+    { immediate: true }
+);
+
+function forceError() {
+    customError.value = "Invalid token. Please re-enter your token and click Save, or alternatively clear the token by clicking Reset and then Cancel"
 }
 
 async function save() {
     const { valid } = await tokenForm.value.validate();
     if (!valid) {
-        console.log('invalid');
+        console.log('invalid entry');
         return;
     }
     setToken(tokenval.value);
+    http401response.value = false;
+    customError.value = ''
     tokenDialog.value = false;
 }
+
+
 </script>
 
 <style scoped>

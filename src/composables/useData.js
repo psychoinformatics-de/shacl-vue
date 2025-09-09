@@ -1,5 +1,5 @@
 // useData.js
-import { watch, reactive, toRaw } from 'vue';
+import { ref, reactive, toRaw } from 'vue';
 import { findObjectByKey, replaceServiceIdentifier } from '@/modules/utils';
 import { useToken } from '@/composables/tokens';
 import { ReactiveRdfDataset } from '@/classes/ReactiveRdfDataset';
@@ -12,6 +12,7 @@ export function useData(config) {
     const fetchedRequests = new Set();
     const fetchedPages = reactive({})
     const { token } = useToken();
+    const http401response = ref(false);
 
     async function getRdfData(url) {
         var getURL;
@@ -284,6 +285,9 @@ export function useData(config) {
                 method: 'GET',
                 headers: headers,
             });
+            if (response.status == 401) {
+                http401response.value = true;
+            }
             if (!response.ok) {
                 throw new Error(`Response status: ${response.status}`);
             }
@@ -385,6 +389,7 @@ export function useData(config) {
         fetchedPages,
         hasUnfetchedPages,
         getTotalItems,
-        firstPageFetched
+        firstPageFetched,
+        http401response,
     };
 }
