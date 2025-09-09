@@ -1,5 +1,5 @@
 <template>
-    <AppHeader v-if="config_ready" :logo="configVarsMain.appTheme.logo" />
+    <AppHeader v-if="config_ready" :logo="configVarsMain.appTheme.logo" @tokenDialogOpened="onTokenDialogOpened" />
     <v-main>
         <v-container fluid>
             <span v-if="page_ready">
@@ -542,7 +542,7 @@ const config_ready = ref(false);
 const itemRefs = ref([]);
 const { config, configFetched, configError, configVarsMain, loadConfigVars, loadMainPage} =
     useConfig(props.configUrl);
-const { rdfDS, getRdfData, fetchFromService, fetchedPages, hasUnfetchedPages, getTotalItems, firstPageFetched } = useData(config);
+const { rdfDS, getRdfData, fetchFromService, fetchedPages, hasUnfetchedPages, getTotalItems, firstPageFetched, http401response } = useData(config);
 const { classDS, getClassData } = useClasses(config);
 const { shapesDS, getSHACLschema } = useShapes(config);
 const { formData, submitFormData, savedNodes, submittedNodes, nodesToSubmit } =
@@ -613,6 +613,7 @@ provide('fetchFromService', fetchFromService);
 provide('hasUnfetchedPages', hasUnfetchedPages);
 provide('getTotalItems', getTotalItems);
 provide('firstPageFetched', firstPageFetched);
+provide('http401response', http401response)
 provide('submitFormData', submitFormData);
 provide('savedNodes', savedNodes);
 provide('submittedNodes', submittedNodes);
@@ -988,6 +989,13 @@ function goBack() {
     var previousView = internalHistory.value.pop();
     selectType(previousView.iri, true, true);
     searchText.value = previousView.searchText;
+}
+
+function onTokenDialogOpened() {
+    // Replace url with one where token is not included
+    const url = new URL(window.location);
+    url.searchParams.delete('token');
+    window.history.replaceState(null, '', url);
 }
 
 function updateURL(IRI, edit) {
