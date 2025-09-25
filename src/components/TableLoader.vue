@@ -1,6 +1,8 @@
 <template>
     <v-container fluid>
     <v-card class="d-flex flex-column justify-center">
+        <v-btn @click="testToFS">Test toFlatSON</v-btn>
+
     <!-- Drag and Drop area -->
     <v-card-title class="justify-center">Upload, drag and drop, or link a CSV file</v-card-title>
 
@@ -61,6 +63,12 @@
             <div id="mytable"></div>
             <div style="display: flex; margin: 1em; margin-left: auto;">
                 <v-btn
+                    text="Test FlatSON"
+                    @click="testFlatSON()"
+                    style="margin-left: auto; margin-right: 1em;"
+                    prepend-icon="mdi-cog"
+                ></v-btn>
+                <v-btn
                     text="Cancel"
                     @click="closeDialog()"
                     style="margin-left: auto; margin-right: 1em;"
@@ -84,6 +92,7 @@
     import {TabulatorFull as Tabulator} from 'tabulator-tables';
     import { DataTable } from '../classes/DataTable'
     import { toCURIE } from 'shacl-tulip';
+    import { FlatSONTable, toFlatSON} from 'flatson-js'
 
     // ----- //
     // Props //
@@ -165,7 +174,7 @@
 
     onMounted(() => {
         table = new Tabulator("#mytable", {
-            // height:'50vh',
+            height:'50vh',
             layout:"fitColumns",
             // importFormat:"csv",
             autoColumns: true
@@ -242,7 +251,7 @@
         const content = e.target.result
 
         table = new Tabulator("#mytable", {
-            // height:'50vh',
+            height:'50vh',
             layout:"fitColumns",
             importFormat:"csv",
             autoColumns: true
@@ -279,6 +288,67 @@
 
         // shape_obj = shapesDS.data.nodeShapes[localShapeIri.value]
     };
+
+    function testFlatSON() {
+        console.log(table.getColumnDefinitions().map(col => col.title))
+        console.log(table.getData())
+        var props = {
+            columns: table.getColumnDefinitions().map(col => col.title),
+            rows: table.getData(),
+            delimiter: "$",
+        }
+        var tbl = new FlatSONTable(props)
+        var json_data = tbl.toJSON()
+        console.log(json_data)
+    }
+
+    function testToFS() {
+        const data = [
+            {
+                "pid": "ex:ns/people/jane",
+                "schema_type": "dlsocial:Person",
+                "qualified_relations": [
+                    {
+                        "object": "email:jane@example.org",
+                        "roles": [
+                            "http://schema.org/email"
+                        ],
+                        "schema_type": "dlroles:Relationship"
+                    },
+                    {
+                        "object": "geo:-19.738897,63.453072?z=19",
+                        "roles": [
+                            "obo:NCIT_C17556"
+                        ],
+                        "schema_type": "dlroles:Relationship"
+                    }
+                ],
+                "@type": "Person"
+            },
+            {
+                "pid": "https://orcid.org/0000-0001-6398-6370",
+                "attributes": [
+                    {
+                        "predicate": "foaf:name",
+                        "schema_type": "dlthings:AttributeSpecification",
+                        "value": "Michael Hanke"
+                    },
+                    {
+                        "predicate": "http://www.bioassayontology.org/bao#BAO_0002826",
+                        "schema_type": "dlthings:AttributeSpecification",
+                        "value": "1"
+                    }
+                ],
+                "schema_type": "dlsocial:Person",
+                "acted_on_behalf_of": [
+                    "https://ror.org/02nv7yv05"
+                ],
+                "@type": "Person"
+            }
+
+        ];
+        console.log(toFlatSON(data, "$", null))
+    }
 
     
 

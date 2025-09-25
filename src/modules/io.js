@@ -29,6 +29,7 @@ export async function postRDF(endpoint, dataset, format = 'text/turtle', headers
 
         // Serialize the dataset to the desired format
         const body = await rdfPretty.io.dataset.toText('text/turtle', dataset)
+        console.log(body)
 
         const response = await fetch(url, {
             method: 'POST',
