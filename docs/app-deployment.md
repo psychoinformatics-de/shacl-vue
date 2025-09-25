@@ -62,7 +62,7 @@ make install
 make build
 ```
 
-The `install` and `build` steps are not explicitly necessary to execute separately, because they are also exectured via the `deploy` command, which in addition uses `rsync` to move the distribution files to the intended static file server:
+The `install` and `build` steps are not explicitly necessary to execute separately, because they are also executed via the `deploy` command, which in addition uses `rsync` to move the distribution files to the intended static file server:
 
 ```bash
 make deploy
@@ -77,7 +77,7 @@ Relevant `npm` packages are:
 - [flatson-js](https://www.npmjs.com/package/flatson-js)
 - [shacl-vue](https://www.npmjs.com/package/shacl-vue)
 
-RDF and form data handling functionalities underlying the core `shacl-vue` features are provided by the [`shacl-tulip`](https://github.com/psychoinformatics-de/shacl-tulip) library (like "`shacl-vue`-lib", but flowery), a core dependeny of `shacl-vue`. It is completely independent of VueJS, yet class constructors allow passing reactive objects as arguments, which `shacl-tulip` handles seamlessly. It also focuses purely on library-level functionality and contains no frontend code.
+RDF and form data handling functionalities underlying the core `shacl-vue` features are provided by the [`shacl-tulip`](https://github.com/psychoinformatics-de/shacl-tulip) library (like "`shacl-vue`-lib", but flowery), a core dependency of `shacl-vue`. It is completely independent of VueJS, yet class constructors allow passing reactive objects as arguments, which `shacl-tulip` handles seamlessly. It also focuses purely on library-level functionality and contains no frontend code.
 
 For table import and export support, `shacl-vue` uses the [FlatSON specification](https://hub.psychoinformatics.de/datalink/flatson), for which [flatson-js](https://www.npmjs.com/package/flatson-js) provides helper functionality.
 
@@ -93,4 +93,4 @@ Publishing any of these packages to `npm` requires:
 
 _Note that 2FA might be involved in the authentication step_
 
-If the published version of either `shacl-tulip` or `flatson-js` is changed, the dependency in `shacl-vue` also needs to be updated (e.g. [here](https://github.com/psychoinformatics-de/shacl-vue/blob/971c949e6c1a095b4ebfda67ac5459438ed3950c/package.json#L60)), which in turn will require a new commit to the `shacl-vue` repository and an updated version published to `npm`. This will in turn require projects using `shacl-vue` to pin the latest version, either by updating the submodule descibed in the git-repository-based process above or by accessing the latest `shacl-vue` package version from `npm`.
+If the published version of either `shacl-tulip` or `flatson-js` is changed, the dependency in `shacl-vue` also needs to be updated (e.g. [here](https://github.com/psychoinformatics-de/shacl-vue/blob/971c949e6c1a095b4ebfda67ac5459438ed3950c/package.json#L60)), which in turn will require a new commit to the `shacl-vue` repository and an updated version published to `npm`. This will in turn require projects using `shacl-vue` to pin the latest version, either by updating the submodule described in the git-repository-based process above or by accessing the latest `shacl-vue` package version from `npm`.
