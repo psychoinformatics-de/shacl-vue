@@ -40,6 +40,7 @@ const config = defineConfig({
         items: [
           { text: 'Application inputs', link: '/app-inputs' },
           { text: 'Application configuration', link: '/app-configuration' },
+          { text: 'Application deployment', link: '/app-deployment' },
         ]
       },
       {

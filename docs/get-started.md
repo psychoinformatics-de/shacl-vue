@@ -66,3 +66,5 @@ npm run docs:dev
 To roll your own instance while using the existing set of editor components that are used for the demo instance, together with the demo data, just install and run the application locally as explained above.
 
 To work with a completely different set of shapes, classes and data, you can use the application config to customize your instance. This involves updating the config file that is located at `shacl-vue/public/config.json`. Details are provided in the [App configuration section](./app-configuration). After editing the config file, while running a local development server, just refresh your browser page and the customizations should be available.
+
+Once you are happy with your locally tested site, you can deploy it to your own infrastructure. Read the [Application deployment and dependencies section](./app-deployment) for more details.
