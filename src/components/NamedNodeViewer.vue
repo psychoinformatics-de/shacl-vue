@@ -22,6 +22,7 @@ import { toIRI, toCURIE } from 'shacl-tulip';
 const props = defineProps({
     textVal: String,
     prefLabel: String,
+    displayLabel: String,
     quad: Object,
     targetClass: String,
 });
@@ -60,6 +61,8 @@ onBeforeMount(() => {
     currentRecordPID.value = toIRI(props.textVal, allPrefixes);
     if (props.prefLabel) {
         contentVal.value = props.prefLabel;
+    } else if (props.displayLabel) {
+        contentVal.value = props.displayLabel;
     } else {
         contentVal.value = currentRecordPID.value;
     }

@@ -68,7 +68,7 @@
                     >:
                 </span>
                 <span v-for="(el, i) in v">
-                    <span v-if="v.length > 1"><br />&nbsp;- </span>
+                    <span v-if="v.length > 1"><br />&nbsp;-</span>
                     &nbsp;<LiteralNodeViewer
                         v-if="el.value"
                         :textVal="el.value"
@@ -93,12 +93,15 @@
                             }}</strong
                             >:
                             <span v-for="(el, i) in v">
-                                <span v-if="v.length > 1"><br />&nbsp;- </span>
+                                <span v-if="v.length > 1"><br />&nbsp;-</span>
                                 &nbsp;<NamedNodeViewer
                                     v-if="el.value"
                                     :textVal="el.value"
                                     :prefLabel="
                                         getPrefLabel(el, rdfDS, allPrefixes)
+                                    "
+                                    :displayLabel="
+                                        getRecordDisplayLabel(el, rdfDS, allPrefixes, configVarsMain)
                                     "
                                     :quad="
                                         getPidQuad(el.value, rdfDS.data.graph)
@@ -114,7 +117,7 @@
                             <strong>{{ k }}</strong
                             >:
                             <span v-for="(el, i) in v">
-                                <span v-if="v.length > 1"><br />&nbsp;- </span>
+                                <span v-if="v.length > 1"><br />&nbsp;-</span>
                                 &nbsp;{{ el.value }}
                             </span>
                         </span>
@@ -206,8 +209,7 @@ import {
     dlTTL,
     toSnakeCase,
     quadsToTTL,
-    hasConfigDisplayLabel,
-    getConfigDisplayLabel,
+    getRecordDisplayLabel,
 } from '../modules/utils';
 import { RDF, SHACL } from '@/modules/namespaces';
 // Define component properties
@@ -327,14 +329,7 @@ async function updateRecord(fetchData) {
         record.relatedTriples[predCuri] = rQ.object.value
         await addRecordProperty(rQ, fetchData);
     }
-    record.displayLabel = ''
-    let labelTemplate = hasConfigDisplayLabel(record.quad.object.value, allPrefixes, configVarsMain)
-    if (labelTemplate) {
-        let displayLabel = getConfigDisplayLabel(labelTemplate, record.relatedTriples, configVarsMain)
-        if (displayLabel) {
-            record.displayLabel = displayLabel;
-        }
-    }    
+    record.displayLabel = getRecordDisplayLabel(record.quad.subject, rdfDS, allPrefixes, configVarsMain)
 }
 
 async function addRecordProperty(quad, fetchData) {
