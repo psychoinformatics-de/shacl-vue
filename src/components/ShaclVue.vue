@@ -433,6 +433,8 @@ import {
     addCodeTagsToText,
     getSuperClasses,
     getDisplayName,
+    hasConfigDisplayLabel,
+    getConfigDisplayLabel,
 } from '../modules/utils';
 import { toCURIE, toIRI } from 'shacl-tulip';
 import editorMatchers from '@/modules/editors';
@@ -692,7 +694,7 @@ watch(
                     const fetchRsPromises = config.value.service_fetch_before[
                         'get-records'
                     ].map((iri) =>
-                        fetchFromService('get-records', iri, allPrefixes)
+                        fetchFromService('get-paginated-records', iri, allPrefixes)
                     );
                     var results = await Promise.allSettled(fetchRsPromises);
                 }
@@ -1148,8 +1150,14 @@ function getInstanceItems() {
         var item = {
             title: quad.subject.value + extra,
             value: quad.subject.value,
-            props: { subtitle: quad.object.value, quad: quad },
+            props: {
+                subtitle: quad.object.value,
+                quad: quad,
+                itemValue: quad.subject.value,
+            },                
         };
+        let labelTemplate = hasConfigDisplayLabel(quad.object.value, allPrefixes, configVarsMain)
+        let labelParts = {}
         relatedTrips.forEach((quad) => {
             if (!Object.hasOwn(item.props, quad.predicate.value)) {
                 item.props[quad.predicate.value] = [];
@@ -1164,10 +1172,24 @@ function getInstanceItems() {
             } else {
                 item.props[quad.predicate.value].push(quad.object.value);
             }
+
+            let predCuri = toCURIE(quad.predicate.value, allPrefixes)
+            // If current predicate is used for display label generation, store it
+            if ( labelTemplate && labelTemplate.includes(predCuri)) {
+                labelParts[predCuri] = quad.object.value
+            }
         });
         item.props._prefLabel = '';
         if (item.props.hasOwnProperty(SKOS.prefLabel.value)) {
             item.props._prefLabel = item.props[SKOS.prefLabel.value][0];
+        }
+        // Generate display label if possible
+        item.props._displayLabel = '';
+        if (labelTemplate) {
+            let displayLabel = getConfigDisplayLabel(labelTemplate, labelParts, configVarsMain, rdfDS, allPrefixes)
+            if (displayLabel) {
+                item.props._displayLabel = displayLabel;
+            }
         }
         instanceItemsArr.push(item);
     });
@@ -1178,25 +1200,35 @@ function getInstanceItems() {
 
 const filteredInstanceItemsComp = computed(() => {
     const c = orderTopDown.value ? 1 : -1;
+    let txt = searchText.value.toLowerCase();
+    const searchableFields = ["_prefLabel", "_displayLabel", "itemValue"];
     return [...instanceItemsComp.value]
         .filter((item) => {
-            if (searchText.value.length == 0) return true;
-            return (
-                item.props._prefLabel
-                    ?.toLowerCase()
-                    .includes(searchText.value.toLowerCase()) ||
-                item.title
-                    .toLowerCase()
-                    .includes(searchText.value.toLowerCase())
-            );
+            if (txt.length == 0) return true;
+            return searchableFields.some((field) => {
+                const value = item.props[field];
+                return value?.toString().toLowerCase().includes(txt);
+            });
         })
-        .sort(
-            (a, b) =>
-                c *
-                a.props._prefLabel
-                    ?.toLowerCase()
-                    .localeCompare(b.props._prefLabel?.toLowerCase())
-        );
+        .sort((a, b) => {
+            function getSortValue(item) {
+                for (const field of searchableFields) {
+                    const value = item.props[field];
+                    if (value) return value.toString().toLowerCase();
+                }
+                return null;
+            }
+            const aVal = getSortValue(a);
+            const bVal = getSortValue(b);
+            // if both are missing labels, consider them equal
+            if (!aVal && !bVal) return 0;
+            // if only a is missing, a goes first
+            if (!aVal) return -1 * c;
+            // if only b is missing, b goes first
+            if (!bVal) return 1 * c;
+            // otherwise compare alphabetically
+            return c * aVal.localeCompare(bVal);
+        })
 });
 
 watchEffect(async () => {
