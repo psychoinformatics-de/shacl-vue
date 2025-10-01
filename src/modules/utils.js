@@ -354,15 +354,58 @@ export function hasConfigDisplayLabel(class_uri, allPrefixes, configVarsMain) {
     }
 }
 
-export function getConfigDisplayLabel(labelTemplate, labelParts, configVarsMain) {
+export function getConfigDisplayLabel(labelTemplate, labelParts, configVarsMain, rdfDS, allPrefixes) {
     const regex = /{([^}]+)}/g;
     const defaultPlaceholder = 
         "default" in configVarsMain.displayNameAutogeneratePlaceholder ? 
         configVarsMain.displayNameAutogeneratePlaceholder.default : "[?]"
+
     return labelTemplate.replace(regex, (_, key) => {
         let missingPlaceholder =
             key in configVarsMain.displayNameAutogeneratePlaceholder ? 
             configVarsMain.displayNameAutogeneratePlaceholder[key] : defaultPlaceholder
-        return key in labelParts ? labelParts[key] : missingPlaceholder;
+        if (!(key in labelParts)) {
+            return missingPlaceholder;
+        }
+        let objectVal = labelParts[key];
+        if (rdfDS && allPrefixes) {
+            let relatedRecordQuad = getPidQuad(objectVal, rdfDS.data.graph)
+            if (relatedRecordQuad) {
+                return getRecordDisplayLabel(relatedRecordQuad.subject, rdfDS, allPrefixes, configVarsMain)
+            }
+        }
+        return objectVal
     });
+}
+
+export function quadsToTripleObject(quads, allPrefixes) {
+    let tripleObject = {}
+    for (const q of quads) {
+        let predCuri = toCURIE(q.predicate.value, allPrefixes)
+        tripleObject[predCuri] = q.object.value
+    }
+    return tripleObject
+}
+
+export function getRecordDisplayLabel(subjectTerm, rdfDS, allPrefixes, configVarsMain) {
+    let displayLabel = ''
+    // First get the node statement, because we need its class
+    // e.g.: 'subjectTerm rdf:type ex:Dataset .'
+    let pidQ = getPidQuad(subjectTerm.value, rdfDS.data.graph)
+    if (!pidQ) {
+        // This should technically never happen since we're working with named nodes here
+        // but the escape route is still necessary to prevent timing errors from
+        // clogging the console
+        return displayLabel
+    }
+    let classIRI = pidQ.object.value;
+    let relatedQuads = rdfDS.getSubjectTriples(subjectTerm);
+    // Convert to triples as an object with predicate-object key-values
+    let relatedTriples = quadsToTripleObject(relatedQuads, allPrefixes)        
+    let labelTemplate = hasConfigDisplayLabel(classIRI, allPrefixes, configVarsMain)
+    
+    if (labelTemplate) {
+        displayLabel = getConfigDisplayLabel(labelTemplate, relatedTriples, configVarsMain, rdfDS, allPrefixes)
+    }
+    return displayLabel
 }

@@ -727,6 +727,7 @@ function getItemsToList() {
                 hasPrefLabel: false,
                 hasDisplayLabel: false,
                 hasNote: false,
+                itemValue: quad.subject.value,
             },
         };
         let labelTemplate = hasConfigDisplayLabel(quad.object.value, allPrefixes, configVarsMain)
@@ -749,7 +750,7 @@ function getItemsToList() {
         });
         // Generate display label if possible
         if (labelTemplate) {
-            let displayLabel = getConfigDisplayLabel(labelTemplate, labelParts, configVarsMain)
+            let displayLabel = getConfigDisplayLabel(labelTemplate, labelParts, configVarsMain, rdfDS, allPrefixes)
             if (displayLabel) {
                 item.props.hasDisplayLabel = true;
                 item.props._displayLabel = displayLabel;
@@ -764,24 +765,33 @@ function getItemsToList() {
 const filteredItems = computed(() => {
     if (!itemsToList.value.length) return [];
     const searchText = queryText.value.toLowerCase();
+    const searchableFields = ["_prefLabel", "_displayLabel", "itemValue"];
     return [...itemsToList.value]
         .filter((item) => {
             if (searchText.length == 0) return true;
-            return item.props._prefLabel
-                ?.toLowerCase()
-                .includes(searchText.toLowerCase());
+            return searchableFields.some((field) => {
+                const value = item.props[field];
+                return value?.toString().toLowerCase().includes(searchText);
+            });
         })
         .sort((a, b) => {
-            const aLabel = a.props._prefLabel?.toLowerCase();
-            const bLabel = b.props._prefLabel?.toLowerCase();
+            function getSortValue(item) {
+                for (const field of searchableFields) {
+                    const value = item.props[field];
+                    if (value) return value.toString().toLowerCase();
+                }
+                return null;
+            }
+            const aVal = getSortValue(a);
+            const bVal = getSortValue(b);
             // if both are missing labels, consider them equal
-            if (!aLabel && !bLabel) return 0;
+            if (!aVal && !bVal) return 0;
             // if only a is missing, a goes first
-            if (!aLabel) return -1;
+            if (!aVal) return -1;
             // if only b is missing, b goes first
-            if (!bLabel) return 1;
+            if (!bVal) return 1;
             // otherwise compare alphabetically
-            return aLabel.localeCompare(bLabel);
+            return aVal.localeCompare(bVal);
         });
 });
 
