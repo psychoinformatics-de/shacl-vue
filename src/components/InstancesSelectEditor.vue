@@ -429,8 +429,6 @@ onBeforeMount(async () => {
         scrollToSelectedItem();
         fetchingRecordLoader.value = false;
         fetchedItemCount.value = itemsToList.value.length;
-        console.log("fetchedItemCount.value")
-        console.log(fetchedItemCount.value)
     }
 });
 
@@ -599,8 +597,6 @@ const debouncedUpdate = debounce(() => {
     console.log('CHECK: graphdata instanceselecteditor');
     getItemsToList();
     fetchedItemCount.value = itemsToList.value.length;
-    console.log("fetchedItemCount.value")
-    console.log(fetchedItemCount.value)
     setSelectedValue();
 }, 500);
 watch(() => rdfDS.data.graphChanged, debouncedUpdate, { deep: true });
