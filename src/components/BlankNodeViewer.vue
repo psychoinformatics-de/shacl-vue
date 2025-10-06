@@ -6,26 +6,28 @@
         no-gutters
     >
         <v-card-text style="padding: 0.5em; background-color: white">
-            <v-row justify="center" align="center">
-                <v-col cols="1"
-                    ><v-icon>{{
-                        getClassIcon(
-                            record.triples['NamedNode'][RDF.type.value][0].value
-                        )
-                    }}</v-icon></v-col
-                >
+            <v-row align="center" class="d-inline-flex">
+                <v-col style="flex: 0 0 30px; max-width: 30px;">
+                    <v-icon class="mr-1">
+                        {{
+                            getClassIcon(
+                                record.triples['NamedNode'][RDF.type.value][0].value
+                            )
+                        }}
+                    </v-icon>
+                </v-col>
                 <v-col>
                     <!-- literal and named nodes -->
                     <span v-for="tt of ['Literal', 'NamedNode']">
                         <span v-for="(v, k, index) in record.triples[tt]">
                             <span v-if="k != RDF.type.value">
-                                <em>{{
-                                    makeReadable(
-                                        toCURIE(k, allPrefixes, 'parts')
-                                            .property
-                                    )
-                                }}</em
-                                >:
+                                <em>
+                                    {{
+                                        makeReadable(
+                                            toCURIE(k, allPrefixes, 'parts').property
+                                        )
+                                    }}
+                                </em>:
                                 <span v-for="(el, i) in v">
                                     <span v-if="v.length > 1"
                                         ><br />&nbsp;-
@@ -42,12 +44,13 @@
                         </span>
                     </span>
                     <span v-for="(v, k, index) in record.triples['BlankNode']">
-                        <em>{{
-                            makeReadable(
-                                toCURIE(k, allPrefixes, 'parts').property
-                            )
-                        }}</em
-                        >:
+                        <em>
+                            {{
+                                makeReadable(
+                                    toCURIE(k, allPrefixes, 'parts').property
+                                )
+                            }}
+                        </em>:
                         <br />
                         <span v-for="(el, i) in v">
                             <div>
