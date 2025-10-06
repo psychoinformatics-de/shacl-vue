@@ -40,9 +40,9 @@
                             v-for="(triple, triple_idx) in formData.content[
                                 localNodeUid
                             ][localNodeIdx][my_uid]"
-                            :key="localNodeUid + '-' + my_uid + '-' + triple_idx"
+                            :key="localNodeUid + '-' + my_uid + '-' + triple"
                         >
-                            <v-col cols="9" class="d-flex align-center" @click.stop="showTooltip = false" @mouseenter="showTooltip = false">      
+                            <v-col v-if="triple_idx < currentCount" cols="9" class="d-flex align-center" @click.stop="showTooltip = false" @mouseenter="showTooltip = false">      
                                 &nbsp;              
                                 <Suspense>
                                     <template #default>
@@ -59,6 +59,7 @@
                                                 :triple_uid="my_uid"
                                                 :triple_idx="triple_idx"
                                                 :disabled="compDisabled"
+                                                
                                                 @click.stop="showTooltip = false"
                                                 @focus="showTooltip = false"
                                                 @focusin="showTooltip = false"
@@ -73,7 +74,7 @@
                                     </template>
                                 </Suspense>
                             </v-col>
-                            <v-col>
+                            <v-col v-if="triple_idx < currentCount">
                                 &nbsp;
                                 <!-- Remove button -->
                                 <v-btn
@@ -82,7 +83,7 @@
                                     elevation="1"
                                     icon="mdi-delete-outline"
                                     @click.stop="
-                                        formData.removeObject(
+                                        removeTriple(
                                             localNodeUid,
                                             localNodeIdx,
                                             my_uid,
@@ -100,10 +101,11 @@
                                     elevation="1"
                                     icon="mdi-plus-circle-outline"
                                     @click.stop="
-                                        formData.addObject(
+                                        addTriple(
                                             localNodeUid,
                                             localNodeIdx,
-                                            my_uid
+                                            my_uid,
+                                            triple_idx
                                         )
                                     "
                                     density="comfortable"
@@ -111,6 +113,45 @@
                                 ></v-btn>
                             </v-col>
                         </v-row>
+                        <div
+                            v-if="formData.content[localNodeUid][localNodeIdx][my_uid] && (
+                                formData.content[localNodeUid][localNodeIdx][my_uid].length > currentCount ||
+                                formData.content[localNodeUid][localNodeIdx][my_uid].length > defaultStep
+                            )"
+                            class="d-flex justify-start"
+                            style="padding-left: 0.3em;"
+                        >
+                            <span v-if="formData.content[localNodeUid][localNodeIdx][my_uid].length > currentCount">
+                                <v-tooltip text="Show more..." location="top">
+                                    <template v-slot:activator="{ props }">
+                                        <v-btn
+                                            v-bind:="props"
+                                            no-gutters
+                                            @click="currentCount+=defaultStep"
+                                            density="compact"
+                                            icon="mdi-plus"
+                                            size="small"
+                                        ></v-btn>
+                                    </template>
+                                </v-tooltip>
+                            </span>
+                            <span v-if="currentCount > defaultStep">
+                                &nbsp;
+                                <v-tooltip text="Show less..." location="top">
+                                    <template v-slot:activator="{ props }">
+                                        <v-btn
+                                            v-bind:="props"
+                                            no-gutters
+                                            @click="currentCount = currentCount - defaultStep < defaultStep ? defaultStep : currentCount - defaultStep"
+                                            density="compact"
+                                            icon="mdi-minus"
+                                            size="small"
+                                        ></v-btn>
+                                    </template>
+                                </v-tooltip>
+                            </span>
+                            &nbsp; <em>(showing {{ currentCount }} of {{ formData.content[localNodeUid][localNodeIdx][my_uid].length }})</em>
+                        </div>
                     </span>
                 </v-col>
             </v-row>
@@ -188,6 +229,8 @@ const configVarsMain = inject('configVarsMain');
 const ID_IRI = inject('ID_IRI');
 const compDisabled = ref(false);
 const configMatchedComponent = ref(null);
+const defaultStep = configVarsMain.editorConfig?.PropertyShapeEditor?.recordNumberStepSize;
+const currentCount = ref(defaultStep)
 
 // ----------------- //
 // Lifecycle methods //
@@ -343,13 +386,27 @@ function allowAddTriple(idx) {
         if (
             formData.content[localNodeUid.value][localNodeIdx.value][
                 my_uid.value
-            ].length ==
-            idx + 1
+            ].length == idx + 1
         ) {
             return true;
-        } else {
+        } else if (
+            (currentCount.value == idx + 1) &&
+            currentCount.value < formData.content[localNodeUid.value][localNodeIdx.value][
+                my_uid.value
+            ].length
+        ) {
+            return true;
+        }
+        else {
             return false;
         }
+    }
+}
+
+function addTriple(class_uri, subject_uri, predicate_uri, current_idx) {
+    formData.content[class_uri][subject_uri][predicate_uri].splice(current_idx+1, 0, null);
+    if (current_idx+1==currentCount.value) {
+        currentCount.value+=1;
     }
 }
 
@@ -361,6 +418,15 @@ function allowRemoveTriple(idx) {
         return true;
     }
     return false;
+}
+
+function removeTriple(class_uri, subject_uri, predicate_uri, current_idx) {
+    formData.removeObject(
+        class_uri,
+        subject_uri,
+        predicate_uri,
+        current_idx
+    )
 }
 </script>
 

@@ -49,33 +49,39 @@
             </span>
         </v-card-subtitle>
         <v-card-text v-if="!props.formOpen">
-            <strong>Persistent Identifier</strong>: &nbsp;{{ record.title
-            }}<br />
+            <strong>Persistent Identifier</strong>: &nbsp;{{ record.title}}<br/>
+
             <!-- Literal nodes -->
             <span v-for="(v, k, index) in record.triples['Literal']">
                 <span v-if="propertyShapes[k]">
-                    <strong>{{
-                        nameOrCURIE(
-                            propertyShapes[k],
-                            shapesDS.data.prefixes,
-                            true
-                        )
-                    }}</strong
-                    >:
+                    <strong>
+                        {{
+                            nameOrCURIE(
+                                propertyShapes[k],
+                                shapesDS.data.prefixes,
+                                true
+                            )
+                        }}
+                    </strong>:
                 </span>
                 <span v-else>
-                    <strong>{{ k }}</strong
-                    >:
+                    <strong>{{ k }}</strong>:
                 </span>
                 <span v-for="(el, i) in v">
-                    <span v-if="v.length > 1"><br />&nbsp;-</span>
-                    &nbsp;<LiteralNodeViewer
-                        v-if="el.value"
-                        :textVal="el.value"
-                    ></LiteralNodeViewer>
+                    <span v-if="i < showCounts['Literal'][k]">
+                        <span v-if="v.length > 1"><br/>&nbsp;-</span>
+                        &nbsp;<LiteralNodeViewer v-if="el.value" :textVal="el.value"></LiteralNodeViewer>
+                    </span>
                 </span>
-                <br />
+                <br/>
+                <MoreOrLessRecordsViewer
+                    :records="v"
+                    v-model:count="showCounts['Literal'][k]"
+                    :stepSize="defaultStep"
+                ></MoreOrLessRecordsViewer>
             </span>
+
+
             <!-- Named nodes -->
             <span v-if="fetchingRecords">
                 <v-skeleton-loader type="paragraph"></v-skeleton-loader>
@@ -84,45 +90,54 @@
                 <span v-for="(v, k, index) in record.triples['NamedNode']">
                     <span v-if="k != RDF.type.value">
                         <span v-if="propertyShapes[k]">
-                            <strong>{{
-                                nameOrCURIE(
-                                    propertyShapes[k],
-                                    shapesDS.data.prefixes,
-                                    true
-                                )
-                            }}</strong
-                            >:
+                            <strong>
+                                {{
+                                    nameOrCURIE(
+                                        propertyShapes[k],
+                                        shapesDS.data.prefixes,
+                                        true
+                                    )
+                                }}
+                            </strong>:&nbsp;&nbsp;<MoreOrLessRecordsViewer
+                                :records="v"
+                                v-model:count="showCounts['NamedNode'][k]"
+                                :stepSize="defaultStep"
+                            ></MoreOrLessRecordsViewer>
                             <span v-for="(el, i) in v">
-                                <span v-if="v.length > 1"><br />&nbsp;-</span>
-                                &nbsp;<NamedNodeViewer
-                                    v-if="el.value"
-                                    :textVal="el.value"
-                                    :prefLabel="
-                                        getPrefLabel(el, rdfDS, allPrefixes)
-                                    "
-                                    :displayLabel="
-                                        getRecordDisplayLabel(el, rdfDS, allPrefixes, configVarsMain)
-                                    "
-                                    :quad="
-                                        getPidQuad(el.value, rdfDS.data.graph)
-                                    "
-                                    :targetClass="
-                                        propertyShapes[k][SHACL.class.value]
-                                    "
-                                >
-                                </NamedNodeViewer>
+                                <span v-if="i < showCounts['NamedNode'][k]">
+                                    <span v-if="v.length > 1"><br />&nbsp;-</span>
+                                    &nbsp;<NamedNodeViewer
+                                        v-if="el.value"
+                                        :textVal="el.value"
+                                        :prefLabel="
+                                            getPrefLabel(el, rdfDS, allPrefixes)
+                                        "
+                                        :displayLabel="
+                                            getRecordDisplayLabel(el, rdfDS, allPrefixes, configVarsMain)
+                                        "
+                                        :quad="
+                                            getPidQuad(el.value, rdfDS.data.graph)
+                                        "
+                                        :targetClass="
+                                            propertyShapes[k][SHACL.class.value]
+                                        "
+                                    >
+                                    </NamedNodeViewer>
+                                </span>
                             </span>
+                            
                         </span>
                         <span v-else>
                             <strong>{{ k }}</strong
                             >:
                             <span v-for="(el, i) in v">
-                                <span v-if="v.length > 1"><br />&nbsp;-</span>
-                                &nbsp;{{ el.value }}
+                                <span v-if="i < showCounts['NamedNode'][k]">
+                                    <span v-if="v.length > 1"><br />&nbsp;-</span>
+                                    &nbsp;{{ el.value }}
+                                </span>
                             </span>
                         </span>
-
-                        <br />
+                        <br>
                     </span>
                 </span>
             </span>
@@ -143,14 +158,18 @@
                 <span v-for="(v, k, index) in record.triples['BlankNode']">
                     <strong>{{
                         makeReadable(toCURIE(k, allPrefixes, 'parts').property)
-                    }}</strong
-                    >:
+                    }}</strong> ({{v.length}}):
                     <br />
                     <span v-for="(el, i) in v">
-                        <div>
+                        <div v-if="i < showCounts['BlankNode'][k]">
                             <BlankNodeViewer :node="el"></BlankNodeViewer>
                         </div>
                     </span>
+                    <MoreOrLessRecordsViewer
+                        :records="v"
+                        v-model:count="showCounts['BlankNode'][k]"
+                        :stepSize="defaultStep"
+                    ></MoreOrLessRecordsViewer>
                 </span>
             </span>
         </v-card-text>
@@ -212,6 +231,7 @@ import {
     getRecordDisplayLabel,
 } from '../modules/utils';
 import { RDF, SHACL } from '@/modules/namespaces';
+import MoreOrLessRecordsViewer from './MoreOrLessRecordsViewer.vue';
 // Define component properties
 const props = defineProps({
     classIRI: String,
@@ -235,6 +255,15 @@ const propertyShapes = {};
 for (var p of shape_obj.properties) {
     propertyShapes[p[SHACL.path.value]] = p;
 }
+const defaultStep = configVarsMain.viewerConfig?.NodeShapeViewer?.recordNumberStepSize;
+const showBlankNodeCounts = reactive({});
+const showCounts = reactive(
+    {
+        'Literal': {},
+        'NamedNode': {},
+        'BlankNode': {},
+    }
+);
 
 console.log(propertyShapes);
 
@@ -261,10 +290,12 @@ onBeforeMount(async () => {
     if (configVarsMain['idResolvesExternally'].indexOf(recordPIDprefix) >= 0) {
         resolveExternally.value = true;
     }
+    initShowCounts();
 });
 
 onUpdated(() => {
     updateRecord(false);
+    initShowCounts();
 });
 
 async function viewRDF() {
@@ -284,6 +315,16 @@ function downloadTTL() {
 
 function showHideBlankNodes() {
     showBlankNodes.value = !showBlankNodes.value;
+}
+
+function initShowCounts() {
+    for (const n of ['BlankNode', 'NamedNode', 'Literal']) {
+        for (const pred in record.triples[n]) {
+            if (!showCounts[n].hasOwnProperty(pred)) {
+                showCounts[n][pred] = defaultStep;
+            }
+        }
+    }
 }
 
 function getRecordQuads() {
