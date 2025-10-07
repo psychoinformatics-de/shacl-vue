@@ -28,8 +28,17 @@ const mainVarsToLoad = {
             yearEnd: 2077
         },
         InstancesSelectEditor: {
-            fetchingsRecordsText: "Fetching records..."
-        }
+            fetchingsRecordsText: "Fetching records...",
+        },
+        PropertyShapeEditor: {
+            recordNumberStepSize: 5,
+        },
+    },
+    viewer_config: {
+        NodeShapeViewer: {
+            recordNumberStepSize: 5,
+        },
+
     },
     display_name_autogenerate: {},
     display_name_autogenerate_placeholder: {
