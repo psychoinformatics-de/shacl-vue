@@ -1200,21 +1200,21 @@ function getInstanceItems() {
 
 const filteredInstanceItemsComp = computed(() => {
     const c = orderTopDown.value ? 1 : -1;
-    let txt = searchText.value.toLowerCase();
+    let txt = searchText.value.toLowerCase().trim();
     const searchableFields = ["_prefLabel", "_displayLabel", "itemValue"];
     return [...instanceItemsComp.value]
         .filter((item) => {
             if (txt.length == 0) return true;
             return searchableFields.some((field) => {
                 const value = item.props[field];
-                return value?.toString().toLowerCase().includes(txt);
+                return value?.toString().toLowerCase().trim().includes(txt);
             });
         })
         .sort((a, b) => {
             function getSortValue(item) {
                 for (const field of searchableFields) {
                     const value = item.props[field];
-                    if (value) return value.toString().toLowerCase();
+                    if (value) return value.toString().toLowerCase().trim();
                 }
                 return null;
             }
