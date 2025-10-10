@@ -17,6 +17,7 @@ const mainVarsToLoad = {
     hide_classes_with_prefix: [],
     no_edit_classes: [],
     allow_edit_instances: [],
+    allow_copy_record_urls: true,
     editor_selection: {},
     editor_config: {
         W3CISO8601YearEditor: {
@@ -38,7 +39,6 @@ const mainVarsToLoad = {
         NodeShapeViewer: {
             recordNumberStepSize: 5,
         },
-
     },
     display_name_autogenerate: {},
     display_name_autogenerate_placeholder: {
