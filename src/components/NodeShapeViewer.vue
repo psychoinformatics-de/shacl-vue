@@ -46,6 +46,23 @@
                         ></v-btn>
                     </template>
                 </v-tooltip>
+                <span v-if="showCopyLink">
+                    &nbsp;
+                    <v-tooltip text="Copy link" location="bottom">
+                        <template v-slot:activator="{ props }">
+                            <v-btn
+                                :icon="linkCopied ? 'mdi-check' : 'mdi-link-variant'"
+                                variant="tonal"
+                                :color="linkCopied ? 'success' : ''"
+                                size="x-small"
+                                class="rounded-lg"
+                                @click="copyRecordLink()"
+                                :disabled="props.formOpen"
+                                v-bind="props"
+                            ></v-btn>
+                        </template>
+                    </v-tooltip>
+                </span>
             </span>
         </v-card-subtitle>
         <v-card-text v-if="!props.formOpen">
@@ -251,12 +268,13 @@ const record = reactive({});
 const showBlankNodes = ref(false);
 const shape_obj = shapesDS.data.nodeShapes[props.classIRI];
 const resolveExternally = ref(false);
+const linkCopied = ref(false)
+const showCopyLink = ref(false)
 const propertyShapes = {};
 for (var p of shape_obj.properties) {
     propertyShapes[p[SHACL.path.value]] = p;
 }
 const defaultStep = configVarsMain.viewerConfig?.NodeShapeViewer?.recordNumberStepSize;
-const showBlankNodeCounts = reactive({});
 const showCounts = reactive(
     {
         'Literal': {},
@@ -282,6 +300,13 @@ function selectNamedNode(recordClass, recordPID) {
 provide('selectNamedNode', selectNamedNode);
 
 onBeforeMount(async () => {
+
+    if (configVarsMain.allowCopyRecordUrls === true ||
+        ( Array.isArray(configVarsMain.allowCopyRecordUrls) &&
+        configVarsMain.allowCopyRecordUrls.indexOf(props.classIRI) >= 0 )
+    ) {
+        showCopyLink.value = true;
+    }
     canEditClass.value = configVarsMain.noEditClasses.indexOf(props.classIRI) < 0 ? true : false
     fetchingRecords.value = true;
     await updateRecord(true);
@@ -391,5 +416,28 @@ async function addRecordProperty(quad, fetchData) {
         record.triples[termType][quad.predicate.value] = [];
     }
     record.triples[termType][quad.predicate.value].push(quad.object);
+}
+
+function copyRecordLink() {
+    var nodeShapeCurie = toCURIE(props.classIRI, allPrefixes);
+    var pidCurie = toCURIE(props.quad.subject.value, allPrefixes);
+    var nsQPvar = encodeURIComponent('sh:NodeShape')
+    var nsQP = encodeURIComponent(nodeShapeCurie)
+    var pidQP = encodeURIComponent(pidCurie)
+    var queryParams = `?${nsQPvar}=${nsQP}&pid=${pidQP}`;
+    var urlText = window.location.origin + window.location.pathname + queryParams
+    copyTextToClipboard(urlText)
+}
+
+async function copyTextToClipboard(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        linkCopied.value = true
+        setTimeout(() => {
+            linkCopied.value = false;
+        }, 1000);
+    } catch (err) {
+        console.error('Clipboard copy failed:', err);
+    }
 }
 </script>
