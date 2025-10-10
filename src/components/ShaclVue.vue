@@ -1235,7 +1235,7 @@ const searchableFields = ["_prefLabel", "_displayLabel", "itemValue"];
 function getSortValue(item) {
     for (const field of searchableFields) {
         const value = item.props[field];
-        if (value) return value.toString().toLowerCase();
+        if (value) return value.toString().toLowerCase().trim();
     }
     return null;
 }
@@ -1255,24 +1255,24 @@ function sortItems(arr) {
     })
 }
 const filteredInstanceItemsComp = computed(() => {
-    let txt = searchText.value.toLowerCase();
+    let txt = searchText.value.toLowerCase().trim();
     return sortItems(
         [...instanceItemsComp.value].filter((item) => {
             if (txt.length == 0) return true;
             return searchableFields.some((field) => {
-                const value = item.props[field]?.toString().toLowerCase();
+                const value = item.props[field]?.toString().toLowerCase().trim();
                 return value.includes(txt);
             });
         })
     )
 });
 const matchedInstanceItemsComp = computed(() => {
-    let txt = searchText.value.toLowerCase();
+    let txt = searchText.value.toLowerCase().trim();
     return sortItems(
         [...instanceItemsComp.value].filter((item) => {
             if (txt.length == 0) return true;
             return searchableFields.some((field) => {
-                const value = item.props[field]?.toString().toLowerCase();
+                const value = item.props[field]?.toString().toLowerCase().trim();
                 return value === txt;
             });
         })

@@ -37,10 +37,10 @@
                         <v-row
                             align="center"
                             no-gutters
-                            v-for="(triple, triple_idx) in formData.content[
+                            v-for="(tripleObj, triple_idx) in formData.content[
                                 localNodeUid
                             ][localNodeIdx][my_uid]"
-                            :key="localNodeUid + '-' + my_uid + '-' + triple"
+                            :key="localNodeUid + '-' + my_uid + '-' + tripleObj._key"
                         >
                             <v-col v-if="triple_idx < currentCount" cols="9" class="d-flex align-center" @click.stop="showTooltip = false" @mouseenter="showTooltip = false">      
                                 &nbsp;              
@@ -50,7 +50,7 @@
                                                 v-model="
                                                     formData.content[localNodeUid][
                                                         localNodeIdx
-                                                    ][my_uid][triple_idx]
+                                                    ][my_uid][triple_idx].value
                                                 "
                                                 :is="configMatchedComponent || matchedComponent"
                                                 :property_shape="localPropertyShape"
@@ -236,8 +236,45 @@ const currentCount = ref(defaultStep)
 // Lifecycle methods //
 // ----------------- //
 
+onBeforeMount(() => {
+    my_uid.value = localPropertyShape.value[SHACL.path.value];
+
+    // Provide triple objects with keys for component rendering if they don't have it
+    // TODO: figure out if this is expensive for many objects
+    let current_triple_objects = formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value]
+    if (current_triple_objects && Array.isArray(current_triple_objects)) {
+        for (const tripObj of current_triple_objects) {
+            if (!('_key' in tripObj)) {
+                tripObj['_key'] = crypto.randomUUID()
+            }
+        }
+    }
+
+    // Lets see if any config-driven editor matching is available
+    // We loop through all keys of config[editor_selection] and assign and exit on first matched
+    let configMatchedComponentName
+    for (const prop_shape_key of Object.keys(configVarsMain.editorSelection)) {
+        var pskey = toIRI(prop_shape_key, allPrefixes)
+        if (
+            localPropertyShape.value.hasOwnProperty(pskey) &&
+            Object.keys(configVarsMain.editorSelection[prop_shape_key]).indexOf(toCURIE(localPropertyShape.value[pskey], allPrefixes)) >= 0
+        ) {
+            configMatchedComponentName = configVarsMain.editorSelection[prop_shape_key][toCURIE(localPropertyShape.value[pskey], allPrefixes)]
+            break;
+        }
+    }
+    if (configMatchedComponentName) {
+        const matchingComponentNames = Object.keys(editorMatchers).filter(key => key.includes(configMatchedComponentName));
+        if (matchingComponentNames.length > 0) {
+            var cname = matchingComponentNames[0] // take first matched
+            configMatchedComponent.value = editorMatchers[cname].component
+        }
+    }
+});
+
 onMounted(() => {
     // Autogenerate value for idi_iri if required
+    let current_triple_objects = formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value]
     if (
         my_uid.value == ID_IRI.value &&
         isObject(configVarsMain.idAutogenerate) &&
@@ -246,9 +283,9 @@ onMounted(() => {
         // if the object value is already in formdata, dont autogenerate and don't add,
         // but still disable the field
         if (
-            formData.content[localNodeUid.value][localNodeIdx.value][
-                my_uid.value
-            ]
+            Array.isArray(current_triple_objects) &&
+            current_triple_objects.length == 1 &&
+            current_triple_objects[0].value
         ) {
             compDisabled.value = true;
             return;
@@ -272,49 +309,27 @@ onMounted(() => {
                 localNodeUid.value,
                 localNodeIdx.value,
                 my_uid.value,
-                [new_id_val]
+                [{value:new_id_val, _key: crypto.randomUUID()}]
             );
             compDisabled.value = true;
         }
     } else {
         if (
-            formData.content[localNodeUid.value][localNodeIdx.value][
-                my_uid.value
-            ]
+            Array.isArray(current_triple_objects) &&
+            current_triple_objects.length >= 1
         ) {
             return;
         }
         formData.addPredicate(
             localNodeUid.value,
             localNodeIdx.value,
-            my_uid.value
+            my_uid.value,
+            [{value:null, _key: crypto.randomUUID()}]
         );
     }
 });
 
-onBeforeMount(() => {
-    my_uid.value = localPropertyShape.value[SHACL.path.value];
-    // Lets see if any config-driven editor matching is available
-    // We loop through all keys of config[editor_selection] and assign and exit on first matched
-    let configMatchedComponentName
-    for (const prop_shape_key of Object.keys(configVarsMain.editorSelection)) {
-        var pskey = toIRI(prop_shape_key, allPrefixes)
-        if (
-            localPropertyShape.value.hasOwnProperty(pskey) &&
-            Object.keys(configVarsMain.editorSelection[prop_shape_key]).indexOf(toCURIE(localPropertyShape.value[pskey], allPrefixes)) >= 0
-        ) {
-            configMatchedComponentName = configVarsMain.editorSelection[prop_shape_key][toCURIE(localPropertyShape.value[pskey], allPrefixes)]
-            break;
-        }
-    }
-    if (configMatchedComponentName) {
-        const matchingComponentNames = Object.keys(editorMatchers).filter(key => key.includes(configMatchedComponentName));
-        if (matchingComponentNames.length > 0) {
-            var cname = matchingComponentNames[0] // take first matched
-            configMatchedComponent.value = editorMatchers[cname].component
-        }
-    }
-});
+
 
 onBeforeUnmount(() => {});
 
@@ -404,7 +419,7 @@ function allowAddTriple(idx) {
 }
 
 function addTriple(class_uri, subject_uri, predicate_uri, current_idx) {
-    formData.content[class_uri][subject_uri][predicate_uri].splice(current_idx+1, 0, null);
+    formData.addObject(class_uri, subject_uri, predicate_uri, current_idx)
     if (current_idx+1==currentCount.value) {
         currentCount.value+=1;
     }
@@ -412,8 +427,7 @@ function addTriple(class_uri, subject_uri, predicate_uri, current_idx) {
 
 function allowRemoveTriple(idx) {
     if (
-        formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value]
-            .length > 1
+        formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value].length > 1
     ) {
         return true;
     }
@@ -427,6 +441,10 @@ function removeTriple(class_uri, subject_uri, predicate_uri, current_idx) {
         predicate_uri,
         current_idx
     )
+    let l = formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value].length
+    if (currentCount.value > l) {
+        currentCount.value = l;
+    }
 }
 </script>
 
