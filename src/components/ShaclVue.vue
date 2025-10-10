@@ -161,6 +161,7 @@
                                                                     openForms.length >
                                                                     0
                                                                 "
+                                                                @update:modelValue="onUserTyping"
                                                             >
                                                                 <template
                                                                     v-slot:append-inner
@@ -214,6 +215,8 @@
                                                     </v-tooltip>
                                                     <DynamicScroller
                                                         :items="
+                                                            textMatchType == 'exact' ?
+                                                            matchedInstanceItemsComp :
                                                             filteredInstanceItemsComp
                                                         "
                                                         page-mode
@@ -263,7 +266,7 @@
                                                                         "
                                                                         :variant="
                                                                             item.title ==
-                                                                            queried_id
+                                                                            queried_pid
                                                                                 ? 'outlined'
                                                                                 : 'tonal'
                                                                         "
@@ -433,6 +436,7 @@ import {
     addCodeTagsToText,
     getSuperClasses,
     getDisplayName,
+    getPidQuad,
     hasConfigDisplayLabel,
     getConfigDisplayLabel,
 } from '../modules/utils';
@@ -638,8 +642,8 @@ onBeforeUnmount(() => {
 const superClasses = reactive({});
 provide('superClasses', superClasses);
 const searchText = ref('');
+const textMatchType = ref('partial');
 const instanceItemsComp = ref([]);
-// const filteredInstanceItemsComp = ref([]);
 var newTypeSelected = false;
 
 // ---------------------------------------------- //
@@ -750,7 +754,7 @@ provide('activatedInstancesSelectEditor', activatedInstancesSelectEditor);
 const lastSavedNode = ref(null);
 provide('lastSavedNode', lastSavedNode);
 const itemsTrigger = ref(false);
-const queried_id = ref(null);
+const queried_pid = ref(null);
 const classRecordsLoading = ref(false);
 const idRecordLoading = ref(false);
 const fetchedItemCount = ref(null)
@@ -909,6 +913,7 @@ const formattedDescription = computed(() => {
 
 function clearField() {
     searchText.value = '';
+    textMatchType.value = 'partial';
 }
 
 async function selectType(IRI, fromUser, fromBackButton) {
@@ -924,6 +929,7 @@ async function selectType(IRI, fromUser, fromBackButton) {
     var tempSearchText = searchText.value;
     var tempIRI = selectedIRI.value;
     searchText.value = '';
+    textMatchType.value = 'partial';
     selectedIRI.value = IRI;
     selectedShape.value = shapesDS.data.nodeShapes[IRI];
     canEditClass.value = configVarsMain.noEditClasses.indexOf(IRI) < 0 ? true : false
@@ -1000,9 +1006,12 @@ function onTokenDialogOpened() {
     window.history.replaceState(null, '', url);
 }
 
-function updateURL(IRI, edit) {
+function updateURL(IRI, edit, pid) {
     var curie = toCURIE(IRI, allPrefixes);
     var queryParams = `?${encodeURIComponent('sh:NodeShape')}=${encodeURIComponent(curie)}`;
+    if (pid) {
+        queryParams += `&pid=${encodeURIComponent(pid)}`;
+    }
     if (edit) {
         queryParams += '&edit=true';
     }
@@ -1017,18 +1026,12 @@ function getQueryParams() {
 async function setViewFromQuery() {
     const qparams = getQueryParams();
     const nodeShape = qparams.get('sh:NodeShape');
-    const instance_id = qparams.get('id');
+    const instance_pid = qparams.get('pid');
     const token = qparams.get('token');
     const edit = qparams.get('edit');
 
     if (token) {
         setToken(token);
-    }
-
-    if (instance_id) {
-        console.log('ID in queryparams');
-        queried_id.value = instance_id;
-        console.log(queried_id.value);
     }
 
     if (nodeShape) {
@@ -1039,12 +1042,40 @@ async function setViewFromQuery() {
         if (shapesDS.data.nodeShapes[nodeShapeIRI]) {
             if (includeClass(nodeShapeIRI)) {
                 await selectType(nodeShapeIRI);
+                var instanceIRI = null;
+                if (instance_pid) {
+                    instanceIRI = toIRI(instance_pid, allPrefixes);
+                    if (instanceIRI) {
+                        // queried_pid.value = instanceIRI;
+                        textMatchType.value = 'exact';
+                        searchText.value = instanceIRI;
+                        updateURL(nodeShapeIRI, false, instanceIRI)
+                    } else {
+                        updateURL(nodeShapeIRI, false, null)
+                        console.error(`Unresolvable PID queryparams: ${instance_pid} `);
+                    }
+                }
+                // If edit AND if instance_pid, then we should:
+                // - create object 'instance'
+                // - set instance.value = instanceIRI
+                // - get the instance quad with instance_pid as subject -> set instance.quad
+                // - call editInstanceItem(instance)
+                // If edit AND NOT instance_pid, just open the empty form
                 if (edit) {
                     if (configVarsMain.noEditClasses.indexOf(nodeShapeIRI) >= 0) {
                         updateURL(nodeShapeIRI, false)
                     } else {
-                        addInstanceItem();
-                        updateURL(nodeShapeIRI, true);
+                        if (instanceIRI) {
+                            let instObject = {
+                                value: instanceIRI,
+                                quad: getPidQuad(instanceIRI, rdfDS.data.graph)
+                            }
+                            editInstanceItem(instObject)
+                        } else {
+                            addInstanceItem();
+                            updateURL(nodeShapeIRI, true);
+                        }
+                        
                     }
                 }
             }
@@ -1119,6 +1150,7 @@ async function editInstanceItem(instance) {
     formOpen.value = true;
     drawer.value = false;
     canSubmit.value = false;
+    updateURL(editShapeIRI.value, true, editItemIdx.value);
 }
 provide('editInstanceItem', editInstanceItem);
 
@@ -1198,37 +1230,53 @@ function getInstanceItems() {
     fetchedItemCount.value = instanceItemsComp.value.length;
 }
 
-const filteredInstanceItemsComp = computed(() => {
+
+const searchableFields = ["_prefLabel", "_displayLabel", "itemValue"];
+function getSortValue(item) {
+    for (const field of searchableFields) {
+        const value = item.props[field];
+        if (value) return value.toString().toLowerCase();
+    }
+    return null;
+}
+function sortItems(arr) {
     const c = orderTopDown.value ? 1 : -1;
+    return arr.sort((a, b) => {
+        const aVal = getSortValue(a);
+        const bVal = getSortValue(b);
+        // if both are missing labels, consider them equal
+        if (!aVal && !bVal) return 0;
+        // if only a is missing, a goes first
+        if (!aVal) return -1 * c;
+        // if only b is missing, b goes first
+        if (!bVal) return 1 * c;
+        // otherwise compare alphabetically
+        return c * aVal.localeCompare(bVal);
+    })
+}
+const filteredInstanceItemsComp = computed(() => {
     let txt = searchText.value.toLowerCase();
-    const searchableFields = ["_prefLabel", "_displayLabel", "itemValue"];
-    return [...instanceItemsComp.value]
-        .filter((item) => {
+    return sortItems(
+        [...instanceItemsComp.value].filter((item) => {
             if (txt.length == 0) return true;
             return searchableFields.some((field) => {
-                const value = item.props[field];
-                return value?.toString().toLowerCase().includes(txt);
+                const value = item.props[field]?.toString().toLowerCase();
+                return value.includes(txt);
             });
         })
-        .sort((a, b) => {
-            function getSortValue(item) {
-                for (const field of searchableFields) {
-                    const value = item.props[field];
-                    if (value) return value.toString().toLowerCase();
-                }
-                return null;
-            }
-            const aVal = getSortValue(a);
-            const bVal = getSortValue(b);
-            // if both are missing labels, consider them equal
-            if (!aVal && !bVal) return 0;
-            // if only a is missing, a goes first
-            if (!aVal) return -1 * c;
-            // if only b is missing, b goes first
-            if (!bVal) return 1 * c;
-            // otherwise compare alphabetically
-            return c * aVal.localeCompare(bVal);
+    )
+});
+const matchedInstanceItemsComp = computed(() => {
+    let txt = searchText.value.toLowerCase();
+    return sortItems(
+        [...instanceItemsComp.value].filter((item) => {
+            if (txt.length == 0) return true;
+            return searchableFields.some((field) => {
+                const value = item.props[field]?.toString().toLowerCase();
+                return value === txt;
+            });
         })
+    )
 });
 
 watchEffect(async () => {
@@ -1256,6 +1304,12 @@ watch(searchText, (newVal) => {
         onTypingPause(newVal);
     }, configVarsMain.serviceConstrainedSearch.typing_debounce);
 });
+
+function onUserTyping () {
+    if (textMatchType.value !== 'partial') {
+        textMatchType.value = 'partial'
+    }
+}
 
 async function onTypingPause(textVal) {
     console.log(`TYPING PAUSED: ${textVal}`)
@@ -1306,6 +1360,7 @@ async function handleInternalNavigation({ recordClass, recordPID }) {
     console.log('Received:', recordClass, recordPID);
     await selectType(recordClass, true);
     selectedItem.value = [recordClass];
+    textMatchType.value = 'exact';
     searchText.value = recordPID;
 }
 
