@@ -113,7 +113,10 @@
                         key-field="value"
                         class="virtual-scroller"
                         ref="scrollerRef"
+                        :emit-update="true"
                         @scroll-end="onScrollEnd"
+                        @resize="onScrollerReady"
+                        @update="onScrollerUpdate"
                     >
                         <template v-slot="{ item, index, active }">
                             <DynamicScrollerItem
@@ -222,12 +225,7 @@
                                             icon="mdi-pencil"
                                             variant="text"
                                             size="x-small"
-                                            @click="editInstanceItem(
-                                                {
-                                                    quad: item.props.itemQuad,
-                                                    value: item.value
-                                                }
-                                            )"
+                                            @click="editItem(item)"
                                             :disabled="!canEditClass"
                                         ></v-btn>
                                     </template>
@@ -258,7 +256,6 @@ import {
     watch,
     watchEffect,
     onBeforeMount,
-    onMounted,
     ref,
     provide,
     computed,
@@ -267,13 +264,20 @@ import {
 import { useRules } from '../composables/rules';
 import { DataFactory } from 'n3';
 import { SHACL, RDF, RDFS, SKOS } from '@/modules/namespaces';
-import { findObjectByKey, getAllClasses, hasConfigDisplayLabel, getConfigDisplayLabel} from '../modules/utils';
+import {
+    findObjectByKey,
+    getAllClasses,
+    hasConfigDisplayLabel,
+    getConfigDisplayLabel,
+    findIsomorphicSubgraph,
+    nodeShapeHasPID,
+} from '../modules/utils';
 import { toCURIE, toIRI } from 'shacl-tulip';
 import { useRegisterRef } from '../composables/refregister';
 import { useBaseInput } from '@/composables/base';
 import { debounce } from 'lodash-es';
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller';
-const { namedNode, literal } = DataFactory;
+const { namedNode, blankNode, quad,} = DataFactory;
 
 // ----- //
 // Props //
@@ -309,6 +313,15 @@ const editInstanceItem = inject('editInstanceItem');
 const rdfDS = inject('rdfDS');
 const allPrefixes = inject('allPrefixes');
 const classDS = inject('classDS');
+const shapesDS = inject('shapesDS');
+const ID_IRI = inject('ID_IRI');
+const nsHasPID = ref(true);
+const visibleRange = ref({
+    startIndex: 0,
+    endIndex: 0,
+    visibleStartIndex: 0,
+    visibleEndIndex: 0
+})
 const config = inject('config');
 const fetchFromService = inject('fetchFromService');
 const hasUnfetchedPages = inject('hasUnfetchedPages');
@@ -346,17 +359,14 @@ const addItemList = ref(null);
 const selectedAddItemShapeIRI = ref(null);
 const addForm = inject('addForm');
 const getClassIcon = inject('getClassIcon');
-// const activatedInstancesSelectEditor = inject('activatedInstancesSelectEditor')
 const lastSavedNode = inject('lastSavedNode');
 const openForms = inject('openForms');
 
 const cancelDialogForm = () => {
-    // console.log("Canceling from form in dialog")
     newNodeIdx.value = null;
 };
 provide('cancelFormHandler', cancelDialogForm);
 const saveDialogForm = () => {
-    // console.log("Saving from form in dialog")
     newNodeIdx.value = null;
 };
 provide('saveFormHandler', saveDialogForm);
@@ -377,6 +387,7 @@ function clearField() {
     queryText.value = '';
     queryLabel.value = '';
 }
+
 function setSelectedValue() {
     // Set selected value if the prop has a value
     if (props.modelValue) {
@@ -401,44 +412,65 @@ function setSelectedValue() {
     }
 }
 
-function scrollToSelectedItem() {
-    if (!subValues.value.selectedInstance) return;
-
-    var index = filteredItems.value.findIndex(
-        (item) => item.value === subValues.value.selectedInstance.value
-    );
-
-    if (index !== -1 && scrollerRef.value) {
-        scrollerRef.value.scrollToItem(index);
+async function scrollToSelectedItem() {
+    const scroller = scrollerRef.value
+    const selectedItem = subValues.value.selectedInstance
+    if (!selectedItem || !scroller) return
+    // Find the index of the selected item
+    const index = filteredItems.value.findIndex(
+        (item) => item.value === selectedItem.value
+    )
+    if (index === -1) return
+    // Helper: check if index is visible
+    const isVisible = () => {
+        const { startIndex, endIndex } = visibleRange.value
+        return index >= startIndex && index <= endIndex
+    }
+    // If not visible, scroll until it is
+    let attempts = 0
+    while (!isVisible() && attempts++ < 5) {
+        scroller.scrollToItem(index)
+        // Wait for DOM + scroller update
+        await nextTick()
+        await new Promise(r => setTimeout(r, 50))
     }
 }
 
-onMounted(async () => {});
-
 onBeforeMount(async () => {
+    nsHasPID.value = nodeShapeHasPID(propClass.value, shapesDS, ID_IRI.value)
     if (props.modelValue) {
         fetchingRecordLoader.value = true;
-        const results = await fetchFromService(
-            'get-record',
-            props.modelValue,
-            allPrefixes
-        );
-        getItemsToList();
-        await nextTick();
+        if (config.value.use_service && nsHasPID.value) {
+            const results = await fetchFromService(
+                'get-record',
+                props.modelValue,
+                allPrefixes
+            );
+        }
+        getSingleItemToList(props.modelValue);
         setSelectedValue();
-        scrollToSelectedItem();
         fetchingRecordLoader.value = false;
         fetchedItemCount.value = itemsToList.value.length;
     }
 });
 
-const openMenu = () => {
+const openMenu = async () => {
     if (hasOpenedMenu.value == false) {
         populateList();
         hasOpenedMenu.value = true
     }
-    menu.value = true;
+    menu.value = true;    
 };
+
+function onScrollerReady() {
+    setTimeout(() => {
+        scrollToSelectedItem();
+    }, 200)
+}
+
+function onScrollerUpdate(startIndex, endIndex, visibleStartIndex, visibleEndIndex) {
+    visibleRange.value = { startIndex, endIndex, visibleStartIndex, visibleEndIndex }
+}
 
 watch(menu, (newVal) => {
     if (!newVal) {
@@ -449,7 +481,7 @@ watch(menu, (newVal) => {
 async function populateList() {
     fetchingDataLoader.value = true;
     getItemsToList();
-    if (config.value.use_service) {
+    if (config.value.use_service && nsHasPID.value) {
         try {
             const result = await fetchFromService(
                 'get-paginated-records-constrained',
@@ -477,10 +509,9 @@ async function populateList() {
     } else {
         fetchingDataLoader.value = false;
     }
+    fetchedItemCount.value = itemsToList.value.length;
     setSelectedValue();
-    scrollToSelectedItem();
 }
-
 
 watch(isFetchingPage, (newVal) => {
     if (newVal) {
@@ -521,7 +552,7 @@ const debouncedScrollEnd = debounce(async () => {
     if (queryText.value) {
         return
     }
-    if (config.value.use_service) {
+    if (config.value.use_service && nsHasPID.value) {
         if (isFetchingPage.value) return;
         fetchNextPage(propClass.value)
     }
@@ -593,14 +624,6 @@ watch(
     { immediate: true }
 );
 
-const debouncedUpdate = debounce(() => {
-    console.log('CHECK: graphdata instanceselecteditor');
-    getItemsToList();
-    fetchedItemCount.value = itemsToList.value.length;
-    setSelectedValue();
-}, 500);
-watch(() => rdfDS.data.graphChanged, debouncedUpdate, { deep: true });
-
 const selectedItemIcon = computed(() => {
     if (subValues.value.selectedInstance) {
         return getClassIcon(
@@ -635,7 +658,12 @@ function valueCombiner(values) {
 }
 
 function selectItem(item) {
-    console.log(item);
+    if (subValues.value.selectedInstance?.value == item.value) {
+        queryText.value = '';
+        menu.value = false;
+        return
+    }
+    processTempItem(item)
     subValues.value.selectedInstance = item;
     queryLabel.value = subValues.value.selectedInstance.props._prefLabel
                 ? subValues.value.selectedInstance.props._prefLabel
@@ -646,6 +674,33 @@ function selectItem(item) {
                 )
     queryText.value = '';
     menu.value = false;
+}
+
+function editItem(item) {
+    processTempItem(item)
+    editInstanceItem(
+        {
+            quad: item.props.itemQuad,
+            value: item.value
+        }
+    )
+}
+
+function processTempItem(item) {
+    // First check if this is a temporary item (i.e. blank node copy)
+    // If it is, we need to:
+    // - create and link all related triple copies
+    // - replace the item.props.relatedQuads with the newly created quads
+    // - set isTemp flag to false:
+    // - add all quads to the graph
+    if (item.props.isTemp) {
+        const newRelatedQuads = item.props.relatedQuads.map(q => {
+            return quad(item.props.itemQuad.subject, q.predicate, q.object, q.graph);
+        });
+        item.props.relatedQuads = newRelatedQuads;
+        item.props.isTemp = false;
+        rdfDS.data.graph.addQuads(newRelatedQuads);
+    }
 }
 
 function handleAddItemClick(item) {
@@ -663,6 +718,90 @@ function handleAddItemClick(item) {
     console.log(newNodeIdx.value);
     addItemMenu.value = false;
     addForm(selectedAddItemShapeIRI.value, newNodeIdx.value, 'new');
+}
+
+function prepareItem(myQuad, isTemp = false) {
+    return {
+        title: myQuad.subject.value,
+        value: myQuad.subject.value,
+        props: {
+            isTemp: isTemp,
+            itemQuad: myQuad,
+            relatedQuads: [],
+            subtitle: toCURIE(myQuad.object.value, allPrefixes),
+            hasPrefLabel: false,
+            hasDisplayLabel: false,
+            hasNote: false,
+            itemValue: myQuad.subject.value,
+        },
+    };
+}
+
+function addItemParts(item, myQuad, relatedQuads) {
+    let labelTemplate = hasConfigDisplayLabel(myQuad.object.value, allPrefixes, configVarsMain)
+    let labelParts = {}
+    // add item properties: predicates and objects
+    // isolate properties used in label generation, if applicable
+    item.props.relatedQuads = relatedQuads;
+    relatedQuads.forEach((trip) => {
+        let predCuri = toCURIE(trip.predicate.value, allPrefixes)
+        item.props[predCuri] = toCURIE(trip.object.value, allPrefixes);
+        if (trip.predicate.value == SKOS.prefLabel.value) {
+            item.props.hasPrefLabel = true;
+            item.props._prefLabel = trip.object.value;
+        }
+        if (trip.predicate.value == SKOS.note.value) {
+            item.props.hasNote = true;
+            item.props._note = trip.object.value;
+        }
+        // If current predicate is used for display label generation, store it
+        if ( labelTemplate && labelTemplate.includes(predCuri)) {
+            if (!labelParts[predCuri]) {
+                labelParts[predCuri] = []
+            }
+            labelParts[predCuri].push(trip.object.value)
+        }
+    });
+    // Generate display label if possible
+    if (labelTemplate) {
+        let displayLabel = getConfigDisplayLabel(labelTemplate, labelParts, configVarsMain, rdfDS, allPrefixes)
+        if (displayLabel) {
+            item.props.hasDisplayLabel = true;
+            item.props._displayLabel = displayLabel;
+        }
+    }
+}
+
+function getSingleItemToList(subjectValue) {
+    // This function is called to populate the dropdown list with one item
+    // when the modelvalue of this component exists on mounting. This
+    // helps to save time by not calling getItemsToList, which does EVERYTHING
+    // and takes much time to do so.
+    // This function should only be called once the fetchFromService in
+    // onBeforeMount resolves, so that we can be sure that the quad is locally
+    // available on the graph store, if it exists at all.
+    // First we need a quad from the graph with:
+    // - model value as subject
+    // - namedNode(RDF.type.value) as predicate,
+    // - propClass.value as object
+    const myQuads = rdfDS.data.graph.getQuads(
+        nsHasPID.value ? namedNode(subjectValue) : blankNode(subjectValue),
+        namedNode(RDF.type.value),
+        namedNode(propClass.value),
+        null
+    );
+    let myQuad
+    if (Array.isArray(myQuads) && myQuads.length == 1) {
+        myQuad = myQuads[0];
+    } else {
+        console.log(`InstancesSelectEditor: model value set ('${subjectValue}') but no associated quad found; returning empty list of items.`)
+        itemsToList.value = []
+        return
+    }
+    var relatedTrips = rdfDS.getSubjectTriples(myQuad.subject);
+    var item = prepareItem(myQuad);
+    addItemParts(item, myQuad, relatedTrips)
+    itemsToList.value = [item]
 }
 
 function getItemsToList() {
@@ -691,10 +830,8 @@ function getItemsToList() {
     // For each subclass, find the quads in graphData that has the class name as object
     // and RDF.type as predicate
     var myArr = [];
-    subClasses.forEach((quad) => {
-        const cl = quad.subject.value;
-        // console.log(`\t - getting quads with class: ${cl}`)
-        // console.log(`\t - (size of data graph: ${graphData.size})`)
+    subClasses.forEach((qd) => {
+        const cl = qd.subject.value;
         myArr = myArr.concat(
             rdfDS.getLiteralAndNamedNodes(
                 namedNode(RDF.type.value),
@@ -704,56 +841,68 @@ function getItemsToList() {
         );
     });
     // Then combine all quad arrays
-    // const combinedQuads = quads.concat(savedQuads).concat(myArr);
     const combinedQuads = quads.concat(myArr);
     // Finally, create list items from quads
     var itemsToListArr = [];
-    combinedQuads.forEach((quad) => {
-        var extra = '';
-        if (quad.subject.termType === 'BlankNode') {
-            extra = ' (BlankNode)';
+    let trackedRelatedTrips = [];
+    // If there is already a selected item, we need to add it first.
+    // This is necessary to deal with the later process of deduplicating
+    // blank node (i.e. association class) records. We want the already selected
+    // item to remain in the list even if the list is regenerated, so that the UI
+    // behaves consistently. Without this step, the selected item display will
+    // degrade to only showing the blank node id once the dropdown is clicked on.
+    const subjectValues = combinedQuads.map(q => q.subject.value);
+    let foundQI = null;
+    if (subValues.value.selectedInstance) {
+        // props.modelValue shows that the value exists from the formData POV,
+        // while subValues.value.selectedInstance shows that the associated
+        // item actually exists and is selected in the list.
+        // If we use the former, we are working from ground truth,
+        // If we use the latter, we already have the item to work with.
+        // I will go with the latter until some problem suggests otherwise.
+        let subjectValue = subValues.value.selectedInstance.value;
+        foundQI = subjectValues.indexOf(subjectValue)
+        if (foundQI >= 0) {
+            itemsToListArr.push(subValues.value.selectedInstance);
+            trackedRelatedTrips.push(subValues.value.selectedInstance.props.relatedQuads)
         }
-        var relatedTrips = rdfDS.getSubjectTriples(quad.subject);
-        var item = {
-            title: quad.subject.value + extra,
-            value: quad.subject.value,
-            props: {
-                itemQuad: quad,
-                subtitle: toCURIE(quad.object.value, allPrefixes),
-                hasPrefLabel: false,
-                hasDisplayLabel: false,
-                hasNote: false,
-                itemValue: quad.subject.value,
-            },
-        };
-        let labelTemplate = hasConfigDisplayLabel(quad.object.value, allPrefixes, configVarsMain)
-        let labelParts = {}
-        relatedTrips.forEach((quad) => {
-            let predCuri = toCURIE(quad.predicate.value, allPrefixes)
-            item.props[predCuri] = toCURIE(quad.object.value, allPrefixes);
-            if (quad.predicate.value == SKOS.prefLabel.value) {
-                item.props.hasPrefLabel = true;
-                item.props._prefLabel = quad.object.value;
-            }
-            if (quad.predicate.value == SKOS.note.value) {
-                item.props.hasNote = true;
-                item.props._note = quad.object.value;
-            }
-            // If current predicate is used for display label generation, store it
-            if ( labelTemplate && labelTemplate.includes(predCuri)) {
-                labelParts[predCuri] = quad.object.value
-            }
-        });
-        // Generate display label if possible
-        if (labelTemplate) {
-            let displayLabel = getConfigDisplayLabel(labelTemplate, labelParts, configVarsMain, rdfDS, allPrefixes)
-            if (displayLabel) {
-                item.props.hasDisplayLabel = true;
-                item.props._displayLabel = displayLabel;
+    }
+    for (const [i, qd] of combinedQuads.entries()) {
+        // Do not process an already processed quad
+        if (foundQI !== null && foundQI == i) continue;
+
+        var relatedTrips = rdfDS.getSubjectTriples(qd.subject);
+        let activeQuad = qd;
+        let activeRelatedTrips = relatedTrips;
+        let isTemp = false;
+        if (qd.subject.termType === 'BlankNode') {
+            // Compare with previously seen subgraphs
+            const matchIndex = findIsomorphicSubgraph(trackedRelatedTrips, relatedTrips);
+            if (matchIndex !== null) {
+                // This means a structurally similar blank node item was already
+                // added to the list of items, and we don't want to add a duplicate
+                continue;
+            } else {
+                // The first blank node item with this unique structure.
+                // We keep track of that fact, and also continue adding the item.
+                trackedRelatedTrips.push(relatedTrips);
+                // However: we want to add a structurally similar item but NOT
+                // with the same ID. Therefore we need to create a new blank node
+                // that serves as the ID of the new item. We use the same related
+                // qauds that were already calculated for the item, so as to minimize
+                // load. We only create and link to new related quads once actually
+                // necessary, which is when the user selects the item, or edits it
+                // from the list. We use the isTemp flag to keep track of the fact
+                // that this is a "duplicate" blank node, so that we can handle it
+                // accordingly when required.
+                isTemp = true;
+                activeQuad = quad(blankNode(), qd.predicate, qd.object, null);
             }
         }
+        var item = prepareItem(activeQuad, isTemp);
+        addItemParts(item, activeQuad, activeRelatedTrips)
         itemsToListArr.push(item);
-    });
+    }
     itemsToList.value = itemsToListArr;
 }
 
@@ -786,13 +935,17 @@ const filteredItems = computed(() => {
             if (!aVal) return -1;
             // if only b is missing, b goes first
             if (!bVal) return 1;
+            // if sortvalue starts with http, it goes after all others
+            const aIsHttp = aVal.startsWith("http");
+            const bIsHttp = bVal.startsWith("http");
+            if (aIsHttp && !bIsHttp) return 1;   // a goes after b
+            if (!aIsHttp && bIsHttp) return -1;  // a goes before b
             // otherwise compare alphabetically
             return aVal.localeCompare(bVal);
         });
 });
 
 watchEffect(async () => {
-    console.log("WATCHEFFECT")
     if (config.value?.use_service &&
         queryText.value && queryText.value.length >= configVarsMain.serviceConstrainedSearch.min_characters &&
         firstPageFetched(propClass.value, queryText.value) &&
@@ -840,9 +993,10 @@ watch(queryText, (newVal) => {
 });
 
 async function onTypingPause(textVal) {
-    console.log(`TYPING PAUSED: ${textVal}`)
     if (!queryText.value || queryText.value.length < configVarsMain.serviceConstrainedSearch.min_characters ) return;
-    await fetchNextPage(propClass.value, queryText.value);
+    if (config.value?.use_service && nsHasPID.value) {
+        await fetchNextPage(propClass.value, queryText.value);
+    }
 }
 
 
