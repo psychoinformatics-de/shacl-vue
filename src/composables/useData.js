@@ -183,6 +183,8 @@ export function useData(config) {
                 let result;
                 if (endpoint.includes('get-paginated-records')) {
                     result = await getPaginatedRdfData(getURL);
+                } else if (endpoint.includes('get-records')) {
+                    result = await getRdfDataArray(getURL);
                 } else {
                     result = await getRdfData(getURL);
                 }
@@ -274,6 +276,42 @@ export function useData(config) {
         }
     }
 
+    async function getRdfDataArray(getURL) {
+        var headers = {};
+        if (token.value !== null && token.value !== 'null') {
+            headers['X-DumpThings-Token'] = token.value;
+        }
+        try {
+            const response = await fetch(getURL, {
+                method: 'GET',
+                headers: headers,
+            });
+            if (response.status == 401) {
+                http401response.value = true;
+            }
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+            const json = await response.json();
+            json.forEach(element => {
+                rdfDS.parseTTL(element)
+            });
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message,
+                error: error,
+                url: getURL,
+            };
+        }
+        rdfDS.triggerReactivity();
+        return {
+            success: true,
+            url: getURL,
+        };
+    }
+
+
     async function getPaginatedRdfData(getURL) {
         var headers = {};
         let metadata;
@@ -315,7 +353,6 @@ export function useData(config) {
             url: getURL,
             pageMeta: metadata,
         };
-
     }
 
     function hasUnfetchedPages(IRI, matchText='') {

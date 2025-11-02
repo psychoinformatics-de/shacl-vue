@@ -698,7 +698,7 @@ watch(
                     const fetchRsPromises = config.value.service_fetch_before[
                         'get-records'
                     ].map((iri) =>
-                        fetchFromService('get-paginated-records', iri, allPrefixes)
+                        fetchFromService('get-records-before', iri, allPrefixes)
                     );
                     var results = await Promise.allSettled(fetchRsPromises);
                 }
@@ -1208,7 +1208,10 @@ function getInstanceItems() {
             let predCuri = toCURIE(quad.predicate.value, allPrefixes)
             // If current predicate is used for display label generation, store it
             if ( labelTemplate && labelTemplate.includes(predCuri)) {
-                labelParts[predCuri] = quad.object.value
+                if (!labelParts[predCuri]) {
+                    labelParts[predCuri] = []
+                }
+                labelParts[predCuri].push(quad.object.value)
             }
         });
         item.props._prefLabel = '';
