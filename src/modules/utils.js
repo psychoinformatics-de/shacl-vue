@@ -1,7 +1,8 @@
 import { SHACL, RDFS, RDF, DLTHINGS, SKOS } from '../modules/namespaces';
 import { toCURIE, toIRI } from 'shacl-tulip';
+import { isomorphic } from 'rdf-isomorphic';
 import { DataFactory, Writer } from 'n3';
-const { namedNode } = DataFactory;
+const { namedNode, blankNode} = DataFactory;
 
 export function nameOrCURIE(shape, prefixes, readable = false) {
     if (shape.hasOwnProperty(SHACL.name.value)) {
@@ -274,6 +275,20 @@ export function getPidQuad(pid, graph) {
     }
 }
 
+export function getSubjectQuad(subj, graph) {
+    const q = graph.getQuads(
+        subj.termType === 'BlankNode' ? blankNode(subj.value): namedNode(subj.value),
+        namedNode(RDF.type.value),
+        null,
+        null
+    );
+    if (q && q.length) {
+        return q[0];
+    } else {
+        return undefined;
+    }
+}
+
 export function objectsEqual(obj1, obj2) {
     if (Object.keys(obj1).length !== Object.keys(obj2).length) {
         return false;
@@ -368,13 +383,25 @@ export function getConfigDisplayLabel(labelTemplate, labelParts, configVarsMain,
             return missingPlaceholder;
         }
         let objectVal = labelParts[key];
-        if (rdfDS && allPrefixes) {
-            let relatedRecordQuad = getPidQuad(objectVal, rdfDS.data.graph)
-            if (relatedRecordQuad) {
-                return getRecordDisplayLabel(relatedRecordQuad.subject, rdfDS, allPrefixes, configVarsMain)
-            }
+        if (!Array.isArray(objectVal)) {
+            objectVal = [objectVal];
         }
-        return objectVal
+
+        const resolved = objectVal.map((val) => {
+            if (rdfDS && allPrefixes) {
+                let relatedRecordQuad = getPidQuad(val, rdfDS.data.graph);
+                if (relatedRecordQuad) {
+                    return getRecordDisplayLabel(
+                        relatedRecordQuad.subject,
+                        rdfDS,
+                        allPrefixes,
+                        configVarsMain
+                    );
+                }
+            }
+            return val;
+        });
+        return resolved.join(", ");
     });
 }
 
@@ -382,23 +409,39 @@ export function quadsToTripleObject(quads, allPrefixes) {
     let tripleObject = {}
     for (const q of quads) {
         let predCuri = toCURIE(q.predicate.value, allPrefixes)
-        tripleObject[predCuri] = q.object.value
+        if (!tripleObject[predCuri]) {
+            tripleObject[predCuri] = [];
+        }
+        tripleObject[predCuri].push(q.object.value);
     }
     return tripleObject
+}
+
+export function findIsomorphicSubgraph(seenSubgraphs, newQuads) {
+    // Use rdf-isomorphic to check whether incoming set of quads are equivalent
+    // to any set of quads in an existing array
+    for (let i = 0; i < seenSubgraphs.length; i++) {
+        const seen = seenSubgraphs[i];
+        if (isomorphic(seen, newQuads)) {
+            return i;
+        }
+    }
+    return null; // No match
 }
 
 export function getRecordDisplayLabel(subjectTerm, rdfDS, allPrefixes, configVarsMain) {
     let displayLabel = ''
     // First get the node statement, because we need its class
     // e.g.: 'subjectTerm rdf:type ex:Dataset .'
-    let pidQ = getPidQuad(subjectTerm.value, rdfDS.data.graph)
-    if (!pidQ) {
+    let subjQ = getSubjectQuad(subjectTerm, rdfDS.data.graph)
+    // let pidQ = getPidQuad(subjectTerm.value, rdfDS.data.graph)
+    if (!subjQ) {
         // This should technically never happen since we're working with named nodes here
         // but the escape route is still necessary to prevent timing errors from
         // clogging the console
         return displayLabel
     }
-    let classIRI = pidQ.object.value;
+    let classIRI = subjQ.object.value;
     let relatedQuads = rdfDS.getSubjectTriples(subjectTerm);
     // Convert to triples as an object with predicate-object key-values
     let relatedTriples = quadsToTripleObject(relatedQuads, allPrefixes)        
@@ -408,4 +451,16 @@ export function getRecordDisplayLabel(subjectTerm, rdfDS, allPrefixes, configVar
         displayLabel = getConfigDisplayLabel(labelTemplate, relatedTriples, configVarsMain, rdfDS, allPrefixes)
     }
     return displayLabel
+}
+
+export function nodeShapeHasPID(nodeshapeIRI, shapesDS, pidIRI) {
+    // Use SHACL shaped to check if a node has PID, i.e. if it will be a named node
+    // - if the nodeshape does NOT have a propertyshape with sh:path being equal to ID_IRI,
+    // - it means the class's records will be blank nodes 
+    var nodeShape = shapesDS.data.nodeShapes[nodeshapeIRI];
+    if (!nodeShape) return undefined
+    var ps = nodeShape.properties.find(
+        (prop) => prop[SHACL.path.value] == pidIRI
+    );
+    return ps ? true : false
 }

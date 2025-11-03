@@ -14,9 +14,9 @@
                 ></v-btn>
             </template>
         </v-tooltip>
+        &nbsp;
     </span>
     <span v-if="count > stepSize">
-        &nbsp;
         <v-tooltip text="Show less..." location="top">
             <template v-slot:activator="{ props }">
                 <v-btn
@@ -31,9 +31,10 @@
                 ></v-btn>
             </template>
         </v-tooltip>
+        &nbsp;
     </span>
     <span v-if="records.length > stepSize">
-        &nbsp; <em>(showing {{ count }} of {{ records.length }})</em>
+        <em>(showing {{ count }} of {{ records.length }})</em>
     </span>
 </template>
 

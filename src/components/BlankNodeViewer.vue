@@ -17,10 +17,52 @@
                     </v-icon>
                 </v-col>
                 <v-col>
-                    <!-- literal and named nodes -->
-                    <span v-for="tt of ['Literal', 'NamedNode']">
-                        <span v-for="(v, k, index) in record.triples[tt]">
-                            <span v-if="k != RDF.type.value">
+                    <!-- literal nodes -->
+                    <span v-for="(v, k, index) in record.triples['Literal']">
+                        <span v-if="propertyShapes[k]">
+                            <em>
+                                {{
+                                    nameOrCURIE(
+                                        propertyShapes[k],
+                                        shapesDS.data.prefixes,
+                                        true
+                                    )
+                                }}
+                            </em>:
+                        </span>
+                        <span v-else>
+                            <em>
+                                {{
+                                    makeReadable(
+                                        toCURIE(k, allPrefixes, 'parts').property
+                                    )
+                                }}
+                            </em>:
+                        </span>
+                        <span v-for="(el, i) in v">
+                            <span v-if="v.length > 1"
+                                ><br />&nbsp;-
+                            </span>
+                            &nbsp;<LiteralNodeViewer v-if="el.value" :textVal="el.value"></LiteralNodeViewer>
+                        </span>
+                        <br />
+                    </span>
+                    
+                    <!-- named nodes -->
+                    <span v-for="(v, k, index) in record.triples['NamedNode']">
+                        <span v-if="k != RDF.type.value">
+                            <span v-if="propertyShapes[k]">
+                                <em>
+                                    {{
+                                        nameOrCURIE(
+                                            propertyShapes[k],
+                                            shapesDS.data.prefixes,
+                                            true
+                                        )
+                                    }}
+                                </em>:
+                            </span>
+                            <span v-else>
                                 <em>
                                     {{
                                         makeReadable(
@@ -28,19 +70,30 @@
                                         )
                                     }}
                                 </em>:
-                                <span v-for="(el, i) in v">
-                                    <span v-if="v.length > 1"
-                                        ><br />&nbsp;-
-                                    </span>
-                                    &nbsp;<TextOrLinkViewer
+                            </span>
+                            <span v-for="(el, i) in v">
+                                <span v-if="v.length > 1"
+                                    ><br />&nbsp;-
+                                </span>
+                                &nbsp;<NamedNodeViewer
+                                        v-if="el.value"
                                         :textVal="el.value"
                                         :prefLabel="
                                             getPrefLabel(el, rdfDS, allPrefixes)
                                         "
-                                    ></TextOrLinkViewer>
-                                </span>
-                                <br />
+                                        :displayLabel="
+                                            getRecordDisplayLabel(el, rdfDS, allPrefixes, configVarsMain)
+                                        "
+                                        :quad="
+                                            getPidQuad(el.value, rdfDS.data.graph)
+                                        "
+                                        :targetClass="
+                                            propertyShapes[k][SHACL.class.value]
+                                        "
+                                    >
+                                </NamedNodeViewer>
                             </span>
+                            <br />
                         </span>
                     </span>
                     <span v-for="(v, k, index) in record.triples['BlankNode']">
@@ -67,8 +120,8 @@
 <script setup>
 import { reactive, onBeforeMount, inject, onUpdated } from 'vue';
 import { toCURIE } from 'shacl-tulip';
-import { makeReadable, getPrefLabel } from '../modules/utils';
-import { RDF } from '@/modules/namespaces';
+import { makeReadable, nameOrCURIE, getPrefLabel, hasConfigDisplayLabel, getConfigDisplayLabel, getSubjectQuad, getPidQuad, getRecordDisplayLabel} from '../modules/utils';
+import { RDF, SHACL} from '@/modules/namespaces';
 // Define component properties
 const props = defineProps({
     node: Object,
@@ -77,7 +130,16 @@ const props = defineProps({
 const allPrefixes = inject('allPrefixes');
 const getClassIcon = inject('getClassIcon');
 const rdfDS = inject('rdfDS');
+const shapesDS = inject('shapesDS');
+const configVarsMain = inject('configVarsMain');
 const record = reactive({});
+const subjQ = getSubjectQuad(props.node, rdfDS.data.graph)
+const classIRI = subjQ.object.value;
+const shape_obj = shapesDS.data.nodeShapes[classIRI];
+const propertyShapes = {};
+for (var p of shape_obj.properties) {
+    propertyShapes[p[SHACL.path.value]] = p;
+}
 
 onBeforeMount(() => {
     updateRecord();
@@ -95,9 +157,23 @@ function updateRecord() {
         BlankNode: {},
         NamedNode: {},
     };
+    let labelTemplate = hasConfigDisplayLabel(classIRI, allPrefixes, configVarsMain)
+    let labelParts = {}
     record.relatedQuads.forEach((rQ) => {
         addRecordProperty(rQ);
+        // If current predicate is used for display label generation, store it
+        let predCuri = toCURIE(rQ.predicate.value, allPrefixes)
+        if ( labelTemplate && labelTemplate.includes(predCuri)) {
+            if (!labelParts[predCuri]) {
+                labelParts[predCuri] = []
+            }
+            labelParts[predCuri].push(rQ.object.value)
+        }
     });
+    record.displayLabel = '';
+    if (labelTemplate) {
+        record.displayLabel = getConfigDisplayLabel(labelTemplate, labelParts, configVarsMain, rdfDS, allPrefixes)
+    }
 }
 
 function addRecordProperty(quad) {

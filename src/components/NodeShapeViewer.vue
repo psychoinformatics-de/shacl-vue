@@ -1,9 +1,11 @@
 <template>
     <v-card class="mx-4 mb-4" :variant="props.variant">
-        <v-card-title class="text-h6">
+        <v-card-title class="text-h6" style="display: flex; align-items: center; gap: 6px;">
             <v-icon>{{ getClassIcon(props.classIRI) }}</v-icon
             >&nbsp;
-            {{ record.prefLabel ? record.prefLabel : ( record.displayLabel ? record.displayLabel : record.title) }}
+            <span class="card-title">
+                {{ record.prefLabel ? record.prefLabel : ( record.displayLabel ? record.displayLabel : record.title) }}
+            </span>
             <span v-if="resolveExternally">
                 <sup
                     ><a
@@ -84,15 +86,15 @@
                 <span v-else>
                     <strong>{{ k }}</strong>:
                 </span>
-                <span v-for="(el, i) in v">
+                <span v-for="(el, i) in v.values">
                     <span v-if="i < showCounts['Literal'][k]">
-                        <span v-if="v.length > 1"><br/>&nbsp;-</span>
-                        &nbsp;<LiteralNodeViewer v-if="el.value" :textVal="el.value"></LiteralNodeViewer>
+                        <span v-if="v.values.length > 1"><br/>&nbsp;-</span>
+                        &nbsp;<LiteralNodeViewer v-if="el.value" :textVal="el.value" :wrap="'wrap'"></LiteralNodeViewer>
                     </span>
                 </span>
                 <br/>
                 <MoreOrLessRecordsViewer
-                    :records="v"
+                    :records="v.values"
                     v-model:count="showCounts['Literal'][k]"
                     :stepSize="defaultStep"
                 ></MoreOrLessRecordsViewer>
@@ -115,14 +117,14 @@
                                         true
                                     )
                                 }}
-                            </strong>:&nbsp;&nbsp;<MoreOrLessRecordsViewer
+                            </strong>:<MoreOrLessRecordsViewer
                                 :records="v"
                                 v-model:count="showCounts['NamedNode'][k]"
                                 :stepSize="defaultStep"
                             ></MoreOrLessRecordsViewer>
-                            <span v-for="(el, i) in v">
+                            <span v-for="(el, i) in v.values">
                                 <span v-if="i < showCounts['NamedNode'][k]">
-                                    <span v-if="v.length > 1"><br />&nbsp;-</span>
+                                    <span v-if="v.values.length > 1"><br />&nbsp;-</span>
                                     &nbsp;<NamedNodeViewer
                                         v-if="el.value"
                                         :textVal="el.value"
@@ -142,19 +144,40 @@
                                     </NamedNodeViewer>
                                 </span>
                             </span>
-                            
                         </span>
                         <span v-else>
                             <strong>{{ k }}</strong
                             >:
-                            <span v-for="(el, i) in v">
+                            <span v-for="(el, i) in v.values">
                                 <span v-if="i < showCounts['NamedNode'][k]">
-                                    <span v-if="v.length > 1"><br />&nbsp;-</span>
+                                    <span v-if="v.values.length > 1"><br />&nbsp;-</span>
                                     &nbsp;{{ el.value }}
                                 </span>
                             </span>
                         </span>
-                        <br>
+                        <br>                        
+                    </span>
+                </span>
+            </span>
+            <!-- Now show all blank nodes for which a display label has been configured, which makes them special-->
+            <!-- TODO: how do we deal with preflabel here ??? -->
+            <span v-for="(v,k) in specialBlankNodes">
+                <strong>
+                    {{
+                        nameOrCURIE(
+                            propertyShapes[k],
+                            shapesDS.data.prefixes,
+                            true
+                        )
+                    }}
+                </strong>:&nbsp;&nbsp;<MoreOrLessRecordsViewer
+                    :records="v.values"
+                    v-model:count="showCounts['BlankNodeSpecial'][k]"
+                    :stepSize="defaultStep"
+                ></MoreOrLessRecordsViewer>
+                <span v-for="(item, i) in v.displayLabels">
+                    <span v-if="i < showCounts['BlankNodeSpecial'][k]" class="line-item">
+                        &nbsp;-&nbsp; <LiteralNodeViewer :textVal="item.displayLabel" :wrap="'nowrap'" :width="600" :allowLink="false"></LiteralNodeViewer>
                     </span>
                 </span>
             </span>
@@ -173,20 +196,34 @@
             <span v-if="showBlankNodes">
                 <br /><br />
                 <span v-for="(v, k, index) in record.triples['BlankNode']">
-                    <strong>{{
-                        makeReadable(toCURIE(k, allPrefixes, 'parts').property)
-                    }}</strong> ({{v.length}}):
-                    <br />
-                    <span v-for="(el, i) in v">
-                        <div v-if="i < showCounts['BlankNode'][k]">
-                            <BlankNodeViewer :node="el"></BlankNodeViewer>
-                        </div>
-                    </span>
-                    <MoreOrLessRecordsViewer
-                        :records="v"
+                    <strong>
+                        {{
+                            nameOrCURIE(
+                                propertyShapes[k],
+                                shapesDS.data.prefixes,
+                                true
+                            )
+                        }}
+                    </strong>: &nbsp;<MoreOrLessRecordsViewer
+                        :records="v.values"
                         v-model:count="showCounts['BlankNode'][k]"
                         :stepSize="defaultStep"
                     ></MoreOrLessRecordsViewer>
+                    <br />
+                    <span v-if="specialBlankNodes[k]?.displayLabels">
+                        <span v-for="(item, i) in specialBlankNodes[k]?.displayLabels">
+                            <div v-if="i < showCounts['BlankNode'][k]">
+                                <BlankNodeViewer :node="item.value" />
+                            </div>
+                        </span>
+                    </span>
+                    <span v-else>
+                        <span v-for="(el, i) in v.values">
+                            <div v-if="i < showCounts['BlankNode'][k]">
+                                <BlankNodeViewer :node="el"></BlankNodeViewer>
+                            </div>
+                        </span>
+                    </span>
                 </span>
             </span>
         </v-card-text>
@@ -235,6 +272,7 @@ import {
     nextTick,
     toRaw,
     provide,
+    computed,
 } from 'vue';
 import { toCURIE, toIRI } from 'shacl-tulip';
 import {
@@ -246,9 +284,11 @@ import {
     toSnakeCase,
     quadsToTTL,
     getRecordDisplayLabel,
+    hasConfigDisplayLabel,
 } from '../modules/utils';
 import { RDF, SHACL } from '@/modules/namespaces';
 import MoreOrLessRecordsViewer from './MoreOrLessRecordsViewer.vue';
+import TextOrLinkViewer from './TextOrLinkViewer.vue';
 // Define component properties
 const props = defineProps({
     classIRI: String,
@@ -280,10 +320,9 @@ const showCounts = reactive(
         'Literal': {},
         'NamedNode': {},
         'BlankNode': {},
+        'BlankNodeSpecial': {},
     }
 );
-
-console.log(propertyShapes);
 
 const ttlDialog = ref(false);
 const ttlDialog_icon = ref('');
@@ -323,6 +362,35 @@ onUpdated(() => {
     initShowCounts();
 });
 
+
+
+const specialBlankNodes = computed( () => {
+    const triples = record.triples?.['BlankNode'] ?? {};
+    const result = {};
+    for (const [key, v] of Object.entries(triples)) {
+        if (!v.configDisplayLabel || !Array.isArray(v.values)) continue
+        const merged = v.values.map((value, i) => ({
+            value,
+            displayLabel: v.displayLabels?.[i] ?? '',
+        }))
+        const sorted = merged.sort((a, b) => {
+            // display labels starting with 'http' are deprioritized
+            const aIsHttp = a.displayLabel.trim().toLowerCase().startsWith('http')
+            const bIsHttp = b.displayLabel.trim().toLowerCase().startsWith('http')
+            if (aIsHttp && !bIsHttp) return 1
+            if (!aIsHttp && bIsHttp) return -1
+            // within each group, sort alphabetically
+            return a.displayLabel.localeCompare(b.displayLabel, undefined, { sensitivity: 'base' })
+        })
+        result[key] = {
+            ...v,
+            displayLabels: sorted,
+        }
+    }
+    return result
+})
+
+
 async function viewRDF() {
     ttlDialog.value = false;
     ttlDialog_icon.value = getClassIcon(props.classIRI);
@@ -343,8 +411,9 @@ function showHideBlankNodes() {
 }
 
 function initShowCounts() {
-    for (const n of ['BlankNode', 'NamedNode', 'Literal']) {
-        for (const pred in record.triples[n]) {
+    for (const n of ['BlankNodeSpecial', 'BlankNode', 'NamedNode', 'Literal']) {
+        const nt = n == 'BlankNodeSpecial' ? 'BlankNode' : n
+        for (const pred in record.triples[nt]) {
             if (!showCounts[n].hasOwnProperty(pred)) {
                 showCounts[n][pred] = defaultStep;
             }
@@ -355,7 +424,6 @@ function initShowCounts() {
 function getRecordQuads() {
     const visited = new Set();
     const allQuads = [];
-
     function addQuadsRecursively(quads) {
         for (const quad of quads) {
             if (!allQuads.includes(quad)) {
@@ -383,7 +451,6 @@ async function updateRecord(fetchData) {
     record.value = props.quad.subject.value;
     record.subtitle = props.quad.object.value;
     record.relatedQuads = rdfDS.getSubjectTriples(props.quad.subject);
-    record.relatedTriples = {}
     record.prefLabel = getPrefLabel(props.quad.subject, rdfDS, allPrefixes);
     record.triples = {
         Literal: {},
@@ -391,11 +458,23 @@ async function updateRecord(fetchData) {
         NamedNode: {},
     };
     for (const rQ of record.relatedQuads) {
-        let predCuri = toCURIE(rQ.predicate.value, allPrefixes)
-        record.relatedTriples[predCuri] = rQ.object.value
         await addRecordProperty(rQ, fetchData);
     }
     record.displayLabel = getRecordDisplayLabel(record.quad.subject, rdfDS, allPrefixes, configVarsMain)
+    
+    // Now we have all record.triples, and we need to get displaylabels for blanknodes
+    for (const triplePred in record.triples['BlankNode']) {
+        let cIRI = propertyShapes[triplePred][SHACL.class.value];
+        record.triples['BlankNode'][triplePred].classIRI = cIRI;
+        record.triples['BlankNode'][triplePred].configDisplayLabel = hasConfigDisplayLabel(cIRI, allPrefixes, configVarsMain);
+        for (var i=0; i<record.triples['BlankNode'][triplePred].values.length; i++) {
+            let tripNode = record.triples['BlankNode'][triplePred].values[i]
+            let dL = getRecordDisplayLabel(tripNode, rdfDS, allPrefixes, configVarsMain)
+            let pL = getPrefLabel(tripNode, rdfDS, allPrefixes)
+            record.triples['BlankNode'][triplePred].displayLabels.push(dL)
+            record.triples['BlankNode'][triplePred].prefLabels.push(pL)
+        }
+    }
 }
 
 async function addRecordProperty(quad, fetchData) {
@@ -413,9 +492,13 @@ async function addRecordProperty(quad, fetchData) {
         );
     }
     if (!record.triples[termType].hasOwnProperty(quad.predicate.value)) {
-        record.triples[termType][quad.predicate.value] = [];
+        record.triples[termType][quad.predicate.value] = {
+            values: [],
+            displayLabels: [],
+            prefLabels: [],
+        };
     }
-    record.triples[termType][quad.predicate.value].push(quad.object);
+    record.triples[termType][quad.predicate.value].values.push(quad.object);
 }
 
 function copyRecordLink() {
@@ -441,3 +524,22 @@ async function copyTextToClipboard(text) {
     }
 }
 </script>
+
+<style scoped>
+.line-item {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.card-title {
+    display: inline-block;
+    text-wrap: wrap;
+    max-width: 90%;
+    line-height: 1.2em;
+    vertical-align: middle;
+}
+</style>
