@@ -464,3 +464,29 @@ export function nodeShapeHasPID(nodeshapeIRI, shapesDS, pidIRI) {
     );
     return ps ? true : false
 }
+
+export async function hashSubgraph(quads) {
+    if (!quads || !quads.length) return '';
+    // Simple canonicalization function that calculates a persistent hash
+    // form a set of quads, by doing the following per quad:
+    // - replacing blank node subject and object values with '_:'
+    // - using named node subject, predicate, and object values as they are
+    // - concatenating the above with a separator, as a string
+    // then sorting all resulting strings, and lastly joining the sorted
+    // strings with newline characters, before calculating the SHA-256 hash.
+    const sorted = quads.map(q => {
+        const subj = q.subject.termType === 'BlankNode' ? '_:' : q.subject.value;
+        const obj = q.object.termType === 'BlankNode' ? '_:' : q.object.value;
+        return `${subj}|${q.predicate.value}|${obj}`;
+    }).sort();
+    const canonicalString = sorted.join('\n');
+    // Encode to bytes for hashing
+    const encoder = new TextEncoder();
+    const data = encoder.encode(canonicalString);
+    // Compute SHA-256 using the browser's Web Crypto API
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    // Convert to hex string
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex
+}

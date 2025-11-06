@@ -14,60 +14,6 @@ export function useData(config) {
     const { token } = useToken();
     const http401response = ref(false);
 
-    async function getRdfData(url) {
-        var getURL;
-        if (!url) {
-            // If no url argument provided, check config
-            // Config priority is:
-            // - if the data_url is provided, use it and ignore use_default_data
-            // - if the data_url is NOT provided, use default if use_default_data==true, else nothing
-            if (config.value.data_url) {
-                if (config.value.data_url.indexOf('http') >= 0) {
-                    getURL = config.value.data_url;
-                } else {
-                    getURL = `${basePath}${config.value.data_url}`;
-                }
-            } else {
-                if (config.value.use_default_data == true) {
-                    getURL = defaultURL;
-                } else {
-                    console.warn(
-                        'getRdfData: No valid URL to fetch RDF data. Skipping fetch.'
-                    );
-                    return {
-                        success: false,
-                        message:
-                            'No valid data URL found and use_default_data is false.',
-                        error: null,
-                        url: null,
-                    };
-                }
-            }
-        } else {
-            getURL = url;
-        }
-        var headers = { 'Content-Type': 'text/turtle' };
-        if (token.value !== null && token.value !== 'null') {
-            headers['X-DumpThings-Token'] = token.value;
-        }
-
-        const result = await rdfDS.loadRDF(getURL, headers);
-
-        if (!result.success) {
-            return {
-                success: false,
-                message: result.message,
-                error: result.error,
-                url: getURL,
-            };
-        }
-        rdfDS.triggerReactivity();
-        return {
-            success: true,
-            url: getURL,
-        };
-    }
-
     async function fetchFromService(endpoint, arg, prefixes, matchText = '') {
         // endpoint: the name of the endpoint defined in the config
         // - e.g.: 'get-paginated-records'
@@ -83,13 +29,11 @@ export function useData(config) {
                     'Service base URL and/or service endpoints not included in configuration.\nFetching data from an endpoint will not be possible.'
                 );
             }
-
             if (Object.keys(serviceEndpoints).indexOf(endpoint) < 0) {
                 throw new Error(
                     `Unknown endpoint '${endpoint}' provided; continuing without making a request to configured service`
                 );
             }
-
             // Handle two possibilities:
             // - serviceBaseURL is a string (backwards compatible)
             // - serviceBaseURL is an Array (latest feature)
@@ -105,20 +49,17 @@ export function useData(config) {
                     }
                 }
             }
-
             let base_query_string = replaceServiceIdentifier(
                 arg,
                 serviceEndpoints[endpoint],
                 prefixes
             );
             let query_string = base_query_string
-
             const results = [];
             let allFailed = true;
             let anyFailed = false;
             let allSkipped = true;
             const results_status = [];
-
             for (const baseUrl of baseUrls) {
                 if (endpoint.includes('get-paginated-records')) {
                     // If this is the first time that a paginated request will be made
@@ -134,13 +75,8 @@ export function useData(config) {
                     ) {
                         query_string = base_query_string.replace('{page_number}', '1')
                         query_string = _handleMatchingParam(query_string, matchText)
-                    } else {
-                        console.log(`Previous page fetched: ${fetchedPages[baseUrl][arg][matchText].lastPageFetched}`)
-                        console.log(`Total pages: ${fetchedPages[baseUrl][arg][matchText].totalPages}`)
-                        
+                    } else {                        
                         var nextPage = fetchedPages[baseUrl][arg][matchText].lastPageFetched + 1;
-                        console.log(`Next page to fetch: ${nextPage}`)
-
                         query_string = base_query_string.replace('{page_number}', nextPage.toString())
                         query_string = _handleMatchingParam(query_string, matchText)
                         console.log(`query_string: ${query_string}`)
@@ -178,7 +114,6 @@ export function useData(config) {
                     results_status.push('skipped');
                     continue;
                 }
-
                 fetchedRequests.add(getURL);
                 let result;
                 if (endpoint.includes('get-paginated-records')) {
@@ -188,7 +123,6 @@ export function useData(config) {
                 } else {
                     result = await getRdfData(getURL);
                 }
-                
                 if (!result.success) {
                     fetchedRequests.delete(getURL); // Allow retry
                     results.push({
@@ -208,10 +142,8 @@ export function useData(config) {
                     });
                     allFailed = false;
                     results_status.push('success');
-
                     // If this was a pagination request, we need to store details
                     if (result.pageMeta){
-                        console.log("Storing pagemeta now")
                         // add the complete getURL to the Set of fetched urls
                         // The plan is to use it somewhere but this not used yet
                         fetchedPages[baseUrl].fetchedRequests.add(getURL)
@@ -276,83 +208,111 @@ export function useData(config) {
         }
     }
 
-    async function getRdfDataArray(getURL) {
-        var headers = {};
-        if (token.value !== null && token.value !== 'null') {
-            headers['X-DumpThings-Token'] = token.value;
-        }
-        try {
-            const response = await fetch(getURL, {
-                method: 'GET',
-                headers: headers,
-            });
-            if (response.status == 401) {
-                http401response.value = true;
+    async function getRdfData(url) {
+        var getURL;
+        if (!url) {
+            // If no url argument provided, check config
+            // Config priority is:
+            // - if the data_url is provided, use it and ignore use_default_data
+            // - if the data_url is NOT provided, use default if use_default_data==true, else nothing
+            if (config.value.data_url) {
+                if (config.value.data_url.indexOf('http') >= 0) {
+                    getURL = config.value.data_url;
+                } else {
+                    getURL = `${basePath}${config.value.data_url}`;
+                }
+            } else {
+                if (config.value.use_default_data == true) {
+                    getURL = defaultURL;
+                } else {
+                    console.warn(
+                        'getRdfData: No valid URL to fetch RDF data. Skipping fetch.'
+                    );
+                    return {
+                        success: false,
+                        message:
+                            'No valid data URL found and use_default_data is false.',
+                        error: null,
+                        url: null,
+                    };
+                }
             }
-            if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
-            }
-            const json = await response.json();
-            json.forEach(element => {
-                rdfDS.parseTTL(element)
-            });
-        } catch (error) {
-            return {
-                success: false,
-                message: error.message,
-                error: error,
-                url: getURL,
-            };
+        } else {
+            getURL = url;
         }
-        rdfDS.triggerReactivity();
-        return {
-            success: true,
-            url: getURL,
-        };
+        return fetchRdfData({ url: getURL, expect: 'ttl', contentType: 'text/turtle' });
     }
 
+    async function getRdfDataArray(getURL) {
+        return fetchRdfData({ url: getURL, expect: 'json', contentType: 'application/json' });
+    }
 
     async function getPaginatedRdfData(getURL) {
-        var headers = {};
-        let metadata;
-        if (token.value !== null && token.value !== 'null') {
-            headers['X-DumpThings-Token'] = token.value;
-        }
+        return fetchRdfData({ url: getURL, expect: 'paged', contentType: 'application/json' });
+    }
+
+    async function fetchRdfData({
+        url,
+        expect, // 'ttl', 'json', 'paged'
+        contentType // 'text/turtle' or 'application/json'
+    }) {
+        let getURL = url;
+        // Build headers
+        const headers = _getHeaders({ 'Content-Type': contentType });
         try {
-            const response = await fetch(getURL, {
-                method: 'GET',
-                headers: headers,
-            });
-            if (response.status == 401) {
-                http401response.value = true;
+            const response = await fetch(getURL, { method: 'GET', headers });
+            if (response.status === 401) http401response.value = true;
+            if (!response.ok) throw new Error(`Response status: ${response.status}`);
+
+            // Now we handle different response types
+            // First is fetching a single TTL document that expects TTL text
+            if (expect === 'ttl') {
+                const text = await response.text();
+                await rdfDS.parseTTLandDedup(text);
+                rdfDS.triggerReactivity();
+                return { success: true, url: getURL };
             }
-            if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
-            }
+            // Other response types both expect json first
             const json = await response.json();
-            metadata = {
-                page: json.page,
-                pages: json.pages,
-                total: json.total,
-                size: json.size,
+            // JSON array of TTL strings
+            if (expect === 'json') {
+                
+                for (const element of json) {
+                    await rdfDS.parseTTLandDedup(element);
+                }
+                rdfDS.triggerReactivity();
+                return { success: true, url: getURL };
             }
-            json.items.forEach(element => {
-                rdfDS.parseTTL(element)
-            });
+            // Paginated response
+            if (expect === 'paged') {
+                const metadata = {
+                    page: json.page,
+                    pages: json.pages,
+                    total: json.total,
+                    size: json.size,
+                };
+                for (const element of json.items) {
+                    await rdfDS.parseTTLandDedup(element);
+                }
+                rdfDS.triggerReactivity();
+                return { success: true, url: getURL, pageMeta: metadata };
+            }
+            throw new Error(`Unsupported fetch type: ${expect}`);
         } catch (error) {
             return {
                 success: false,
                 message: error.message,
-                error: error,
+                error,
                 url: getURL,
             };
         }
-        rdfDS.triggerReactivity();
-        return {
-            success: true,
-            url: getURL,
-            pageMeta: metadata,
-        };
+    }
+
+    function _getHeaders(headers = {}) {
+        if (token.value !== null && token.value !== 'null') {
+            headers['X-DumpThings-Token'] = token.value;
+        }
+        return headers
     }
 
     function hasUnfetchedPages(IRI, matchText='') {
@@ -392,7 +352,6 @@ export function useData(config) {
         }
         return total;
     }
-
 
     function firstPageFetched(IRI, matchText='') {
         for (const serviceURL in fetchedPages) {
