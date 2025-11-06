@@ -1,6 +1,5 @@
 import { SHACL, RDFS, RDF, DLTHINGS, SKOS } from '../modules/namespaces';
 import { toCURIE, toIRI } from 'shacl-tulip';
-import { isomorphic } from 'rdf-isomorphic';
 import { DataFactory, Writer } from 'n3';
 const { namedNode, blankNode} = DataFactory;
 
@@ -415,18 +414,6 @@ export function quadsToTripleObject(quads, allPrefixes) {
         tripleObject[predCuri].push(q.object.value);
     }
     return tripleObject
-}
-
-export function findIsomorphicSubgraph(seenSubgraphs, newQuads) {
-    // Use rdf-isomorphic to check whether incoming set of quads are equivalent
-    // to any set of quads in an existing array
-    for (let i = 0; i < seenSubgraphs.length; i++) {
-        const seen = seenSubgraphs[i];
-        if (isomorphic(seen, newQuads)) {
-            return i;
-        }
-    }
-    return null; // No match
 }
 
 export function getRecordDisplayLabel(subjectTerm, rdfDS, allPrefixes, configVarsMain) {
