@@ -269,8 +269,8 @@ import {
     getAllClasses,
     hasConfigDisplayLabel,
     getConfigDisplayLabel,
-    findIsomorphicSubgraph,
     nodeShapeHasPID,
+    hashSubgraph,
 } from '../modules/utils';
 import { toCURIE, toIRI } from 'shacl-tulip';
 import { useRegisterRef } from '../composables/refregister';
@@ -480,7 +480,7 @@ watch(menu, (newVal) => {
 
 async function populateList() {
     fetchingDataLoader.value = true;
-    getItemsToList();
+    await getItemsToList();
     if (config.value.use_service && nsHasPID.value) {
         try {
             const result = await fetchFromService(
@@ -497,7 +497,7 @@ async function populateList() {
             totalItemCount.value = getTotalItems(propClass.value)
             console.log("totalItemCount.value")
             console.log(totalItemCount.value)
-            getItemsToList();
+            await getItemsToList();
             fetchedItemCount.value = itemsToList.value.length;
             console.log("fetchedItemCount.value")
             console.log(fetchedItemCount.value)
@@ -561,7 +561,7 @@ const debouncedScrollEnd = debounce(async () => {
 // trigger whenever lastSavedNode is updated, i.e. whenever a form is saved
 watch(
     lastSavedNode,
-    (savedNode) => {
+    async (savedNode) => {
         if (savedNode) {
             if (!openForms.at(-1).activatedInstancesSelectEditor) {
                 return;
@@ -586,7 +586,7 @@ watch(
                 //     node_iri: subject_iri
                 // }
                 // First, let's make sure the list is updated to include the recently saved node:
-                getItemsToList();
+                await getItemsToList();
                 fetchedItemCount.value = itemsToList.value.length;
                 console.log("fetchedItemCount.value")
                 console.log(fetchedItemCount.value)
@@ -804,7 +804,7 @@ function getSingleItemToList(subjectValue) {
     itemsToList.value = [item]
 }
 
-function getItemsToList() {
+async function getItemsToList() {
     // ---
     // The goal of this method is to populate the list of items for the
     // InstancesSelectEditor
@@ -844,7 +844,7 @@ function getItemsToList() {
     const combinedQuads = quads.concat(myArr);
     // Finally, create list items from quads
     var itemsToListArr = [];
-    let trackedRelatedTrips = [];
+    const trackedFingerprints = new Set();
     // If there is already a selected item, we need to add it first.
     // This is necessary to deal with the later process of deduplicating
     // blank node (i.e. association class) records. We want the already selected
@@ -864,7 +864,8 @@ function getItemsToList() {
         foundQI = subjectValues.indexOf(subjectValue)
         if (foundQI >= 0) {
             itemsToListArr.push(subValues.value.selectedInstance);
-            trackedRelatedTrips.push(subValues.value.selectedInstance.props.relatedQuads)
+            const QIfingerprint = await hashSubgraph(subValues.value.selectedInstance.props.relatedQuads);
+            trackedFingerprints.add(QIfingerprint);
         }
     }
     for (const [i, qd] of combinedQuads.entries()) {
@@ -877,15 +878,15 @@ function getItemsToList() {
         let isTemp = false;
         if (qd.subject.termType === 'BlankNode') {
             // Compare with previously seen subgraphs
-            const matchIndex = findIsomorphicSubgraph(trackedRelatedTrips, relatedTrips);
-            if (matchIndex !== null) {
+            const fingerprint = await hashSubgraph(relatedTrips);
+            if (trackedFingerprints.has(fingerprint)) {
                 // This means a structurally similar blank node item was already
                 // added to the list of items, and we don't want to add a duplicate
                 continue;
             } else {
                 // The first blank node item with this unique structure.
                 // We keep track of that fact, and also continue adding the item.
-                trackedRelatedTrips.push(relatedTrips);
+                trackedFingerprints.add(fingerprint);
                 // However: we want to add a structurally similar item but NOT
                 // with the same ID. Therefore we need to create a new blank node
                 // that serves as the ID of the new item. We use the same related
@@ -974,7 +975,7 @@ async function fetchNextPage(iri, matchText='') {
         if (result.status === null) {
             console.error(result.error);
         }
-        getItemsToList();
+        await getItemsToList();
     } catch (err) {
         console.error(err);
     } finally {
