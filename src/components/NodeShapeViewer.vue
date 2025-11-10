@@ -267,10 +267,8 @@ import {
     reactive,
     onBeforeMount,
     inject,
-    onUpdated,
     ref,
-    nextTick,
-    toRaw,
+    watch,
     provide,
     computed,
 } from 'vue';
@@ -288,7 +286,6 @@ import {
 } from '../modules/utils';
 import { RDF, SHACL } from '@/modules/namespaces';
 import MoreOrLessRecordsViewer from './MoreOrLessRecordsViewer.vue';
-import TextOrLinkViewer from './TextOrLinkViewer.vue';
 // Define component properties
 const props = defineProps({
     classIRI: String,
@@ -304,6 +301,7 @@ const fetchFromService = inject('fetchFromService');
 const getClassIcon = inject('getClassIcon');
 const rdfDS = inject('rdfDS');
 const shapesDS = inject('shapesDS');
+const lastSavedNode = inject('lastSavedNode');
 const record = reactive({});
 const showBlankNodes = ref(false);
 const shape_obj = shapesDS.data.nodeShapes[props.classIRI];
@@ -339,7 +337,6 @@ function selectNamedNode(recordClass, recordPID) {
 provide('selectNamedNode', selectNamedNode);
 
 onBeforeMount(async () => {
-
     if (configVarsMain.allowCopyRecordUrls === true ||
         ( Array.isArray(configVarsMain.allowCopyRecordUrls) &&
         configVarsMain.allowCopyRecordUrls.indexOf(props.classIRI) >= 0 )
@@ -356,13 +353,6 @@ onBeforeMount(async () => {
     }
     initShowCounts();
 });
-
-onUpdated(() => {
-    updateRecord(false);
-    initShowCounts();
-});
-
-
 
 const specialBlankNodes = computed( () => {
     const triples = record.triples?.['BlankNode'] ?? {};
@@ -460,8 +450,7 @@ async function updateRecord(fetchData) {
     for (const rQ of record.relatedQuads) {
         await addRecordProperty(rQ, fetchData);
     }
-    record.displayLabel = getRecordDisplayLabel(record.quad.subject, rdfDS, allPrefixes, configVarsMain)
-    
+    record.displayLabel = getRecordDisplayLabel(record.quad.subject, rdfDS, allPrefixes, configVarsMain)    
     // Now we have all record.triples, and we need to get displaylabels for blanknodes
     for (const triplePred in record.triples['BlankNode']) {
         let cIRI = propertyShapes[triplePred][SHACL.class.value];
@@ -500,6 +489,18 @@ async function addRecordProperty(quad, fetchData) {
     }
     record.triples[termType][quad.predicate.value].values.push(quad.object);
 }
+
+// trigger record update whenever lastSavedNode is updated, i.e. whenever a form is saved
+watch(
+    lastSavedNode, async (savedNode) => {
+        if (savedNode) {
+            if (savedNode.node_iri == record.value) {
+                await updateRecord(false, 'lastSavedNode')
+                initShowCounts();
+            }
+        }
+    }
+)
 
 function copyRecordLink() {
     var nodeShapeCurie = toCURIE(props.classIRI, allPrefixes);
