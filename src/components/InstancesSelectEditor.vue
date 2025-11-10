@@ -171,11 +171,9 @@
                                                 no-gutters
                                                 v-if="
                                                     [
-                                                        'title',
-                                                        'subtitle',
-                                                        'name',
-                                                        'value',
-                                                        'itemQuad',
+                                                        'title', 'subtitle', 'name', 'value',
+                                                        'itemQuad', 'relatedQuads', 'isTemp',
+                                                        'hasPrefLabel', 'hasDisplayLabel', 'hasNote',
                                                         RDF.type.value,
                                                         toCURIE(
                                                             RDF.type.value,
@@ -588,25 +586,33 @@ watch(
                 // First, let's make sure the list is updated to include the recently saved node:
                 await getItemsToList();
                 fetchedItemCount.value = itemsToList.value.length;
-                console.log("fetchedItemCount.value")
-                console.log(fetchedItemCount.value)
                 // Then we need to set the selectedInstance. The itemsToList has items as objects,
                 // with value = quad.subject.value.
-                // We need to find the item that has the value being the same as the saved node's node_iri:
-                var inst = findObjectByKey(
-                    itemsToList.value,
-                    'value',
-                    savedNode.node_iri
-                );
+                // We need to find the item that has the value being the same as the saved node's node_iri
+                // This holds for named node records. However, the process is different for blank node
+                // records since the introduction of the blank node deduplication process. In getItemsToList,
+                // the deduplication will assign a quad with a new blank node as subject to item.props.itemQuad.
+                // Hence the item value will not be the same anymore as logged by savedNode.node_iri. For
+                // blank nodes, we have to look at the subject value of all the relatedQuads, because they
+                // reflect the 'true' state before deduplication.
+                let inst = null
+                for (const listItem of itemsToList.value) {
+                    if (listItem.props.itemQuad.subject.termType === "NamedNode") {
+                        if (listItem.value == savedNode.node_iri) {
+                            inst = listItem;
+                            break;
+                        }
+                    } else {
+                        const originalBNid = Array.from(new Set(listItem.props.relatedQuads.map((x) => x.subject.value)))[0];
+                        if (originalBNid == savedNode.node_iri) {
+                            inst = listItem;
+                            break;
+                        }
+                    }
+                }
                 if (inst) {
-                    subValues.value.selectedInstance = inst;
-                    queryLabel.value = subValues.value.selectedInstance.props._prefLabel
-                    ? subValues.value.selectedInstance.props._prefLabel
-                    : (
-                        subValues.value.selectedInstance.props._displayLabel ?
-                        subValues.value.selectedInstance.props._displayLabel :
-                        '(selected item name unknown)'
-                    )
+                    // we need to use selectItem so as to trigger processTempItem
+                    selectItem(inst)
                 } else {
                     console.log(
                         'A node was recently saved but it could not be found in the itemsToList and was therefore not set as the selectedItem'
