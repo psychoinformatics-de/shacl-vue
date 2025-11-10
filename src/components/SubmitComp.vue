@@ -126,7 +126,7 @@ const submitForm = ref(null);
 const tokenval = ref(null);
 const visible = ref(false);
 const { token, setToken, clearToken } = useToken();
-const submitFormData = inject('submitFormData');
+const submitRdfData = inject('submitRdfData');
 const submitButtonPressed = inject('submitButtonPressed');
 const submitDialog = inject('submitDialog');
 const tokenExists = ref(false);
@@ -178,7 +178,7 @@ async function submit() {
         setToken(tokenval.value);
     }
     awaitingResponse.value = true;
-    var submit_result = await submitFormData(
+    var submit_result = await submitRdfData(
         shapesDS,
         ID_IRI.value,
         allPrefixes,

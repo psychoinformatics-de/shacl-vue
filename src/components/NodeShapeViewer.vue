@@ -281,6 +281,7 @@ import {
     dlTTL,
     toSnakeCase,
     quadsToTTL,
+    getRecordQuads,
     getRecordDisplayLabel,
     hasConfigDisplayLabel,
 } from '../modules/utils';
@@ -386,7 +387,8 @@ async function viewRDF() {
     ttlDialog_icon.value = getClassIcon(props.classIRI);
     ttlDialog_name.value = record.prefLabel ? record.prefLabel : record.title;
     ttlDialog_type.value = toCURIE(record.subtitle, allPrefixes);
-    var tmpStr = await quadsToTTL(getRecordQuads(), allPrefixes);
+    var rQs = getRecordQuads(record.value, rdfDS.data.graph, true)
+    var tmpStr = await quadsToTTL(rQs, allPrefixes);
     ttlDialog_content.value = tmpStr.replace(/^\s+/g, '');
     ttlDialog_content.value = '\n' + ttlDialog_content.value;
     ttlDialog.value = true;
@@ -411,31 +413,8 @@ function initShowCounts() {
     }
 }
 
-function getRecordQuads() {
-    const visited = new Set();
-    const allQuads = [];
-    function addQuadsRecursively(quads) {
-        for (const quad of quads) {
-            if (!allQuads.includes(quad)) {
-                allQuads.push(quad);
-                if (quad.object.termType === 'BlankNode') {
-                    const id = quad.object.value;
-                    if (!visited.has(id)) {
-                        visited.add(id);
-                        const moreQuads = rdfDS.getSubjectTriples(quad.object);
-                        addQuadsRecursively(Array.from(moreQuads));
-                    }
-                }
-            }
-        }
-    }
 
-    const baseQuads = record.relatedQuads;
-    addQuadsRecursively(baseQuads);
-    return allQuads;
-}
-
-async function updateRecord(fetchData) {
+async function updateRecord(fetchData, from) {
     record.title = props.quad.subject.value;
     record.quad = props.quad;
     record.value = props.quad.subject.value;

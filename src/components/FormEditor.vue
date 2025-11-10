@@ -239,7 +239,6 @@ async function saveForm() {
             // - for each triple in oldTriples: create a new one with same subject and predicate
             //   and with new IRI as object, then delete the old triple
             console.log('going to save form now');
-            // var saved_node = save_node(localShapeIri.value, localNodeIdx.value, nodeShapes.value, graphData, editMode.form || editMode.graph, ID_IRI.value, allPrefixes);
             const reactiveCloneFunc = (data) => {
                 console.log('using reactiveCloneFunc with data:');
                 console.log(toRaw(data));
@@ -250,7 +249,7 @@ async function saveForm() {
                 localNodeIdx.value,
                 shapesDS,
                 rdfDS,
-                editMode.form || editMode.graph,
+                editMode.value,
                 reactiveCloneFunc
             );
             // saved_node = {
@@ -258,6 +257,10 @@ async function saveForm() {
             //   node_iri: ""
             // }
             savedNodes.value.push(saved_node);
+            // Remove the node data from formData, because:
+            // - submission happens from graph store
+            // - formData needed for editing the node will just be generated on-demand in future
+            formData.removeSubject(localShapeIri.value, localNodeIdx.value);
             // In order for the node to be submitted, it should have a PID
             // (because blank nodes aren't submitted as such, they are resolved
             // into named nodes), and it should not already be in nodesToSubmit.value.
@@ -309,12 +312,11 @@ function resetForm() {
 
 function cancelForm() {
     console.log('Cancelling form from FormEditor');
-    if (!editMode.form) {
-        console.log(
-            `Removing current node: ${localShapeIri.value} - ${localNodeIdx.value}`
-        );
-        formData.removeSubject(localShapeIri.value, localNodeIdx.value);
-    }
+    console.log(`Removing current node: ${localShapeIri.value} - ${localNodeIdx.value}`);
+    // Always remove node from formData:
+    // - if cancelling from new item creation, no quads are in graph store
+    // - if cancelling from item editing, true state quads are in graph store
+    formData.removeSubject(localShapeIri.value, localNodeIdx.value);
     removeForm(null);
     if (typeof cancelFormHandler === 'function') {
         cancelFormHandler();
