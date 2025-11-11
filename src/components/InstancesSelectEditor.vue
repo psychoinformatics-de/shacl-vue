@@ -261,10 +261,9 @@ import {
 } from 'vue';
 import { useRules } from '../composables/rules';
 import { DataFactory } from 'n3';
-import { SHACL, RDF, RDFS, SKOS } from '@/modules/namespaces';
+import { SHACL, RDF, SKOS } from '@/modules/namespaces';
 import {
     findObjectByKey,
-    getAllClasses,
     hasConfigDisplayLabel,
     getConfigDisplayLabel,
     nodeShapeHasPID,
@@ -328,15 +327,28 @@ const firstPageFetched = inject('firstPageFetched');
 const isFetchingPage = ref(false);
 const hasOpenedMenu = ref(false);
 const configVarsMain = inject('configVarsMain')
+const includeClass = inject('includeClass');
+const allSubClasses = inject('allSubClasses');
 const localPropertyShape = ref(props.property_shape);
 const propClass = ref(null);
 propClass.value = localPropertyShape.value[SHACL.class.value] ?? false;
-const allclass_array = getAllClasses(classDS, propClass.value);
+// Prepare array of the base class and all of it subclasses
+let allclass_array = [propClass.value]
+if (Array.isArray(allSubClasses[propClass.value]) && allSubClasses[propClass.value].length > 0 ) {
+    allclass_array = allclass_array.concat(allSubClasses[propClass.value])
+}
 const propClassList = allclass_array.map((cl) => {
-    return {
-        title: toCURIE(cl, allPrefixes),
-        value: cl,
-    };
+    configVarsMain.noEditClasses
+    if (includeClass(cl) && configVarsMain.noEditClasses.indexOf(cl) < 0) {
+        return {
+            title: toCURIE(cl, allPrefixes, "parts").property,
+            value: cl,
+        };
+    }
+}).filter((el) => {
+   return el !== undefined;
+}).sort((a,b) =>{
+    return a.title.localeCompare(b.title)
 });
 const canEditClass = ref(true)
 canEditClass.value = configVarsMain.noEditClasses.indexOf(propClass.value) < 0 ? true : false
@@ -815,39 +827,16 @@ async function getItemsToList() {
     // The goal of this method is to populate the list of items for the
     // InstancesSelectEditor
     // ---
-    // console.log("(Re)calculating instance items")
-    // find nodes with predicate rdf:type and object being the property class
-    // console.log("find nodes with predicate rdf:type and object being the property class:")
-    var quads = rdfDS.getLiteralAndNamedNodes(
-        namedNode(RDF.type.value),
-        propClass.value,
-        allPrefixes
-    );
-    // then find nodes with predicate rdfs:subClassOf and object being the property class
-    // TODO: here we are only using a named node for the object because this is how the
-    // tools/gen_owl_minimal.py script outputs the triples in the ttl file. This should be
-    // generalised
-    const subClasses = classDS.data.graph.getQuads(
-        null,
-        namedNode(RDFS.subClassOf.value),
-        namedNode(propClass.value),
-        null
-    );
-    // For each subclass, find the quads in graphData that has the class name as object
-    // and RDF.type as predicate
-    var myArr = [];
-    subClasses.forEach((qd) => {
-        const cl = qd.subject.value;
-        myArr = myArr.concat(
-            rdfDS.getLiteralAndNamedNodes(
-                namedNode(RDF.type.value),
-                cl,
-                allPrefixes
-            )
-        );
-    });
-    // Then combine all quad arrays
-    const combinedQuads = quads.concat(myArr);
+    // The allclass_array already contains the base class from 
+    let combinedQuads = [];
+    for (const cl of allclass_array) {
+        const mySubArray = rdfDS.getLiteralAndNamedNodes(
+            namedNode(RDF.type.value),
+            cl,
+            allPrefixes
+        )
+        combinedQuads = combinedQuads.concat(mySubArray);
+    }
     // Finally, create list items from quads
     var itemsToListArr = [];
     const trackedFingerprints = new Set();
@@ -910,6 +899,7 @@ async function getItemsToList() {
         addItemParts(item, activeQuad, activeRelatedTrips)
         itemsToListArr.push(item);
     }
+
     itemsToList.value = itemsToListArr;
 }
 
