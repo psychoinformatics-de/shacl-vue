@@ -477,3 +477,35 @@ export async function hashSubgraph(quads) {
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     return hashHex
 }
+
+export function getRecordQuads(pid, graph, recursive=false) {
+    // Return an array of quads related to a specific named node
+    // Default will return only the first level of quads, i.e. all quads
+    // that have the named node as subject.
+    // Set `recursive` to true to get quads related to blank node objects recursively
+    // related named nodes are not recursively resolved
+    const visited = new Set();
+    const allQuads = [];
+    function addQuadsRecursively(quads) {
+        for (const qd of quads) {
+            if (!allQuads.includes(qd)) {
+                allQuads.push(qd);
+                if (qd.object.termType === 'BlankNode') {
+                    const id = qd.object.value;
+                    if (!visited.has(id)) {
+                        visited.add(id);
+                        const moreQuads = graph.getQuads(qd.object, null, null, null);
+                        addQuadsRecursively(Array.from(moreQuads));
+                    }
+                }
+            }
+        }
+    }
+    const baseQuads = graph.getQuads(namedNode(pid), null, null, null);
+    if (recursive) {
+        addQuadsRecursively(baseQuads);
+        return allQuads;
+    } else {
+        return baseQuads;
+    }
+}

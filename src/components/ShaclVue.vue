@@ -548,11 +548,23 @@ const config_ready = ref(false);
 const itemRefs = ref([]);
 const { config, configFetched, configError, configVarsMain, loadConfigVars, loadMainPage} =
     useConfig(props.configUrl);
-const { rdfDS, getRdfData, fetchFromService, fetchedPages, hasUnfetchedPages, getTotalItems, firstPageFetched, http401response } = useData(config);
+const {
+    rdfDS,
+    getRdfData,
+    fetchFromService,
+    fetchedPages,
+    hasUnfetchedPages,
+    getTotalItems,
+    firstPageFetched,
+    http401response,
+    submitRdfData,
+    savedNodes,
+    submittedNodes,
+    nodesToSubmit
+} = useData(config);
 const { classDS, getClassData } = useClasses(config);
 const { shapesDS, getSHACLschema } = useShapes(config);
-const { formData, submitFormData, savedNodes, submittedNodes, nodesToSubmit } =
-    useForm(config);
+const { formData } = useForm(config);
 const { token, setToken, clearToken } = useToken();
 const ID_IRI = ref('');
 const canEditClass = ref(true)
@@ -620,7 +632,7 @@ provide('hasUnfetchedPages', hasUnfetchedPages);
 provide('getTotalItems', getTotalItems);
 provide('firstPageFetched', firstPageFetched);
 provide('http401response', http401response)
-provide('submitFormData', submitFormData);
+provide('submitRdfData', submitRdfData);
 provide('savedNodes', savedNodes);
 provide('submittedNodes', submittedNodes);
 provide('nodesToSubmit', nodesToSubmit);
@@ -774,10 +786,7 @@ const formOpen = ref(false);
 const drawer = ref(true);
 const editShapeIRI = ref(null);
 const editItemIdx = ref(null);
-const editMode = reactive({
-    form: false,
-    graph: false,
-});
+const editMode = ref(false);
 let debounceTypingTimer = null;
 provide('editMode', editMode);
 provide('formOpen', formOpen);
@@ -1132,18 +1141,10 @@ async function editInstanceItem(instance) {
         editShapeIRI.value = toIRI(objectTerm.value, allPrefixes);
     }
     editItemIdx.value = instance.value; // this is the id
-
-    // if the node is already in the formData, edit that
-    if (formData.content[editShapeIRI.value]?.[editItemIdx.value]) {
-        console.log('The node is already in the formData, we will edit that');
-        editMode.form = true;
-        editMode.graph = false;
-    } else {
-        // If not, we need to create the formData entries from quads in the dataset
-        formData.quadsToFormData(editShapeIRI.value, subjectTerm, rdfDS);
-        editMode.form = false;
-        editMode.graph = true;
-    }
+    // Now create the formData entries from quads in the graph dataset
+    formData.quadsToFormData(editShapeIRI.value, subjectTerm, rdfDS);
+    // set editMode
+    editMode.value = true;
     // open formEditor
     addForm(editShapeIRI.value, editItemIdx.value, 'edit');
     editItem.value = true;
@@ -1420,7 +1421,7 @@ function removeForm(savedNode) {
         formOpen.value = false;
         drawer.value = true;
         canSubmit.value = true;
-        editMode.form = editMode.graph = false;
+        editMode.value = false;
         updateURL(selectedIRI.value, false);
         if (savedNode) {
             getInstanceItems();

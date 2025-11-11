@@ -267,10 +267,8 @@ import {
     reactive,
     onBeforeMount,
     inject,
-    onUpdated,
     ref,
-    nextTick,
-    toRaw,
+    watch,
     provide,
     computed,
 } from 'vue';
@@ -283,12 +281,12 @@ import {
     dlTTL,
     toSnakeCase,
     quadsToTTL,
+    getRecordQuads,
     getRecordDisplayLabel,
     hasConfigDisplayLabel,
 } from '../modules/utils';
 import { RDF, SHACL } from '@/modules/namespaces';
 import MoreOrLessRecordsViewer from './MoreOrLessRecordsViewer.vue';
-import TextOrLinkViewer from './TextOrLinkViewer.vue';
 // Define component properties
 const props = defineProps({
     classIRI: String,
@@ -304,6 +302,7 @@ const fetchFromService = inject('fetchFromService');
 const getClassIcon = inject('getClassIcon');
 const rdfDS = inject('rdfDS');
 const shapesDS = inject('shapesDS');
+const lastSavedNode = inject('lastSavedNode');
 const record = reactive({});
 const showBlankNodes = ref(false);
 const shape_obj = shapesDS.data.nodeShapes[props.classIRI];
@@ -339,7 +338,6 @@ function selectNamedNode(recordClass, recordPID) {
 provide('selectNamedNode', selectNamedNode);
 
 onBeforeMount(async () => {
-
     if (configVarsMain.allowCopyRecordUrls === true ||
         ( Array.isArray(configVarsMain.allowCopyRecordUrls) &&
         configVarsMain.allowCopyRecordUrls.indexOf(props.classIRI) >= 0 )
@@ -356,13 +354,6 @@ onBeforeMount(async () => {
     }
     initShowCounts();
 });
-
-onUpdated(() => {
-    updateRecord(false);
-    initShowCounts();
-});
-
-
 
 const specialBlankNodes = computed( () => {
     const triples = record.triples?.['BlankNode'] ?? {};
@@ -396,7 +387,8 @@ async function viewRDF() {
     ttlDialog_icon.value = getClassIcon(props.classIRI);
     ttlDialog_name.value = record.prefLabel ? record.prefLabel : record.title;
     ttlDialog_type.value = toCURIE(record.subtitle, allPrefixes);
-    var tmpStr = await quadsToTTL(getRecordQuads(), allPrefixes);
+    var rQs = getRecordQuads(record.value, rdfDS.data.graph, true)
+    var tmpStr = await quadsToTTL(rQs, allPrefixes);
     ttlDialog_content.value = tmpStr.replace(/^\s+/g, '');
     ttlDialog_content.value = '\n' + ttlDialog_content.value;
     ttlDialog.value = true;
@@ -421,31 +413,8 @@ function initShowCounts() {
     }
 }
 
-function getRecordQuads() {
-    const visited = new Set();
-    const allQuads = [];
-    function addQuadsRecursively(quads) {
-        for (const quad of quads) {
-            if (!allQuads.includes(quad)) {
-                allQuads.push(quad);
-                if (quad.object.termType === 'BlankNode') {
-                    const id = quad.object.value;
-                    if (!visited.has(id)) {
-                        visited.add(id);
-                        const moreQuads = rdfDS.getSubjectTriples(quad.object);
-                        addQuadsRecursively(Array.from(moreQuads));
-                    }
-                }
-            }
-        }
-    }
 
-    const baseQuads = record.relatedQuads;
-    addQuadsRecursively(baseQuads);
-    return allQuads;
-}
-
-async function updateRecord(fetchData) {
+async function updateRecord(fetchData, from) {
     record.title = props.quad.subject.value;
     record.quad = props.quad;
     record.value = props.quad.subject.value;
@@ -460,8 +429,7 @@ async function updateRecord(fetchData) {
     for (const rQ of record.relatedQuads) {
         await addRecordProperty(rQ, fetchData);
     }
-    record.displayLabel = getRecordDisplayLabel(record.quad.subject, rdfDS, allPrefixes, configVarsMain)
-    
+    record.displayLabel = getRecordDisplayLabel(record.quad.subject, rdfDS, allPrefixes, configVarsMain)    
     // Now we have all record.triples, and we need to get displaylabels for blanknodes
     for (const triplePred in record.triples['BlankNode']) {
         let cIRI = propertyShapes[triplePred][SHACL.class.value];
@@ -500,6 +468,18 @@ async function addRecordProperty(quad, fetchData) {
     }
     record.triples[termType][quad.predicate.value].values.push(quad.object);
 }
+
+// trigger record update whenever lastSavedNode is updated, i.e. whenever a form is saved
+watch(
+    lastSavedNode, async (savedNode) => {
+        if (savedNode) {
+            if (savedNode.node_iri == record.value) {
+                await updateRecord(false, 'lastSavedNode')
+                initShowCounts();
+            }
+        }
+    }
+)
 
 function copyRecordLink() {
     var nodeShapeCurie = toCURIE(props.classIRI, allPrefixes);

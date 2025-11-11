@@ -1,8 +1,11 @@
 // useData.js
 import { ref, reactive, toRaw } from 'vue';
-import { findObjectByKey, replaceServiceIdentifier } from '@/modules/utils';
+import { replaceServiceIdentifier, getRecordQuads } from '@/modules/utils';
 import { useToken } from '@/composables/tokens';
 import { ReactiveRdfDataset } from '@/classes/ReactiveRdfDataset';
+import { SHACL } from '@/modules/namespaces'
+import { Store } from 'n3';
+import { postRDF } from '@/modules/io';
 
 const basePath = import.meta.env.BASE_URL || '/';
 
@@ -13,6 +16,9 @@ export function useData(config) {
     const fetchedPages = reactive({})
     const { token } = useToken();
     const http401response = ref(false);
+    const savedNodes = ref([]);
+    const submittedNodes = ref([]);
+    const nodesToSubmit = ref([]);
 
     async function fetchFromService(endpoint, arg, prefixes, matchText = '') {
         // endpoint: the name of the endpoint defined in the config
@@ -377,6 +383,165 @@ export function useData(config) {
         return myStr
     }
 
+    async function submitRdfData(shapesDS, id_iri, prefixes, config, rdfDS) {
+        try {
+            console.log('inside submitRdfData function');
+            if (nodesToSubmit.value.length == 0) {
+                var msg =
+                    'submitRdfData: no edited named nodes to submit; returning.';
+                console.log(msg);
+                return {
+                    success: true,
+                    skipped: true,
+                    message: msg,
+                };
+            }
+            const endpoint = 'post-record';
+            const serviceBaseURL = config.value.service_base_url;
+            const serviceEndpoints = config.value.service_endpoints;
+            if (!(serviceBaseURL || serviceEndpoints)) {
+                throw new Error(
+                    'Service base URL and/or service endpoints not included in configuration.\nPosting data to an endpoint will not be possible.'
+                );
+            }
+            if (Object.keys(serviceEndpoints).indexOf(endpoint) < 0) {
+                throw new Error(
+                    `Unknown endpoint '${endpoint}' provided; Posting data to an endpoint will not be possible. Returning.`
+                );
+            }
+            if (Object.keys(serviceEndpoints).indexOf(endpoint) < 0) {
+                throw new Error(
+                    `Unknown endpoint '${endpoint}' provided; Posting data to an endpoint will not be possible. Returning.`
+                );
+            }
+            // Handle two possibilities:
+            // - serviceBaseURL is a string, assume type write
+            // - serviceBaseURL is an Array (latest feature)
+            // Error if no write urls are found or if more than 1 are found
+            const writeUrls = Array.isArray(serviceBaseURL)
+                ? serviceBaseURL.filter((el) => el.type === 'write')
+                : [{ url: serviceBaseURL, type: 'write' }];
+            if (writeUrls.length === 0) {
+                throw new Error(
+                    "No service base URL with type 'write' was found in the configuration; Posting data to an endpoint will not be possible. Returning."
+                );
+            }
+            if (writeUrls.length > 1) {
+                throw new Error(
+                    "Multiple service base URLs with type 'write' were found; only one is allowed to post data. Returning"
+                );
+            }
+            const headers = _getHeaders();
+            // collect all POST requests as Promises
+            let postPromises = [];
+            let toSubmit = [...nodesToSubmit.value];
+            for (var nodeToSubmit of toSubmit) {
+                const class_uri = nodeToSubmit.nodeshape_iri;
+                // Get shapes for reference
+                var nodeShape = shapesDS.data.nodeShapes[class_uri];
+                var propertyShapes = nodeShape.properties;
+                // if the nodeshape does NOT have a propertyshape with sh:path being equal to ID_IRI,
+                // it means the class's records will be blank nodes and we can skip the whole class
+                var ps = propertyShapes.find(
+                    (prop) => prop[SHACL.path.value] == id_iri
+                );
+                if (!ps) {
+                    console.log(
+                        `Class '${class_uri}' shape does not have an id field, i.e. it will have blank node records, i.e. skipping.`
+                    );
+                    continue;
+                }
+                const record_id = nodeToSubmit.node_iri;
+                // Get all quads related to the node
+                var quads = getRecordQuads(record_id, rdfDS.data.graph, true);
+                // Create an rdf dataset per record
+                var ds = new Store();
+                quads.forEach((quad) => {
+                    ds.add(quad);
+                });
+                // A POST replaceServiceIdentifier(class_uri, serviceEndpoints[endpoint], prefixes)
+                const query_string = replaceServiceIdentifier(
+                    class_uri,
+                    serviceEndpoints[endpoint],
+                    prefixes
+                );
+                var postURL = `${writeUrls[0].url}${query_string}`;
+                console.log('POSTing to the following URL:');
+                console.log(postURL);
+                postPromises.push(
+                    postRDF(postURL, ds, 'text/turtle', headers, prefixes)
+                        .then((result) => ({
+                            nodeshape_iri: class_uri,
+                            node_iri: record_id,
+                            result,
+                        }))
+                );
+            }
+            if (postPromises.length === 0) {
+                var msg =
+                    'submitRdfData: no edited named nodes to submit; only found edited blank nodes, and they can only be submitted as part of named nodes; returning.';
+                console.log(msg);
+                return {
+                    success: true,
+                    skipped: true,
+                    message: msg,
+                };
+
+            }
+            // wait until all POST requests settle.
+            const results = await Promise.allSettled(postPromises);
+            console.log('POST results:');
+            console.log(results);
+            for (var r of results) {
+                if (r.status === 'fulfilled') {
+                    const { nodeshape_iri, node_iri, result } = r.value;
+                    if (result.success) {
+                        submittedNodes.value.push({
+                            nodeshape_iri: nodeshape_iri,
+                            node_iri: node_iri,
+                        });
+                        // also remove from nodesToSubmit.value
+                        var n = findObjectIndexByKey(
+                            nodesToSubmit.value,
+                            'node_iri',
+                            node_iri
+                        );
+                        if (n > -1) {
+                            nodesToSubmit.value.splice(n, 1);
+                        }
+                    }
+                } else {
+                    const { nodeshape_iri, node_iri, error } = r.reason;
+                    console.warn(
+                        `POST to ${nodeshape_iri} for node ${node_iri} failed:`,
+                        error
+                    );
+                }
+            }
+            const failed = results
+                .map((r) => r.value.result)
+                .filter((r) => r.success === false);
+
+            if (failed.length > 0) {
+                return {
+                    success: false,
+                    error: failed,
+                    message: 'One or more POSTS failed',
+                };
+            } else {
+                return {
+                    success: true,
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                error,
+                message: error.message,
+            };
+        }
+    }
+
     // expose managed state as return value
     return {
         rdfDS,
@@ -387,5 +552,9 @@ export function useData(config) {
         getTotalItems,
         firstPageFetched,
         http401response,
+        submitRdfData,
+        savedNodes,
+        submittedNodes,
+        nodesToSubmit,
     };
 }
