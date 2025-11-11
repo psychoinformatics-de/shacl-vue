@@ -260,7 +260,8 @@ async function saveForm() {
             // Remove the node data from formData, because:
             // - submission happens from graph store
             // - formData needed for editing the node will just be generated on-demand in future
-            formData.removeSubject(localShapeIri.value, localNodeIdx.value);
+            console.log(`Finished saving; Removing current node: ${saved_node.nodeshape_iri} - ${saved_node.node_iri}`);
+            formData.removeSubject(saved_node.nodeshape_iri, saved_node.node_iri);
             // In order for the node to be submitted, it should have a PID
             // (because blank nodes aren't submitted as such, they are resolved
             // into named nodes), and it should not already be in nodesToSubmit.value.

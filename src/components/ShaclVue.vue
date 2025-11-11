@@ -431,7 +431,6 @@ import {
 } from 'vue';
 import { useConfig } from '@/composables/configuration';
 import {
-    adjustHexColor,
     findObjectByKey,
     addCodeTagsToText,
     getSuperClasses,
@@ -439,6 +438,7 @@ import {
     getPidQuad,
     hasConfigDisplayLabel,
     getConfigDisplayLabel,
+    getSubClasses,
 } from '../modules/utils';
 import { toCURIE, toIRI } from 'shacl-tulip';
 import editorMatchers from '@/modules/editors';
@@ -449,7 +449,7 @@ import { useShapes } from '@/composables/useShapes';
 import { useForm } from '@/composables/useForm';
 import { useToken } from '@/composables/tokens';
 import { DataFactory } from 'n3';
-import { SHACL, RDF, SKOS } from '@/modules/namespaces';
+import { SHACL, RDF, RDFS, SKOS } from '@/modules/namespaces';
 import { debounce } from 'lodash-es';
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
 import {
@@ -562,7 +562,7 @@ const {
     submittedNodes,
     nodesToSubmit
 } = useData(config);
-const { classDS, getClassData } = useClasses(config);
+const { classDS, getClassData, allSubClasses} = useClasses(config);
 const { shapesDS, getSHACLschema } = useShapes(config);
 const { formData } = useForm(config);
 const { token, setToken, clearToken } = useToken();
@@ -627,6 +627,7 @@ provide('rdfDS', rdfDS);
 provide('shapesDS', shapesDS);
 provide('classDS', classDS);
 provide('formData', formData);
+provide('allSubClasses', allSubClasses);
 provide('fetchFromService', fetchFromService);
 provide('hasUnfetchedPages', hasUnfetchedPages);
 provide('getTotalItems', getTotalItems);
@@ -722,8 +723,20 @@ watch(
             for (var uri of shapesDS.data.nodeShapeIRIs) {
                 superClasses[uri] = getSuperClasses(uri, classDS.data.graph);
             }
-            console.log('SUPERCLASSES:');
-            console.log(toRaw(superClasses));
+            // Prepare allSubClasses object with class URIs as keys, and their respective subclass URIs as arrays
+            // This is required for the InstancesSelectEditor
+            // TODO: this code should ideally move to the useClasses composable, but that first needs to implement
+            // a functional way to run the following code *after* loading all class data from the incoming OWL;
+            // at the moment that fails if not done here, i.e. once shapesDS.data.prefixesLoaded changes. 
+            const allClasses = new Set();
+            const subclassQuads = classDS.data.graph.getQuads(null, namedNode(RDFS.subClassOf.value), null, null);
+            for (const q of subclassQuads) {
+                allClasses.add(q.subject.value);
+                allClasses.add(q.object.value);
+            }
+            for (const classUri of allClasses) {
+                allSubClasses[classUri] = getSubClasses(classUri, classDS.data.graph);
+            }
         }
     },
     { immediate: true }
@@ -910,6 +923,7 @@ function includeClass(class_iri) {
         return false
     }
 }
+provide('includeClass', includeClass)
 
 const formattedDescription = computed(() => {
     // For the class description, use a regular expression to replace text between backticks with <code> tags

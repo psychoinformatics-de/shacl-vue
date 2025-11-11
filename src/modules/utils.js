@@ -260,6 +260,39 @@ export function getSuperClass(class_uri, graph) {
     return null;
 }
 
+export function getSubClasses(class_uri, graph) {
+    const visited = new Set();
+    const subClasses = new Set();
+    function traverse(uri) {
+        if (visited.has(uri)) return;
+        visited.add(uri);
+        const direct = getDirectSubClasses(uri, graph);
+        if (!direct) return;
+        for (const quad of direct) {
+            const subUri = quad.subject.value;
+            if (!subClasses.has(subUri)) {
+                subClasses.add(subUri);
+                traverse(subUri);
+            }
+        }
+    }
+    traverse(class_uri);
+    return Array.from(subClasses);
+}
+
+export function getDirectSubClasses(class_uri, graph) {
+    const subClasses = graph.getQuads(
+        null,
+        namedNode(RDFS.subClassOf.value),
+        namedNode(class_uri),
+        null
+    );
+    if (subClasses.length > 0) {
+        return subClasses;
+    }
+    return null;
+}
+
 export function getPidQuad(pid, graph) {
     const q = graph.getQuads(
         namedNode(pid),
@@ -340,10 +373,10 @@ export async function quadsToTTL(allQuads, allPrefixes) {
 }
 
 export function getAllClasses(classDS, main_class) {
-    return [main_class].concat(getSubClasses(classDS, main_class));
+    return [main_class].concat(getSubClassesOld(classDS, main_class));
 }
 
-export function getSubClasses(classDS, main_class) {
+export function getSubClassesOld(classDS, main_class) {
     // Find quads in the subclass datasetnodes with predicate rdfs:subClassOf
     // object main_class, and return as an array of terms
     const subClasses = classDS.data.graph.getQuads(

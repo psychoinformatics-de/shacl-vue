@@ -7,6 +7,7 @@ const basePath = import.meta.env.BASE_URL || '/';
 export function useClasses(config) {
     const defaultURL = `${basePath}dlschemas_owl.ttl`;
     const classDS = new ClassDataset(reactive({}));
+    const allSubClasses = reactive({})
 
     async function getClassData(url) {
         var getURL;
@@ -43,5 +44,6 @@ export function useClasses(config) {
     return {
         classDS,
         getClassData,
+        allSubClasses,
     };
 }
