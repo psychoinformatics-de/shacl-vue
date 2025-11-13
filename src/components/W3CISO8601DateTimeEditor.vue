@@ -108,8 +108,8 @@ const formats = [
 ]
 const yearItems = []
 for (
-    var i=configVarsMain.w3ciso8601DatetimeEditor.yearEnd;
-    i>=configVarsMain.w3ciso8601DatetimeEditor.yearStart;
+    var i=configVarsMain.editorConfig.W3CISO8601DateTimeEditor.yearEnd;
+    i>=configVarsMain.editorConfig.W3CISO8601DateTimeEditor.yearStart;
     i--
 ) {
     yearItems.push(i)
