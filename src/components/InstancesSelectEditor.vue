@@ -337,19 +337,39 @@ let allclass_array = [propClass.value]
 if (Array.isArray(allSubClasses[propClass.value]) && allSubClasses[propClass.value].length > 0 ) {
     allclass_array = allclass_array.concat(allSubClasses[propClass.value])
 }
-const propClassList = allclass_array.map((cl) => {
-    configVarsMain.noEditClasses
-    if (includeClass(cl) && configVarsMain.noEditClasses.indexOf(cl) < 0) {
+
+let propClassList
+if (allclass_array.length > 1) {
+    // TODO: it is still possible for the propClassList here to end up with zero
+    // entries. It would be better to allow a per-class config to specify which
+    // subclasses should be included here, rather than falling back on the config
+    // that is intended for the whole app, and not this particular component
+    propClassList = allclass_array.map((cl) => {
+        if (includeClass(cl) && configVarsMain.noEditClasses.indexOf(cl) < 0) {
+            return {
+                title: toCURIE(cl, allPrefixes, "parts").property,
+                value: cl,
+            };
+        }
+    }).filter((el) => {
+    return el !== undefined;
+    }).sort((a,b) =>{
+        return a.title.localeCompare(b.title)
+    });
+} else {
+    // This means the only element in the allclass_array is the class itself
+    // we should allow that as a minimum
+    propClassList = allclass_array.map((cl) => {
         return {
             title: toCURIE(cl, allPrefixes, "parts").property,
             value: cl,
         };
-    }
-}).filter((el) => {
-   return el !== undefined;
-}).sort((a,b) =>{
-    return a.title.localeCompare(b.title)
-});
+    }).sort((a,b) =>{
+        return a.title.localeCompare(b.title)
+    });
+
+}
+
 const canEditClass = ref(true)
 canEditClass.value = configVarsMain.noEditClasses.indexOf(propClass.value) < 0 ? true : false
 const { rules } = useRules(localPropertyShape.value);
