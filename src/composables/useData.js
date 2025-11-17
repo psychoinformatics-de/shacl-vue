@@ -1,6 +1,6 @@
 // useData.js
 import { ref, reactive, toRaw } from 'vue';
-import { replaceServiceIdentifier, getRecordQuads } from '@/modules/utils';
+import { replaceServiceIdentifier, getRecordQuads, findObjectIndexByKey} from '@/modules/utils';
 import { useToken } from '@/composables/tokens';
 import { ReactiveRdfDataset } from '@/classes/ReactiveRdfDataset';
 import { SHACL } from '@/modules/namespaces'
