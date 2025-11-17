@@ -28,6 +28,10 @@ const mainVarsToLoad = {
             yearStart: 1925,
             yearEnd: 2077
         },
+        W3CISO8601DateTimeEditor: {
+            yearStart: 1925,
+            yearEnd: 2077
+        },
         InstancesSelectEditor: {
             fetchingsRecordsText: "Fetching records...",
         },
