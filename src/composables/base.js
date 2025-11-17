@@ -1,5 +1,5 @@
 // composables/base.js
-import { ref, watch, computed } from 'vue';
+import { ref, reactive, watch, computed } from 'vue';
 
 /**
  * Composable for managing the state and behavior of a custom editor
@@ -16,6 +16,7 @@ export function useBaseInput(props, emit, valueParser, valueCombiner) {
      * Reactive object to hold the individual values of subcomponents.
      * @type {Object}
      */
+    const isInternalUpdate = ref(false)
     const subValues = ref(valueParser(props.modelValue) || {});
 
     /**
@@ -50,11 +51,13 @@ export function useBaseInput(props, emit, valueParser, valueCombiner) {
 
     // Emit updates to parent
     watch(internalValue, (newValue) => {
+        isInternalUpdate.value = true
         emit('update:modelValue', newValue);
     });
 
     return {
         subValues,
         internalValue,
+        isInternalUpdate,
     };
 }

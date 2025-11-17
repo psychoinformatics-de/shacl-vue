@@ -73,6 +73,7 @@ const mainVarsToLoad = {
     },
     class_name_display: 'name',
     footer_links: [],
+    gitannex_p2phttp_config: {},
 };
 
 export function useConfig(url) {

@@ -376,7 +376,7 @@ const { rules } = useRules(localPropertyShape.value);
 const inputId = `input-${Date.now()}`;
 const { fieldRef } = useRegisterRef(inputId, props);
 const emit = defineEmits(['update:modelValue']);
-const { subValues, internalValue } = useBaseInput(
+const { subValues, internalValue, isInternalUpdate } = useBaseInput(
     props,
     emit,
     valueParser,
@@ -559,6 +559,20 @@ watch(isFetchingPage, (newVal) => {
         }, 1000)
     }
 })
+
+// watch changes to prop from parent
+watch(
+    () => props.modelValue,
+    async (newVal, oldVal) => {
+        if (isInternalUpdate.value) {
+            isInternalUpdate.value = false;
+            return;
+        }
+        // this is an external (parent) update
+        await getItemsToList();
+        setSelectedValue();
+    }
+);
 
 // ------------------- //
 // Computed properties //
