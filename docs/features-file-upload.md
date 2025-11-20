@@ -148,7 +148,7 @@ The `ttl_template` option can be provided as a serialized TTL string, or using `
 }
 ```
 
-An [example TTL template file](/DocumentUploadTemplate.ttl) could look like:
+An example TTL template file could look like:
 
 ```ttl
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
