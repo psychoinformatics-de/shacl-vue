@@ -274,7 +274,9 @@ import { useRegisterRef } from '../composables/refregister';
 import { useBaseInput } from '@/composables/base';
 import { debounce } from 'lodash-es';
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller';
+import { useCompConfig } from '@/composables/useCompConfig';
 const { namedNode, blankNode, quad,} = DataFactory;
+const triggerListGenAndItemSelect = inject('triggerListGenAndItemSelect')
 
 // ----- //
 // Props //
@@ -401,7 +403,8 @@ const saveDialogForm = () => {
 };
 provide('saveFormHandler', saveDialogForm);
 let debounceTypingTimer = null;
-const fetchingText = configVarsMain.editorConfig?.InstancesSelectEditor?.fetchingsRecordsText;
+const {componentName, componentConfig} = useCompConfig(configVarsMain)
+const fetchingText = componentConfig?.fetchingsRecordsText;
 
 
 const showClearIcon = computed(() => {
@@ -559,6 +562,14 @@ watch(isFetchingPage, (newVal) => {
         }, 1000)
     }
 })
+
+watchEffect(async () => {
+    if (triggerListGenAndItemSelect?.value && props.modelValue) {
+        setSelectedValue();
+        await getItemsToList();
+        triggerListGenAndItemSelect.value = false;
+    }
+});
 
 // ------------------- //
 // Computed properties //

@@ -34,7 +34,7 @@
                                 icon="mdi-key-variant"
                                 @click="tokenFn()"
                                 v-bind="props"
-                                :disabled="!canSubmit"
+                                :class="{ 'warning-pulse': tokenWarningPulse }"
                             ></v-btn>
                         </v-badge>
                         <v-btn
@@ -42,7 +42,7 @@
                             icon="mdi-key-variant"
                             @click="tokenFn()"
                             v-bind="props"
-                            :disabled="!canSubmit"
+                            :class="{ 'warning-pulse': tokenWarningPulse }"
                         ></v-btn>
                     </template>
                 </v-tooltip>
@@ -172,7 +172,9 @@ const canSubmit = inject('canSubmit');
 const nodesToSubmit = inject('nodesToSubmit');
 const formOpen = inject('formOpen');
 const configVarsMain = inject('configVarsMain');
-const http401response = inject('http401response')
+const http401response = inject('http401response');
+const tokenWarning = inject('tokenWarning');
+const tokenWarningPulse = ref(false);
 const visible = ref(false);
 const tokenDialog = ref(false);
 const tokenExists = ref(false);
@@ -239,6 +241,20 @@ watch(
     { immediate: true }
 );
 
+watch(
+    tokenWarning,
+    (newValue) => {
+        if (newValue) {
+            tokenWarningPulse.value = true
+            setTimeout(() => {
+                tokenWarningPulse.value = false
+            }, 4000)
+            tokenWarning.value = false;
+        }
+    },
+    { immediate: true }
+);
+
 function forceError() {
     customError.value = "Invalid token. Please re-enter your token and click Save, or alternatively clear the token by clicking Reset and then Cancel"
 }
@@ -266,4 +282,27 @@ async function save() {
     text-decoration: none;
     cursor: pointer;
 }
+</style>
+
+<style>
+.warning-pulse {
+    animation: pulse-bg 1s ease-in-out infinite;
+}
+
+@keyframes pulse-bg {
+    0% {
+        background-color: rgba(var(--v-theme-error), 0.15);
+        box-shadow: 0 0 0px rgba(var(--v-theme-error), 0.6);
+    }
+    50% {
+        background-color: rgba(var(--v-theme-error), 0.35);
+        box-shadow: 0 0 10px rgba(var(--v-theme-error), 0.9);
+    }
+    100% {
+        background-color: rgba(var(--v-theme-error), 0.15);
+        box-shadow: 0 0 0px rgba(var(--v-theme-error), 0.6);
+    }
+}
+
+
 </style>

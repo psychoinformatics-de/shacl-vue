@@ -1,0 +1,28 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix trr379ra: <https://concepts.trr379.de/s/research-assets/unreleased/> .
+@prefix trr379: <https://trr379.de/ns/> .
+@prefix trr379doc: <https://trr379.de/ns/document/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dlthings: <https://concepts.datalad.org/s/things/v1/> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dlflatfiles: <https://concepts.datalad.org/s/flat-files/unreleased/> .
+@prefix dlidentifiers: <https://concepts.datalad.org/s/identifiers/unreleased/> .
+@prefix dldi: <https://pid.datalad.org/distributions/> .
+@prefix spdx: <http://spdx.org/rdf/terms#> .
+@prefix dlfilesmx: <https://concepts.datalad.org/s/files-mixin/unreleased/> .
+@prefix dlcommonmx: <https://concepts.datalad.org/s/common-mixin/unreleased/> .
+
+{pid} a trr379ra:TRR379Document;
+    dlcommonmx:title "{name}".
+dldi:{annexKey} a trr379ra:TRR379Distribution;
+    dlfilesmx:distribution_of {pid};
+    dlfilesmx:byte_size "{size}"^^xsd:nonNegativeInteger;
+    dlthings:characterized_by _:n0-1.
+_:n0-1 a dlthings:Statement;
+    rdf:object <{downloadUrl}>;
+    rdf:predicate dcat:downloadUrl.
+dldi:{annexKey} dlflatfiles:checksums _:n0-2.
+_:n0-2 a dlidentifiers:Checksum;
+    dlidentifiers:notation "{hash}";
+    dlidentifiers:creator "http://spdx.org/rdf/terms#checksumAlgorithm_sha256"^^xsd:anyURI.

@@ -1,5 +1,5 @@
 // composables/base.js
-import { ref, watch, computed } from 'vue';
+import { ref, reactive, watch, computed } from 'vue';
 
 /**
  * Composable for managing the state and behavior of a custom editor

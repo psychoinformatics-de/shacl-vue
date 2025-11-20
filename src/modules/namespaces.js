@@ -18,3 +18,4 @@ export const DLTYPES = namespace(
 );
 export const DLCO = namespace('https://concepts.datalad.org/');
 export const SKOS = namespace('http://www.w3.org/2004/02/skos/core#');
+export const SHACLVUE = namespace('https://concepts.datalad.org/ns/shaclvue/');

@@ -25,6 +25,7 @@ import { inject, ref } from 'vue';
 import { useRules } from '../composables/rules';
 import { useRegisterRef } from '../composables/refregister';
 import { useBaseInput } from '@/composables/base';
+import { useCompConfig } from '@/composables/useCompConfig';
 
 const props = defineProps({
     modelValue: String,
@@ -38,12 +39,12 @@ const { rules } = useRules(props.property_shape);
 const inputId = `input-${Date.now()}`;
 const { fieldRef } = useRegisterRef(inputId, props);
 const emit = defineEmits(['update:modelValue']);
-
-const configVarsMain = inject('configVarsMain')
+const configVarsMain = inject('configVarsMain');
+const {componentName, componentConfig} = useCompConfig(configVarsMain)
 const yearItems = []
 for (
-    var i=configVarsMain.editorConfig.W3CISO8601YearEditor.yearEnd;
-    i>=configVarsMain.editorConfig.W3CISO8601YearEditor.yearStart;
+    var i=componentConfig?.yearEnd;
+    i>=componentConfig?.yearStart;
     i--
 ) {
     yearItems.push(i)

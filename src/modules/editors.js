@@ -22,18 +22,20 @@
  * This would allow multiple editors to be matched based on the same shape and the one
  * with the highest score would be selected.
  */
-
 export const matchers = import.meta.glob('../components/*Editor.vue', {
     eager: true,
 });
 
 const editorMatchers = {};
 
-for (const path in matchers) {
-    const component = matchers[path];
+for (const file in matchers) {
+    const component = matchers[file];
+    const componentDefault = component.default;
+    const filename = file.split('/').pop().replace('.vue', '');
+    componentDefault.name = filename;
     if (component.matchingLogic) {
-        editorMatchers[path] = {
-            component: component.default,
+        editorMatchers[file] = {
+            component: componentDefault,
             match: component.matchingLogic,
         };
     }

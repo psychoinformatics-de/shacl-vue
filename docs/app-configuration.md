@@ -41,6 +41,23 @@ The HTML page title of the main application is set in [`shacl-vue/src/components
 
 URLs should be unique and resolvable online URIs.
 
+## Content
+
+```json
+{
+    "content": {
+        "<contentKey>": {
+            "url": "<contentURL>"
+        }
+    }
+}
+```
+
+The `content` option allows the specification of an arbitrary number of text content sources, all of which will be prefetched on application load and will be made available via a specific pointer syntax to any components in the application. This option is useful for loading component-specific templates or front page HTML files (see below).
+
+The loaded text of a specific content key can be pointed to from any other option, by prepending the string `content:` to the exact key in the `content` option, e.g. `content:FrontPageHTML`.
+
+
 ## Theming settings
 
 ```json
@@ -67,7 +84,24 @@ Colors schemes and application logo can be set via the `app_theme` option:
 
 All colors should be defined using hexadecimal color codes (#RRGGBB).
 
-The `front_page_content` option allows the inclusion of arbitrary HTML content as the front page of a `shacl-vue` deployment, which will display when no data type is selected from the left-hand-side panel. The `front_page_content` option should contain the name of the HTML page to be included (e.g. `frontpage.html`), the file content should be standard HTML wrapped in `<html></html>` tags, and the file itself should be placed in the root distribution directory of the deployment.
+The `front_page_content` option allows the inclusion of arbitrary HTML content as the front page of a `shacl-vue` deployment, which will display when no data type is selected from the left-hand-side panel. The `front_page_content` option should contain, either:
+
+- a serialized HTML string
+- a content pointer to the source file containing the HTML
+
+In the latter case, the pointer could for example be to `content:FrontPageHTML`, where that associated key would point to the HTML file location:
+
+```json
+{
+    "content": {
+        "FrontPageHTML": {
+            "url": "frontpage.html"
+        }
+    }
+}
+```
+
+In the above example, the HTML file is placed in the root distribution directory of the deployment.
 
 ##  [Application inputs](./app-inputs) sources
 
@@ -131,7 +165,7 @@ The defaults for all input source URLs are the repository-local demo files.
         "": ""
     },
     "editor_selection": {},
-    "editor_config": {},
+    "component_config": {},
     "display_name_autogenerate": {},
     "display_name_autogenerate_placeholder": {}
 }
@@ -162,16 +196,16 @@ The defaults for all input source URLs are the repository-local demo files.
    - 'curie': the class's nodeshape IRI in full CURIE format (e.g. `prov:Agent`)
 - `class_icons` is a mapping of class URIs to [Material Design Icons](https://pictogrammers.com/library/mdi/). By default, `class_icons` that are not defined will display as empty circles.
 - `editor_selection`: this option allows the UI to use config-driven selection of an editor component instead of the [component matching procedure](./editor-component#the-matching-script) that `shacl-vue` uses by default. The object takes keys of a SHACL property shape as its keys in CURIE format (e.g. `sh:datatype`, `sh:path`, or `sh:nodeKind`), and the values are objects themselves. These objects will have the to-be-matched CURIEs as keys, and the corresponding value should be the exact name of the component that will be selected. An example is provided below.
-- `editor_config` allows component-specific parameters to be passed to name-identified components. Such parameters allow the customization of behavior or display in `shacl-vue` components. The object has the exact name of any editor component as its keys, and values are key-value parameter pairs that should feed into the associated editor components. An example is provided below.
+- `component_config` allows component-specific parameters to be passed to name-identified components. Such parameters allow the customization of behavior or display in `shacl-vue` components. The object has the exact name of any editor or viewer component as its keys, and values are key-value parameter pairs that should feed into the associated components. An example is provided below.
 - `display_name_autogenerate`: by default `shacl-vue` uses the `skos:prefLabel` of a record, if available, as its display label. When not available, the `display_name_autogenerate` provides a means to autogenerate the display label of a record from a string serialization of other properties of the same record. This option should receive an object with class CURIEs as its keys and the values being string templates. Placeholders in such a template should be curly brackets containing the CURIE of a property of the class that should be used instead of the placeholder. See example usage below.
 - `display_name_autogenerate_placeholder`: when using the `display_name_autogenerate` option, it is possible that not all parameters in the template string exist as properties of an associated record for which a display label is being autogenerated. For such cases, the missing parameter will be replaced with a missing value placeholder string. This option allows for providing a `default` placeholder to be used for all missing values, or for providing a missing value placeholder per property. See example below.
 
 
 ### Example
 
-In the example below, the `editor_selection` option specifies that, if a SHACL property shape is encountered where the `sh:datatype` is equal to `mydatetime:year`, the `W3CISO8601YearEditor` should be selected and rendered. The `editor_config` option specifies that, for the `W3CISO8601YearEditor`, the `yearStart` and `yearEnd` options should be set to `1925` and `2077`, which for this component defines the starting and ending years that together make up the range of options in the rendered year-picker.
+In the example below, the `editor_selection` option specifies that, if a SHACL property shape is encountered where the `sh:datatype` is equal to `mydatetime:year`, the `W3CISO8601YearEditor` should be selected and rendered. The `component_config` option specifies that, for the `W3CISO8601YearEditor`, the `yearStart` and `yearEnd` options should be set to `1925` and `2077`, which for this component defines the starting and ending years that together make up the range of options in the rendered year-picker.
 
-The `editor_config` option also specifies that, for the `InstancesSelectEditor`, the `fetchingsRecordsText` should be set to `Fetching records (this might take a while)...`, which for this component defines the text that a user sees when more records are fetched from a configured service endpoint. This option is useful for providing users with an explanation of why a request might be taking a long time. The text displayed by default is `Fetching records...`.
+The `component_config` option also specifies that, for the `InstancesSelectEditor`, the `fetchingsRecordsText` should be set to `Fetching records (this might take a while)...`, which for this component defines the text that a user sees when more records are fetched from a configured service endpoint. This option is useful for providing users with an explanation of why a request might be taking a long time. The text displayed by default is `Fetching records...`.
 
 ```json
 {
@@ -181,7 +215,7 @@ The `editor_config` option also specifies that, for the `InstancesSelectEditor`,
             "mydatetime:year": "W3CISO8601YearEditor",
         }
     },
-    "editor_config": {
+    "component_config": {
         "W3CISO8601YearEditor": {
             "yearStart": 1925,
             "yearEnd": 2077

@@ -196,6 +196,7 @@ import { SHACL, DLCO } from '../modules/namespaces';
 import { useRules } from '../composables/rules';
 import { nameOrCURIE, addCodeTagsToText, isObject } from '../modules/utils';
 import { toCURIE, toIRI } from 'shacl-tulip';
+import { useCompConfig } from '@/composables/useCompConfig';
 
 // ----- //
 // Props //
@@ -229,7 +230,8 @@ const configVarsMain = inject('configVarsMain');
 const ID_IRI = inject('ID_IRI');
 const compDisabled = ref(false);
 const configMatchedComponent = ref(null);
-const defaultStep = configVarsMain.editorConfig?.PropertyShapeEditor?.recordNumberStepSize;
+const {componentName, componentConfig} = useCompConfig(configVarsMain);
+const defaultStep = componentConfig?.recordNumberStepSize;
 const currentCount = ref(defaultStep)
 
 // ----------------- //

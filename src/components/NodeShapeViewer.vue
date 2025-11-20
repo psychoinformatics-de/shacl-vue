@@ -287,6 +287,7 @@ import {
 } from '../modules/utils';
 import { RDF, SHACL } from '@/modules/namespaces';
 import MoreOrLessRecordsViewer from './MoreOrLessRecordsViewer.vue';
+import { useCompConfig } from '@/composables/useCompConfig';
 // Define component properties
 const props = defineProps({
     classIRI: String,
@@ -313,7 +314,8 @@ const propertyShapes = {};
 for (var p of shape_obj.properties) {
     propertyShapes[p[SHACL.path.value]] = p;
 }
-const defaultStep = configVarsMain.viewerConfig?.NodeShapeViewer?.recordNumberStepSize;
+const {componentName, componentConfig} = useCompConfig(configVarsMain);
+const defaultStep = componentConfig?.recordNumberStepSize;
 const showCounts = reactive(
     {
         'Literal': {},
