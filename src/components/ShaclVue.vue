@@ -439,9 +439,11 @@ import {
     hasConfigDisplayLabel,
     getConfigDisplayLabel,
     getSubClasses,
+    getContent,
 } from '../modules/utils';
 import { toCURIE, toIRI } from 'shacl-tulip';
 import editorMatchers from '@/modules/editors';
+import viewerMatchers from '@/modules/viewers';
 import defaultEditor from '@/components/UnknownEditor.vue';
 import { useData } from '@/composables/useData';
 import { useClasses } from '@/composables/useClasses';
@@ -546,7 +548,7 @@ const firstNavigationDone = ref(false);
 const mainContent = ref(null);
 const config_ready = ref(false);
 const itemRefs = ref([]);
-const { config, configFetched, configError, configVarsMain, loadConfigVars, loadMainPage} =
+const { config, configFetched, configError, configVarsMain, loadConfigVars, loadAllContent} =
     useConfig(props.configUrl);
 const {
     rdfDS,
@@ -606,8 +608,16 @@ watch(
             } else {
                 document.title = 'shacl-vue';
             }
+
+            // Prefetch text content, e.g. templates
+            await loadAllContent()
+
             // Load main page content if provided
-            frontPageHTML.value = await loadMainPage(configVarsMain)
+            frontPageHTML.value = null
+            if (configVarsMain.frontPageContent) {
+                frontPageHTML.value = getContent(configVarsMain.content, configVarsMain.frontPageContent)
+            }
+
             config_ready.value = true;
             formData.ID_IRI = ID_IRI.value;
 

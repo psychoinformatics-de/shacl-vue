@@ -19,7 +19,7 @@ const mainVarsToLoad = {
     allow_edit_instances: [],
     allow_copy_record_urls: true,
     editor_selection: {},
-    editor_config: {
+    component_config: {
         W3CISO8601YearEditor: {
             yearStart: 1925,
             yearEnd: 2077
@@ -38,12 +38,11 @@ const mainVarsToLoad = {
         PropertyShapeEditor: {
             recordNumberStepSize: 5,
         },
-    },
-    viewer_config: {
         NodeShapeViewer: {
             recordNumberStepSize: 5,
         },
     },
+    content: {},
     display_name_autogenerate: {},
     display_name_autogenerate_placeholder: {
         default: "[?]"
@@ -114,19 +113,19 @@ export function useConfig(url) {
         }
     });
 
-    async function loadMainPage(configVars) {
-        if (!configVars.frontPageContent) {
+    async function loadTextContent(url) {
+        if (!url) {
             return null
         }
         try {
-            const response = await fetch(configVars.frontPageContent, { cache: 'no-cache' });
+            const response = await fetch(url, { cache: 'no-cache' });
             if (!response.ok) {
-                console.error(`Error fetching frontpage content file: ${response.statusText}`)
+                console.error(`Error fetching content: ${response.statusText}`)
                 return null
             }
             return await response.text();
         } catch (error) {
-            console.error('Error fetching frontpage content file:', error);
+            console.error('Error fetching content:', error);
             return null
         }
     }
@@ -146,12 +145,22 @@ export function useConfig(url) {
             }
         }
     }
+
+    async function loadAllContent() {
+        if (configVarsMain.content && Object.keys(configVarsMain.content).length > 0) {
+            for (const src of Object.keys(configVarsMain.content)) {
+                configVarsMain.content[src].value = await loadTextContent(configVarsMain.content[src].url)
+            }
+        }
+    }
+
     return {
         config,
         configFetched,
         configError,
         configVarsMain,
         loadConfigVars,
-        loadMainPage,
+        loadTextContent,
+        loadAllContent,
     };
 }

@@ -542,3 +542,12 @@ export function getRecordQuads(pid, graph, recursive=false) {
         return baseQuads;
     }
 }
+
+export function getContent(content, key) {
+    if (key.startsWith('content:')) {
+        let contentKey = key.replace('content:','')
+        return content[contentKey].value
+    } else {
+        return key
+    }
+}
