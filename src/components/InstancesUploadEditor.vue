@@ -132,10 +132,7 @@ onBeforeMount(async () => {
 })
 
 onMounted( () => {
-    console.log("Onmounted InstancesUploadEditor")
     const compClass = toCURIE(props.property_shape[SHACL.class.value], allPrefixes)
-    console.log(compClass)
-    console.log(componentConfig)
     const compClassConfig = componentConfig[compClass]
     templates.pid = compClassConfig.pid_template;
     templates.ttl = getContent(configVarsMain.content, compClassConfig.ttl_template)
@@ -153,7 +150,6 @@ async function onUploadComplete(result) {
         // If this distribution was added before, we don't have to continue
         // This prevents duplications.
         if (createdDistributions.has(hash)) return;
-        console.log("Goind to add document and distribution quads now")
         const TTLdata = { name, size, hash, annexKey, downloadUrl }
         TTLdata.pid = fillStringTemplate(templates.pid, {})
         let newTTL = fillStringTemplate(templates.ttl, TTLdata)
