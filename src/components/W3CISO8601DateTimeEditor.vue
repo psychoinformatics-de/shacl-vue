@@ -110,8 +110,13 @@ const formats = [
 ]
 const yearItems = []
 for (
+<<<<<<< HEAD
     var i=componentConfig?.yearEnd;
     i>=componentConfig?.yearStart;
+=======
+    var i=configVarsMain.editorConfig.W3CISO8601DateTimeEditor.yearEnd;
+    i>=configVarsMain.editorConfig.W3CISO8601DateTimeEditor.yearStart;
+>>>>>>> origin/main
     i--
 ) {
     yearItems.push(i)
