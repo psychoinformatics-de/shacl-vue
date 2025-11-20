@@ -44,6 +44,16 @@ const config = defineConfig({
         ]
       },
       {
+        text: 'Useful features',
+        items: [
+          { text: 'Overview', link: '/features-overview' },
+          { text: 'Backend integration', link: '/features-dumpthings' },
+          { text: 'Forgejo integration', link: '/features-forgejo' },
+          { text: 'Config-driven editor matching', link: '/features-editor-matching' },
+          { text: 'File upload', link: '/features-file-upload' },
+        ]
+      },
+      {
         text: 'API Docs (TODO)',
         items: [
         ]
