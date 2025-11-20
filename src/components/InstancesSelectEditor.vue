@@ -274,7 +274,9 @@ import { useRegisterRef } from '../composables/refregister';
 import { useBaseInput } from '@/composables/base';
 import { debounce } from 'lodash-es';
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller';
+import { useCompConfig } from '@/composables/useCompConfig';
 const { namedNode, blankNode, quad,} = DataFactory;
+const triggerListGenAndItemSelect = inject('triggerListGenAndItemSelect')
 
 // ----- //
 // Props //
@@ -376,7 +378,7 @@ const { rules } = useRules(localPropertyShape.value);
 const inputId = `input-${Date.now()}`;
 const { fieldRef } = useRegisterRef(inputId, props);
 const emit = defineEmits(['update:modelValue']);
-const { subValues, internalValue, isInternalUpdate } = useBaseInput(
+const { subValues, internalValue } = useBaseInput(
     props,
     emit,
     valueParser,
@@ -401,7 +403,8 @@ const saveDialogForm = () => {
 };
 provide('saveFormHandler', saveDialogForm);
 let debounceTypingTimer = null;
-const fetchingText = configVarsMain.editorConfig?.InstancesSelectEditor?.fetchingsRecordsText;
+const {componentName, componentConfig} = useCompConfig(configVarsMain)
+const fetchingText = componentConfig?.fetchingsRecordsText;
 
 
 const showClearIcon = computed(() => {
@@ -560,19 +563,13 @@ watch(isFetchingPage, (newVal) => {
     }
 })
 
-// watch changes to prop from parent
-watch(
-    () => props.modelValue,
-    async (newVal, oldVal) => {
-        if (isInternalUpdate.value) {
-            isInternalUpdate.value = false;
-            return;
-        }
-        // this is an external (parent) update
-        await getItemsToList();
+watchEffect(async () => {
+    if (triggerListGenAndItemSelect?.value && props.modelValue) {
         setSelectedValue();
+        await getItemsToList();
+        triggerListGenAndItemSelect.value = false;
     }
-);
+});
 
 // ------------------- //
 // Computed properties //
