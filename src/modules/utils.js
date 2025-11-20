@@ -372,26 +372,6 @@ export async function quadsToTTL(allQuads, allPrefixes) {
     return ttl;
 }
 
-export function getAllClasses(classDS, main_class) {
-    return [main_class].concat(getSubClassesOld(classDS, main_class));
-}
-
-export function getSubClassesOld(classDS, main_class) {
-    // Find quads in the subclass datasetnodes with predicate rdfs:subClassOf
-    // object main_class, and return as an array of terms
-    const subClasses = classDS.data.graph.getQuads(
-        null,
-        namedNode(RDFS.subClassOf.value),
-        namedNode(main_class),
-        null
-    );
-    var myArr = [];
-    subClasses.forEach((quad) => {
-        myArr.push(quad.subject.value);
-    });
-    return myArr;
-}
-
 export function hasConfigDisplayLabel(class_uri, allPrefixes, configVarsMain) {
     var class_curi = toCURIE(class_uri, allPrefixes)
     if (configVarsMain.displayNameAutogenerate.hasOwnProperty(class_curi)) {
