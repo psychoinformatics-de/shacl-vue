@@ -8,7 +8,7 @@ While `shacl-vue` supports loading data from a static TTL source, it becomes muc
 
 
 <div style="background:white; display:inline-block; padding:0;">
-    <img src="./dumpthings_summary.png" alt="alt">
+    <img src="/dumpthings_summary.png" alt="alt">
 </div>
 
 Further useful features of `dumpthings` (such as collection management, authorization, curation endpoints, and more) can be found at the source code documentation.
