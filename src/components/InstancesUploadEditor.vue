@@ -10,7 +10,6 @@
             <v-col cols="11">
                 <InstancesSelectEditor 
                     v-model="subValues.selectedInstance"
-                    :key="subValues.selectedClassIRI || 'none'"
                     :property_shape="computedPropertyShape"
                     :node_uid="node_uid"
                     :node_idx="node_idx"
@@ -28,39 +27,23 @@
             </v-col>
         </v-row>
     </v-input>
-    <v-dialog
-        v-model="showTokenDialog"
-        width="auto"
-    >
-        <v-card
-            max-width="400"
-            prepend-icon="mdi-update"
-            text="Your application will relaunch automatically after the update is complete."
-            title="Update in progress"
-        >
-            <template v-slot:actions>
-            <v-btn
-                class="ms-auto"
-                text="Ok"
-                @click="showTokenDialog = false"
-            ></v-btn>
-            </template>
-        </v-card>
-
-    </v-dialog>
 </template>
 
 <script setup>
-import { computed, inject, ref, toRaw, onBeforeMount } from 'vue';
+import { inject, ref, onBeforeMount, onMounted, reactive, onBeforeUnmount, provide} from 'vue';
 import { useRules } from '../composables/rules';
 import { useRegisterRef } from '../composables/refregister';
 import { useBaseInput } from '@/composables/base';
 import { toCURIE, toIRI } from 'shacl-tulip';
-import { RDF, XSD} from '@/modules/namespaces';
+import { RDF } from '@/modules/namespaces';
+import { fillStringTemplate, findObjectByKey, getContent } from '@/modules/utils';
 import { DataFactory } from 'n3';
 import InstancesSelectEditor from '@/components/InstancesSelectEditor.vue'
 import GitAnnexUploader from '@/components/GitAnnexUploader.vue'
-const { namedNode, blankNode, literal, quad} = DataFactory;
+import { useCompConfig } from '@/composables/useCompConfig';
+const { namedNode } = DataFactory;
+const triggerListGenAndItemSelect = ref(false)
+provide('triggerListGenAndItemSelect', triggerListGenAndItemSelect);
 
 // ----- //
 // Props //
@@ -88,14 +71,25 @@ const { subValues, internalValue } = useBaseInput(
     valueParser,
     valueCombiner
 );
+
 const configVarsMain = inject('configVarsMain');
 const uploadConfig = configVarsMain.gitannexP2phttpConfig ?? {};
+const {componentName, componentConfig} = useCompConfig(configVarsMain)
 const rdfDS = inject('rdfDS');
 const allPrefixes = inject('allPrefixes');
 const fetchingRecordLoader = ref(false);
 const fetchFromService = inject('fetchFromService');
+const cancelButtonPressed = inject('cancelButtonPressed');
 const computedPropertyShape = ref({...props.property_shape,});
-const showTokenDialog = ref(false);
+const templates = reactive({
+    pid: '',
+    ttl: ''
+})
+const hasCreatedQuads = ref(false)
+const createdQuads = ref([])
+const createdDistributions = new Set()
+const savedNodes = inject('savedNodes');
+const nodesToSubmit = inject('nodesToSubmit');
 
 function valueParser(value) {
     // Parsing internalValue into ref values for separate subcomponent(s)
@@ -137,85 +131,81 @@ onBeforeMount(async () => {
     }
 })
 
+onMounted( () => {
+    console.log("Onmounted InstancesUploadEditor")
+    const compClass = toCURIE(props.property_shape[SHACL.class.value], allPrefixes)
+    console.log(compClass)
+    console.log(componentConfig)
+    const compClassConfig = componentConfig[compClass]
+    templates.pid = compClassConfig.pid_template;
+    templates.ttl = getContent(configVarsMain.content, compClassConfig.ttl_template)
+})
+
 
 function onInstanceSelected(instanceValue) {
     emit('update:modelValue', instanceValue)
 }
 
-function onUploadComplete(result) {
+async function onUploadComplete(result) {
     console.log('Upload completed:', result)
-    if (result.error) {
-        console.error(error);
-        return;
-    }
     if (result.status == 'ok') {
-        const id_prefix = toIRI(uploadConfig.id_prefix, allPrefixes)
-        const uris = {
-            'Distribution': toIRI('trr379ra:TRR379Distribution', allPrefixes),
-            'preflabel': toIRI('skos:prefLabel', allPrefixes),
-            'media_type': toIRI('dlfilesmx:media_type', allPrefixes),
-            'distribution_of': toIRI('dlfilesmx:distribution_of', allPrefixes),
-            'pid': toIRI('dlthings:pid', allPrefixes),
-            'byte_size': toIRI('dlfilesmx:byte_size', allPrefixes),
-            'Checksum': toIRI('dlidentifiers:Checksum', allPrefixes),
-            'checksums': toIRI('dlflatfiles:checksums', allPrefixes),
-            'notation': toIRI('dlidentifiers:notation', allPrefixes),
-            'creator': toIRI('dlidentifiers:creator', allPrefixes),
-            'sha256': toIRI('spdx:checksumAlgorithm_sha256', allPrefixes),
-            'Statement': toIRI('dlthings:Statement', allPrefixes),
-            'object': toIRI('rdf:object', allPrefixes),
-            'predicate': toIRI('rdf:predicate', allPrefixes),
-            'characterized_by': toIRI('dlthings:characterized_by', allPrefixes),
-            'downloadUrl': toIRI('dcat:downloadUrl', allPrefixes),
-        }
-
-        const myQuads = [];
-
-        // Start with checksum
-        const checksumSub = blankNode();
-        // Checksum type quad
-        myQuads.push(quad(checksumSub, namedNode(RDF.type.value), namedNode(uris['Checksum'])))
-        // creator and notation quads
-        const sha256Node = literal(uris['sha256'], namedNode(XSD.anyURI.value))
-        myQuads.push(quad(checksumSub, namedNode(uris['creator']), sha256Node))
-        const sha256ValueNode = literal(result.fileData.hash, namedNode(XSD.string.value))
-        myQuads.push(quad(checksumSub, namedNode(uris['notation']), sha256ValueNode))
-        
-        // download url as Statement with predicate dcat:downloadUrl
-        const statementSub = blankNode();
-        // Statement type quad
-        myQuads.push(quad(statementSub, namedNode(RDF.type.value), namedNode(uris['Statement'])))
-        // predicate and object quads
-        myQuads.push(quad(statementSub, namedNode(uris['predicate']), namedNode(uris['downloadUrl'])))
-        myQuads.push(quad(statementSub, namedNode(uris['object']), namedNode(result.fileData.download)))
-
-        // Get record PID, add type quad
-        let record_pid = id_prefix + result.fileData.key
-        const recordSub = namedNode(record_pid);
-        myQuads.push(quad(recordSub, namedNode(RDF.type.value), namedNode(uris['Distribution'])))
-        // checksum quad
-        myQuads.push(quad(recordSub, namedNode(uris['checksums']), checksumSub))
-        // download url quad
-        myQuads.push(quad(recordSub, namedNode(uris['characterized_by']), statementSub))
-        // byte size quad
-        const byteSizeNode = literal(result.fileData.size, namedNode(XSD.nonNegativeInteger.value))
-        myQuads.push(quad(recordSub, namedNode(uris['byte_size']), byteSizeNode))
-        // filename as preflabel quad
-        const labelNode = literal(result.fileData.name, namedNode(XSD.string.value))
-        myQuads.push(quad(recordSub, namedNode(uris['preflabel']), labelNode))
-        for (const q of myQuads) {
-            rdfDS.addQuad(q)
-        }
-        subValues.value.selectedInstance = record_pid;
+        const { name, size, hash, annexKey, downloadUrl } = result.fileData;
+        // If this distribution was added before, we don't have to continue
+        // This prevents duplications.
+        if (createdDistributions.has(hash)) return;
+        console.log("Goind to add document and distribution quads now")
+        const TTLdata = { name, size, hash, annexKey, downloadUrl }
+        TTLdata.pid = fillStringTemplate(templates.pid, {})
+        let newTTL = fillStringTemplate(templates.ttl, TTLdata)
+        let newQuads = await rdfDS.parseTTLandDedup(newTTL);
+        rdfDS.triggerReactivity();
+        // Keep track of quads that were added, so that we can delete them if form is cancelled
+        createdQuads.value = createdQuads.value.concat(newQuads)
+        hasCreatedQuads.value = true;
+        // Keep track of distributions that were added
+        createdDistributions.add(hash)
+        // Finally, set the selected instance to the one that was just created
+        subValues.value.selectedInstance = null
+        subValues.value.selectedInstance = toIRI(TTLdata.pid, allPrefixes);
+        triggerListGenAndItemSelect.value = true;
+    }
+    if (result.error) {
+        console.error(result.error);
+        return;
     }
 }
 
+onBeforeUnmount( () => {
+    // We have different tasks here, based on whether the form was cancelled or saved
+    // If cancelled, we need to check if any quads were added to the store already
+    // based on the upload functionality. If so, we need to remove those.
+    // If saved, we need to add the saved nodes to savedNodes and nodesToSubmit.
+    if (cancelButtonPressed.value) {
+        if (hasCreatedQuads.value) {
+            rdfDS.data.graph.removeQuads(createdQuads.value);
+        }
+    } else {
+        for (const q of createdQuads.value) {
+            // only consider named node subjects
+            if (q.subject.termType !== 'NamedNode') continue;
+            if (q.predicate.value == RDF.type.value) {
+                let saved_node = {
+                    nodeshape_iri: q.object.value,
+                    node_iri: q.subject.value
+                }
+                savedNodes.value.push(saved_node);
+                if (!findObjectByKey(nodesToSubmit.value, 'node_iri', saved_node.node_iri)) {
+                    nodesToSubmit.value.push(saved_node);
+                }
+            }
+        }
+    }
+})
 </script>
 
 
 <script>
 import { SHACL, SHACLVUE} from '../modules/namespaces';
-import GitAnnexUploader from '@/components/GitAnnexUploader.vue';
 export const matchingLogic = (shape) => {
     // sh:nodeKind exists
     if (shape.hasOwnProperty(SHACL.nodeKind.value)) {

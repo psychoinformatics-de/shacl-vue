@@ -95,6 +95,7 @@ export class ReactiveRdfDataset extends RdfDataset {
     async parseTTLandDedup(ttlString) {
         const parser = new Parser();
         const tempStore = new Store();
+        let addedQuads = [];
         // Parse synchronously
         const quads = parser.parse(ttlString);
         const prefixes = parser._prefixes;
@@ -104,7 +105,7 @@ export class ReactiveRdfDataset extends RdfDataset {
         // Now, add to the temp store:
         // - all named-node-as-subject + blank-node-as-object quads
         // - all blank-node-as-subject quads
-        // And add all the rest directlyt to the application store
+        // And add all the rest directly to the application store
         let root_node = null
         for (const quad of quads) {
             if (quad.subject.termType === 'NamedNode') {
@@ -112,6 +113,7 @@ export class ReactiveRdfDataset extends RdfDataset {
                     tempStore.addQuad(quad)
                 } else {
                     this.onDataFn(quad)
+                    addedQuads.push(quad)
                 }
                 // save root node value
                 if (quad.predicate.value == RDF.type.value) {
@@ -126,7 +128,7 @@ export class ReactiveRdfDataset extends RdfDataset {
             console.warn('No root named node detected in TTL, skipping deduplication steo and adding all quads to graph.');
             let bnQuads = tempStore.getQuads(null, null, null, null)
             this.data.graph.addQuads(bnQuads);
-            return;
+            return addedQuads.concat(bnQuads);
         }
         // Now get all unique blank-node subject values
         const allTempQuads = tempStore.getQuads(null, null, null, null);
@@ -134,7 +136,7 @@ export class ReactiveRdfDataset extends RdfDataset {
             allTempQuads.filter(q => q.subject.termType === 'BlankNode').map(q => q.subject.value)
         );
         // If there are no blank-node subject values, no need to deduplicate
-        if (blankSubjects.size == 0) return;
+        if (blankSubjects.size == 0) return addedQuads;
         // Initialize set of fingerprints in the root-node context
         if (!this.data.subgraphFingerprintsByRoot.has(root_node)) {
             this.data.subgraphFingerprintsByRoot.set(root_node, new Set());
@@ -151,13 +153,18 @@ export class ReactiveRdfDataset extends RdfDataset {
             // Deduplicate in the context of the current named node
             if (!fingerprintSet.has(fingerprint)) {
                 fingerprintSet.add(fingerprint);
-                // Add to main graph tore
+                // Add to main graph store
                 this.data.graph.addQuads(subgraph);
+                addedQuads = addedQuads.concat(subgraph);
                 const linkingQuads = tempStore.getQuads(null, null, blankNode(bnodeId), null);
-                if (linkingQuads.length) this.data.graph.addQuads(linkingQuads);
+                if (linkingQuads.length) {
+                    this.data.graph.addQuads(linkingQuads);
+                    addedQuads = addedQuads.concat(linkingQuads);
+                };
             } else {
-                console.log(`Skipping duplicate subgraph for root ${root_node}, blank node ${bnodeId}`);
+                // console.log(`Skipping duplicate subgraph for root ${root_node}, blank node ${bnodeId}`);
             }
         }
+        return addedQuads;
     }
 }

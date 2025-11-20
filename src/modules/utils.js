@@ -466,9 +466,13 @@ export function getRecordDisplayLabel(subjectTerm, rdfDS, allPrefixes, configVar
     // Convert to triples as an object with predicate-object key-values
     let relatedTriples = quadsToTripleObject(relatedQuads, allPrefixes)        
     let labelTemplate = hasConfigDisplayLabel(classIRI, allPrefixes, configVarsMain)
-    
     if (labelTemplate) {
         displayLabel = getConfigDisplayLabel(labelTemplate, relatedTriples, configVarsMain, rdfDS, allPrefixes)
+    }
+    // If the label is only the placeholder, rather display the pid
+    if ( displayLabel == configVarsMain.displayNameAutogeneratePlaceholder.default ||
+        displayLabel == "[?]" || !displayLabel ) {
+        displayLabel = subjectTerm.value
     }
     return displayLabel
 }
@@ -550,4 +554,18 @@ export function getContent(content, key) {
     } else {
         return key
     }
+}
+
+export function fillStringTemplate(template, params) {
+    return template.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, key) => {
+        if (!(key in params)) {
+            if (key == '_randomUUID') {
+                return crypto.randomUUID()
+            } else {
+                console.error(`Error: No value provided for placeholder {${key}}`);
+                return match;
+            }
+        }
+        return params[key];
+    });
 }
