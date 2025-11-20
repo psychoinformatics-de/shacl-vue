@@ -150,6 +150,7 @@ const form = ref(null);
 const formValid = ref(null);
 const fieldMap = reactive({}); // Maps element IDs to human-readable labels
 const validationErrors = ref([]);
+const cancelButtonPressed = ref(false);
 const configVarsMain = inject('configVarsMain');
 function registerRef(id, fieldData) {
     fieldMap[id] = fieldData;
@@ -161,6 +162,7 @@ function unregisterRef(id) {
 provide('registerRef', registerRef);
 provide('unregisterRef', unregisterRef);
 provide('show_all_fields', show_all_fields);
+provide('cancelButtonPressed', cancelButtonPressed);
 
 // ----------------- //
 // Lifecycle methods //
@@ -312,6 +314,7 @@ function resetForm() {
 }
 
 function cancelForm() {
+    cancelButtonPressed.value = true;
     console.log('Cancelling form from FormEditor');
     console.log(`Removing current node: ${localShapeIri.value} - ${localNodeIdx.value}`);
     // Always remove node from formData:
