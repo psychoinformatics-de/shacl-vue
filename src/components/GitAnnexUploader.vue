@@ -16,13 +16,42 @@
             @change="onFileSelect"
         />
         <!-- Centered icon -->
-
         <span v-if="isUploading">
             <v-progress-circular indeterminate></v-progress-circular>
         </span>
         <span v-else>
-            <v-icon size="28" color="#616161">mdi-paperclip</v-icon>
+            <span v-if="uploadSuccess">
+                <v-icon size="28" color="success">mdi-check</v-icon>
+            </span>
+            <span v-else-if="uploadFailure">
+                <v-icon size="28" color="error">mdi-alert-circle-outline</v-icon>
+            </span>
+            <span v-else>
+                <v-icon size="28" color="#616161">mdi-paperclip</v-icon>
+            </span>
         </span>
+        <v-tooltip
+            :activator="'parent'"
+            v-model="errorDialog"
+            location="top"
+            :open-on-click="false"
+            :open-on-hover="false"
+            :interactive="true"
+        >
+            <v-row no-gutters>
+                <v-col cols="11">{{ uploadFailureError.error }}</v-col>
+                <v-col>
+                    <v-btn
+                        variant="text"
+                        density="compact"
+                        size="small"
+                        icon="mdi-close-circle-outline"
+                        @click="errorDialog = false"
+                    >
+                    </v-btn>
+                </v-col>
+            </v-row>
+        </v-tooltip>
     </v-card>
 </template>
 
@@ -48,7 +77,7 @@ const isUploading = ref(false)
 const uploadSuccess = ref(false)
 const uploadFailure = ref(false)
 const uploadFailureError = ref({})
-
+const errorDialog = ref(false)
 
 onMounted(() => {
     if (token.value !== null && token.value !== 'null') {
@@ -116,7 +145,7 @@ function beforeUploadCheck() {
 
 // Validate file type and read it
 const validateAndReadFile = async (file) => {
-    let result
+    let result = { status: null, error: null }
     try {
         const arrayBuffer = await file.arrayBuffer()
         const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer)
@@ -135,8 +164,8 @@ const validateAndReadFile = async (file) => {
             ext: extension,
             hash: hashHex,
             url: URL.createObjectURL(file),
-            key: gitAnnexKey,
-            download: `${baseUrl}/${targetUuid}/key/${encodeURIComponent(gitAnnexKey)}`
+            annexKey: gitAnnexKey,
+            downloadUrl: `${baseUrl}/${targetUuid}/key/${encodeURIComponent(gitAnnexKey)}`
         }
         isUploading.value = true
         result = await uploadFile()
@@ -144,17 +173,29 @@ const validateAndReadFile = async (file) => {
         if (result.status == 'ok') {
             uploadSuccess.value = true;
             uploadFailure.value = false;
-            console.log("Uploaded file can be downloaded at:")
-            console.log(fileData.value.download)
+            setTimeout(() => {
+                uploadSuccess.value = false;
+            }, 1000);
         } else {
             uploadSuccess.value = false;
             uploadFailure.value = true;
+            setTimeout(() => {
+                uploadFailure.value = false;
+            }, 1000);
             uploadFailureError.value = result;
+            errorDialog.value = true;
         }
     } catch (error) {
         alert('Failed to process file: ' + error.message)
         result.status = 'error';
         result.error = error;
+        uploadSuccess.value = false;
+        uploadFailure.value = true;
+        uploadFailureError.value = error;
+        setTimeout(() => {
+            uploadFailure.value = false;
+        }, 1500);
+        errorDialog.value = true;
     }
     // Emit upload result to parent
     emit('uploadComplete', {
@@ -168,7 +209,7 @@ const uploadFile = async () => {
 
     // During development, change baseUrl in config to '/forgejo-api' to circumvent CORS issues;
     // it sends the request to the local proxy server instead of directly to the baseUrl
-    const endpoint = `${baseUrl}/${targetUuid}/v4/put?key=${encodeURIComponent(fileData.value.key)}&clientuuid=${encodeURIComponent(clientUuid)}`
+    const endpoint = `${baseUrl}/${targetUuid}/v4/put?key=${encodeURIComponent(fileData.value.annexKey)}&clientuuid=${encodeURIComponent(clientUuid)}`
     try {
         const response = await fetch(endpoint, {
             method: 'POST',
@@ -180,7 +221,7 @@ const uploadFile = async () => {
             body: fileData.value.file
         })
         if (!response.ok) {
-            throw new Error(`Upload failed with status ${response.status}`)
+            throw new Error(`Upload failed with status ${response.status}: ${response.statusText}`)
         }
         const result = await response.text()
         console.log('Upload successful:', result)
