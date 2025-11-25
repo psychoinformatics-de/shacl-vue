@@ -385,7 +385,9 @@ export function getConfigDisplayLabel(labelTemplate, labelParts, configVarsMain,
     const regex = /{([^}]+)}/g;
     const defaultPlaceholder = 
         "default" in configVarsMain.displayNameAutogeneratePlaceholder ? 
-        configVarsMain.displayNameAutogeneratePlaceholder.default : "[?]"
+        configVarsMain.displayNameAutogeneratePlaceholder.default : "[?]";
+    
+    let idIRIcurie = toCURIE(configVarsMain.idIri, allPrefixes)
 
     return labelTemplate.replace(regex, (_, key) => {
         let missingPlaceholder =
@@ -398,7 +400,11 @@ export function getConfigDisplayLabel(labelTemplate, labelParts, configVarsMain,
         if (!Array.isArray(objectVal)) {
             objectVal = [objectVal];
         }
-
+        // If the key is the PID IRI, we shouldn't resolve because that is
+        // unnecessary and that leads to recursion
+        if (key == idIRIcurie) {
+            return objectVal[0];
+        }
         const resolved = objectVal.map((val) => {
             if (rdfDS && allPrefixes) {
                 let relatedRecordQuad = getPidQuad(val, rdfDS.data.graph);
@@ -444,7 +450,10 @@ export function getRecordDisplayLabel(subjectTerm, rdfDS, allPrefixes, configVar
     let classIRI = subjQ.object.value;
     let relatedQuads = rdfDS.getSubjectTriples(subjectTerm);
     // Convert to triples as an object with predicate-object key-values
-    let relatedTriples = quadsToTripleObject(relatedQuads, allPrefixes)        
+    let relatedTriples = quadsToTripleObject(relatedQuads, allPrefixes)
+    // also add PID key-value, since it is not explicitly one of the relatedQuads
+    let predCuri = toCURIE(configVarsMain.idIri, allPrefixes)
+    relatedTriples[predCuri] = [subjectTerm.value];
     let labelTemplate = hasConfigDisplayLabel(classIRI, allPrefixes, configVarsMain)
     if (labelTemplate) {
         displayLabel = getConfigDisplayLabel(labelTemplate, relatedTriples, configVarsMain, rdfDS, allPrefixes)
