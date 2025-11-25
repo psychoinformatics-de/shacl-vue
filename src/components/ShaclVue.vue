@@ -791,6 +791,8 @@ watch(
 // ---------------- //
 const tokenWarning = ref(false);
 provide('tokenWarning', tokenWarning);
+const submitWarning = ref(false);
+provide('submitWarning', submitWarning);
 const canSubmit = ref(true);
 const submitButtonPressed = ref(false);
 function submitFn() {
