@@ -6,6 +6,7 @@
         :id="inputId"
         hide-details="auto"
     >
+    <div class="d-flex align-center" style="width: 100%">
         <v-menu v-model="menu" location="bottom"  hide-details="auto">
             <template #activator="{ props }">
                 <v-text-field
@@ -245,6 +246,21 @@
                 </span>
             </v-card>
         </v-menu>
+        <v-btn
+            v-if="
+                subValues?.selectedInstance && (
+                configVarsMain.allowEditInstances === true ||
+                configVarsMain.allowEditInstances.indexOf(subValues?.selectedInstance?.props.itemQuad.object.value) >= 0)
+            "
+            style="margin-left: 0.5em"
+            rounded="0"
+            icon="mdi-pencil"
+            density="comfortable"
+            elevation="1"
+            @click="editItem(subValues.selectedInstance)"
+            :disabled="!canEditClass"
+        ></v-btn>
+        </div>
     </v-input>
 </template>
 

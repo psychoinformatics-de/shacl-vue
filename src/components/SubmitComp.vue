@@ -27,7 +27,7 @@
                                             shapesDS.data.nodeShapes[r.nodeshape_iri]
                                         )
                                     }}:&nbsp;&nbsp;
-                                    {{ r.node_iri }}
+                                    {{ getRecordDisplayLabel(namedNode(r.node_iri), rdfDS, allPrefixes, configVarsMain) + ' (' + r.node_iri + ')'}}
                                     <br />
                                 </span>
                             </em>
@@ -103,6 +103,9 @@
             <v-btn v-if="!responseReceived" @click="cancelSubmit()"
                 ><v-icon>mdi-cancel</v-icon> Cancel</v-btn
             >
+            <v-btn v-if="!responseReceived" @click="downloadTTL()"
+                ><v-icon>mdi-download</v-icon> Download RDF</v-btn
+            >
             <v-btn v-if="!responseReceived" type="submit" @click="submit()"
                 ><v-icon>mdi-check-circle-outline</v-icon> Submit</v-btn
             >
@@ -113,10 +116,13 @@
     </v-card>
 </template>
 
-<script setup>
-import { ref, onBeforeMount, inject } from 'vue';
-import { getDisplayName } from '@/modules/utils';
+<script setup>import { ref, onBeforeMount, inject } from 'vue';
+import { getDisplayName, getRecordDisplayLabel, getRecordQuads, quadsToTTL, dlTTL} from '@/modules/utils';
+
+
 import { useToken } from '@/composables/tokens';
+import { DataFactory, Store } from 'n3';
+const { namedNode } = DataFactory;
 
 const props = defineProps({
     dialog: Boolean,
@@ -210,6 +216,20 @@ async function submit() {
     }
     responseReceived.value = true;
     awaitingResponse.value = false;
+}
+
+async function downloadTTL() {
+    let toSubmit = [...nodesToSubmit.value];
+    const ds = new Store();
+    for (const node of toSubmit) {
+        var quads = getRecordQuads(node.node_iri, rdfDS.data.graph, true);
+        ds.addQuads(quads)
+    }
+    const allQuads = ds.getQuads(null, null, null, null)
+    var ttlstring = await quadsToTTL(allQuads, allPrefixes);
+    ttlstring = ttlstring.replace(/^\s+/g, '');
+    ttlstring = '\n' + ttlstring;
+    dlTTL(ttlstring, 'submit_rdf_data_' + Date.now())
 }
 
 function cancelSubmit() {

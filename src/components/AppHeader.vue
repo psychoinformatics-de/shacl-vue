@@ -63,6 +63,7 @@
                                 @click="submitFn()"
                                 v-bind="props"
                                 :disabled="!canSubmit"
+                                :class="{ 'submit-pulse': submitWarningPulse }"
                             >
                             </v-btn>
                         </v-badge>
@@ -72,6 +73,7 @@
                             @click="submitFn()"
                             v-bind="props"
                             :disabled="!canSubmit"
+                            :class="{ 'submit-pulse': submitWarningPulse }"
                         >
                         </v-btn>
                     </template>
@@ -175,6 +177,8 @@ const configVarsMain = inject('configVarsMain');
 const http401response = inject('http401response');
 const tokenWarning = inject('tokenWarning');
 const tokenWarningPulse = ref(false);
+const submitWarning = inject('submitWarning');
+const submitWarningPulse = ref(false);
 const visible = ref(false);
 const tokenDialog = ref(false);
 const tokenExists = ref(false);
@@ -226,6 +230,7 @@ watch(
         if (newValue) {
             forceError()
             tokenDialog.value = true;
+            tokenWarning.value = true;
         }
     },
     { immediate: true }
@@ -255,6 +260,25 @@ watch(
     { immediate: true }
 );
 
+watch(
+    submitWarning,
+    (newValue) => {
+        if (newValue) {
+            if (token.value !== null && token.value !== 'null') {
+                submitWarningPulse.value = true
+                setTimeout(() => {
+                    submitWarningPulse.value = false
+                }, 4000)
+            } else {
+                tokenWarning.value = true;
+                tokenDialog.value = true;
+            }
+            submitWarning.value = false;
+        }
+    },
+    { immediate: true }
+);
+
 function forceError() {
     customError.value = "Invalid token. Please re-enter your token and click Save, or alternatively clear the token by clicking Reset and then Cancel"
 }
@@ -269,6 +293,9 @@ async function save() {
     http401response.value = false;
     customError.value = ''
     tokenDialog.value = false;
+    if (nodesToSubmit.value.length) {
+        submitWarning.value = true;
+    }
 }
 
 
@@ -286,10 +313,13 @@ async function save() {
 
 <style>
 .warning-pulse {
-    animation: pulse-bg 1s ease-in-out infinite;
+    animation: pulse-bg-token 1s ease-in-out infinite;
+}
+.submit-pulse {
+    animation: pulse-bg-submit 1s ease-in-out infinite;
 }
 
-@keyframes pulse-bg {
+@keyframes pulse-bg-token {
     0% {
         background-color: rgba(var(--v-theme-error), 0.15);
         box-shadow: 0 0 0px rgba(var(--v-theme-error), 0.6);
@@ -301,6 +331,21 @@ async function save() {
     100% {
         background-color: rgba(var(--v-theme-error), 0.15);
         box-shadow: 0 0 0px rgba(var(--v-theme-error), 0.6);
+    }
+}
+
+@keyframes pulse-bg-submit {
+    0% {
+        background-color: rgba(var(--v-theme-success), 0.15);
+        box-shadow: 0 0 0px rgba(var(--v-theme-success), 0.6);
+    }
+    50% {
+        background-color: rgba(var(--v-theme-success), 0.35);
+        box-shadow: 0 0 10px rgba(var(--v-theme-success), 0.9);
+    }
+    100% {
+        background-color: rgba(var(--v-theme-success), 0.15);
+        box-shadow: 0 0 0px rgba(var(--v-theme-success), 0.6);
     }
 }
 

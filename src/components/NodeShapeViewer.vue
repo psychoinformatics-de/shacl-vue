@@ -117,8 +117,8 @@
                                         true
                                     )
                                 }}
-                            </strong>:<MoreOrLessRecordsViewer
-                                :records="v"
+                            </strong>:&nbsp;&nbsp;<MoreOrLessRecordsViewer
+                                :records="v.values"
                                 v-model:count="showCounts['NamedNode'][k]"
                                 :stepSize="defaultStep"
                             ></MoreOrLessRecordsViewer>
@@ -146,7 +146,7 @@
                             </span>
                         </span>
                         <span v-else>
-                            <strong>{{ k }}</strong
+                            <strong>{{ k }}bla</strong
                             >:
                             <span v-for="(el, i) in v.values">
                                 <span v-if="i < showCounts['NamedNode'][k]">

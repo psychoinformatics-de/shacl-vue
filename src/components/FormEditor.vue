@@ -158,6 +158,7 @@ function registerRef(id, fieldData) {
 function unregisterRef(id) {
     delete fieldMap[id];
 }
+const submitWarning = inject('submitWarning');
 
 provide('registerRef', registerRef);
 provide('unregisterRef', unregisterRef);
@@ -285,6 +286,9 @@ async function saveForm() {
                 nodesToSubmit.value.push(saved_node);
             }
             removeForm(saved_node);
+            if (nodesToSubmit.value.length) {
+                submitWarning.value = true;
+            }
             if (typeof saveFormHandler === 'function') {
                 saveFormHandler();
             }

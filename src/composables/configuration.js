@@ -47,6 +47,7 @@ const mainVarsToLoad = {
     display_name_autogenerate_placeholder: {
         default: "[?]"
     },
+    id_iri: "",
     id_autogenerate: {},
     prefixes: {},
     class_icons: {},

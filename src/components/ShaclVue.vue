@@ -49,6 +49,40 @@
                                     "
                                 >
                                 </v-list-item>
+                                <span v-if="noEditClassList.length">
+                                    <v-divider
+                                        opacity=".7"
+                                        thickness="2"
+                                        gradient
+                                        style="margin-top: 1em; margin-bottom: 1em"
+                                    >
+                                        <small><em>Read Only</em></small>
+                                    </v-divider>
+                                    <v-list-item
+                                        v-for="node in noEditClassList"
+                                        :prepend-icon="
+                                            getClassIcon(
+                                                shapesDS.data.nodeShapeNames[node]
+                                            )
+                                        "
+                                        :title="
+                                            getDisplayName(
+                                                shapesDS.data.nodeShapeNames[node],
+                                                configVarsMain,
+                                                allPrefixes,
+                                                shapesDS.data.nodeShapes[shapesDS.data.nodeShapeNames[node]]
+                                            )
+                                        "
+                                        :value="shapesDS.data.nodeShapeNames[node]"
+                                        @click="
+                                            selectType(
+                                                shapesDS.data.nodeShapeNames[node],
+                                                true
+                                            )
+                                        "
+                                    >
+                                    </v-list-item>
+                                </span>
                             </v-list>
                         </v-navigation-drawer>
                         <v-main
@@ -757,6 +791,8 @@ watch(
 // ---------------- //
 const tokenWarning = ref(false);
 provide('tokenWarning', tokenWarning);
+const submitWarning = ref(false);
+provide('submitWarning', submitWarning);
 const canSubmit = ref(true);
 const submitButtonPressed = ref(false);
 function submitFn() {
@@ -862,6 +898,7 @@ const idFilteredNodeShapeNames = computed(() => {
     }
     return shapeNames;
 });
+
 const filteredNodeShapeNames = computed(() => {
     var names = idFilteredNodeShapeNames.value;
     // If all relevant config arrays are empty, show all classes
@@ -869,7 +906,8 @@ const filteredNodeShapeNames = computed(() => {
         configVarsMain.showClasses?.length == 0 &&
         configVarsMain.showClassesWithPrefix?.length == 0 &&
         configVarsMain.hideClasses?.length == 0 &&
-        configVarsMain.hideClassesWithPrefix?.length == 0
+        configVarsMain.hideClassesWithPrefix?.length == 0 &&
+        configVarsMain.noEditClasses?.length == 0
     ) {
         console.log("- include all classes")
         return names;
@@ -878,7 +916,7 @@ const filteredNodeShapeNames = computed(() => {
     for (var n of names) {
         // First get IRI and prefix
         var n_iri = shapesDS.data.nodeShapeNames[n]
-        if (includeClass(n_iri)) {
+        if (includeClass(n_iri) && configVarsMain.noEditClasses.indexOf(n_iri) < 0) {
             shapeNames.push(n);
         }
     }
@@ -887,6 +925,36 @@ const filteredNodeShapeNames = computed(() => {
 
 const orderedNodeShapeNames = computed(() => {
     return filteredNodeShapeNames.value.sort((a, b) =>
+        getDisplayName(
+            shapesDS.data.nodeShapeNames[a],
+            configVarsMain,
+            allPrefixes,
+            shapesDS.data.nodeShapes[shapesDS.data.nodeShapeNames[a]]
+        ).toLowerCase()
+        .localeCompare(
+            getDisplayName(
+                shapesDS.data.nodeShapeNames[b],
+                configVarsMain,
+                allPrefixes,
+                shapesDS.data.nodeShapes[shapesDS.data.nodeShapeNames[b]]
+            ).toLowerCase()
+        )
+    );
+})
+
+const noEditClassList = computed(() => {
+    if (configVarsMain.noEditClasses?.length == 0) return []
+    var names = idFilteredNodeShapeNames.value;
+    var shapeNames = [];
+    for (var n of names) {
+        // First get IRI and prefix
+        var n_iri = shapesDS.data.nodeShapeNames[n]
+        if (includeClass(n_iri) &&
+            configVarsMain.noEditClasses?.indexOf(n_iri) >= 0) {
+            shapeNames.push(n);
+        }
+    }
+    return shapeNames.sort((a, b) =>
         getDisplayName(
             shapesDS.data.nodeShapeNames[a],
             configVarsMain,
