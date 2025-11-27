@@ -124,8 +124,8 @@
                             ></MoreOrLessRecordsViewer>
                             <span v-for="(el, i) in v.values">
                                 <span v-if="i < showCounts['NamedNode'][k]">
-                                    <span v-if="v.values.length > 1"><br />&nbsp;-</span>
-                                    &nbsp;<NamedNodeViewer
+                                    <span v-if="v.values.length > 1"><br />&nbsp;-&nbsp;</span>
+                                    <NamedNodeViewer
                                         v-if="el.value"
                                         :textVal="el.value"
                                         :prefLabel="
