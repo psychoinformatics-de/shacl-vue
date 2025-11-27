@@ -474,6 +474,7 @@ import {
     getConfigDisplayLabel,
     getSubClasses,
     getContent,
+    includeClass,
 } from '../modules/utils';
 import { toCURIE, toIRI } from 'shacl-tulip';
 import editorMatchers from '@/modules/editors';
@@ -916,7 +917,7 @@ const filteredNodeShapeNames = computed(() => {
     for (var n of names) {
         // First get IRI and prefix
         var n_iri = shapesDS.data.nodeShapeNames[n]
-        if (includeClass(n_iri) && configVarsMain.noEditClasses.indexOf(n_iri) < 0) {
+        if (includeClass(n_iri, configVarsMain, allPrefixes) && configVarsMain.noEditClasses.indexOf(n_iri) < 0) {
             shapeNames.push(n);
         }
     }
@@ -949,7 +950,7 @@ const noEditClassList = computed(() => {
     for (var n of names) {
         // First get IRI and prefix
         var n_iri = shapesDS.data.nodeShapeNames[n]
-        if (includeClass(n_iri) &&
+        if (includeClass(n_iri, configVarsMain, allPrefixes) &&
             configVarsMain.noEditClasses?.indexOf(n_iri) >= 0) {
             shapeNames.push(n);
         }
@@ -971,39 +972,6 @@ const noEditClassList = computed(() => {
         )
     );
 })
-
-function includeClass(class_iri) {
-    var class_prefix = toCURIE(class_iri, allPrefixes, 'parts').prefix
-    // Assume we include class by default
-    var include = true;
-    // If either showClasses or showClassesWithPrefix contain elements
-    // it means we include only some classes
-    // If the current class is not found in those classes, exclude it
-    if (
-        (
-            configVarsMain.showClasses?.length != 0 ||
-            configVarsMain.showClassesWithPrefix?.length != 0
-        ) && (
-            configVarsMain.showClasses?.indexOf(class_iri) < 0 &&
-            configVarsMain.showClassesWithPrefix?.indexOf(class_prefix) < 0
-        )
-    ) {
-        include = false;
-    }
-    // If a class is to be included based on the showClasses(...) options,
-    // only include it if it should not be explicitly hidden (i.e. include
-    // it if it isn't found in hideClasses(...) arrays
-    if (
-        include &&
-        configVarsMain.hideClasses?.indexOf(class_iri) < 0 &&
-        configVarsMain.hideClassesWithPrefix?.indexOf(class_prefix) < 0
-    ) {
-        return true
-    } else {
-        return false
-    }
-}
-provide('includeClass', includeClass)
 
 const formattedDescription = computed(() => {
     // For the class description, use a regular expression to replace text between backticks with <code> tags
@@ -1143,7 +1111,7 @@ async function setViewFromQuery() {
         // check if iri is in
         var nodeShapeIRI = toIRI(nodeShape, allPrefixes);
         if (shapesDS.data.nodeShapes[nodeShapeIRI]) {
-            if (includeClass(nodeShapeIRI)) {
+            if (includeClass(nodeShapeIRI, configVarsMain, allPrefixes)) {
                 await selectType(nodeShapeIRI);
                 var instanceIRI = null;
                 if (instance_pid) {
