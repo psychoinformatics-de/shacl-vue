@@ -516,10 +516,6 @@ onBeforeMount(async () => {
     }
 });
 
-onMounted(()=> {
-
-});
-
 const openMenu = async () => {
     if (hasOpenedMenu.value == false) {
         populateList();
