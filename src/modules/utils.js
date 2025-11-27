@@ -558,3 +558,35 @@ export function fillStringTemplate(template, params) {
         return params[key];
     });
 }
+
+export function includeClass(class_iri, showHide_config, allPrefixes) {
+    var class_prefix = toCURIE(class_iri, allPrefixes, 'parts').prefix
+    // Assume we include class by default
+    var include = true;
+    // If either showClasses or showClassesWithPrefix contain elements
+    // it means we include only some classes
+    // If the current class is not found in those classes, exclude it
+    if (
+        (
+            showHide_config.showClasses?.length != 0 ||
+            showHide_config.showClassesWithPrefix?.length != 0
+        ) && (
+            showHide_config.showClasses?.indexOf(class_iri) < 0 &&
+            showHide_config.showClassesWithPrefix?.indexOf(class_prefix) < 0
+        )
+    ) {
+        include = false;
+    }
+    // If a class is to be included based on the showClasses(...) options,
+    // only include it if it should not be explicitly hidden (i.e. include
+    // it if it isn't found in hideClasses(...) arrays
+    if (
+        include &&
+        showHide_config.hideClasses?.indexOf(class_iri) < 0 &&
+        showHide_config.hideClassesWithPrefix?.indexOf(class_prefix) < 0
+    ) {
+        return true
+    } else {
+        return false
+    }
+}

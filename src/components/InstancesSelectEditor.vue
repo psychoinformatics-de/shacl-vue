@@ -284,6 +284,8 @@ import {
     getConfigDisplayLabel,
     nodeShapeHasPID,
     hashSubgraph,
+    includeClass,
+    snakeToCamel,
 } from '../modules/utils';
 import { toCURIE, toIRI } from 'shacl-tulip';
 import { useRegisterRef } from '../composables/refregister';
@@ -345,7 +347,6 @@ const firstPageFetched = inject('firstPageFetched');
 const isFetchingPage = ref(false);
 const hasOpenedMenu = ref(false);
 const configVarsMain = inject('configVarsMain')
-const includeClass = inject('includeClass');
 const allSubClasses = inject('allSubClasses');
 const localPropertyShape = ref(props.property_shape);
 const propClass = ref(null);
@@ -356,6 +357,20 @@ if (Array.isArray(allSubClasses[propClass.value]) && allSubClasses[propClass.val
     allclass_array = allclass_array.concat(allSubClasses[propClass.value])
 }
 
+const {componentName, componentConfig} = useCompConfig(configVarsMain)
+const fetchingText = componentConfig?.fetchingsRecordsText;
+const compClass = toCURIE(props.property_shape[SHACL.class.value], allPrefixes)
+const compClassConfig = componentConfig?.[compClass]
+const showHideConfig = ref({});
+if (compClassConfig) {
+    let newConfig = {};
+    for (const [k, v] of Object.entries(compClassConfig)) {
+        newConfig[snakeToCamel(k)] = v;
+    }
+    showHideConfig.value = newConfig;
+} else {
+    showHideConfig.value = configVarsMain;
+}
 let propClassList
 if (allclass_array.length > 1) {
     // TODO: it is still possible for the propClassList here to end up with zero
@@ -363,7 +378,7 @@ if (allclass_array.length > 1) {
     // subclasses should be included here, rather than falling back on the config
     // that is intended for the whole app, and not this particular component
     propClassList = allclass_array.map((cl) => {
-        if (includeClass(cl) && configVarsMain.noEditClasses.indexOf(cl) < 0) {
+        if (includeClass(cl, showHideConfig.value, allPrefixes) && configVarsMain.noEditClasses.indexOf(cl) < 0) {
             return {
                 title: toCURIE(cl, allPrefixes, "parts").property,
                 value: cl,
@@ -385,7 +400,6 @@ if (allclass_array.length > 1) {
     }).sort((a,b) =>{
         return a.title.localeCompare(b.title)
     });
-
 }
 
 const canEditClass = ref(true)
@@ -419,8 +433,7 @@ const saveDialogForm = () => {
 };
 provide('saveFormHandler', saveDialogForm);
 let debounceTypingTimer = null;
-const {componentName, componentConfig} = useCompConfig(configVarsMain)
-const fetchingText = componentConfig?.fetchingsRecordsText;
+
 
 
 const showClearIcon = computed(() => {
@@ -501,6 +514,10 @@ onBeforeMount(async () => {
         fetchingRecordLoader.value = false;
         fetchedItemCount.value = itemsToList.value.length;
     }
+});
+
+onMounted(()=> {
+
 });
 
 const openMenu = async () => {

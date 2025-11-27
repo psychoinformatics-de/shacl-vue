@@ -184,6 +184,8 @@ The defaults for all input source URLs are the repository-local demo files.
    - CANNOT be navigated to using URL query parameters
    - by implication, CAN ALSO NOT be edited via URL query parameters
    - CAN be created via `Add new item` button in `InstancesSelectEditor`, i.e. the dropdown that allows users to select a specific record.
+
+   These show/hide options can also be specified per class for the `InstancesSelectEditor`, using the `component_config` approach detailed below. In this way, it is possible to control exactly which subclasses are shown in the menu when the `Add new item` button is pressed. If these class-specific options are not provided, the app-level defaults are used.
 - `no_edit_classes` prevents records of specific classes from being created or edited by users. Records of these classes:
    - WILL show up in the left-hand-side panel, EXCLUDING the option to create new records
    - CAN be navigated to using URL query parameters
@@ -207,6 +209,8 @@ In the example below, the `editor_selection` option specifies that, if a SHACL p
 
 The `component_config` option also specifies that, for the `InstancesSelectEditor`, the `fetchingsRecordsText` should be set to `Fetching records (this might take a while)...`, which for this component defines the text that a user sees when more records are fetched from a configured service endpoint. This option is useful for providing users with an explanation of why a request might be taking a long time. The text displayed by default is `Fetching records...`.
 
+The `component_config` option also specifies that, if the `InstancesSelectEditor` is populated for the `dlidentifiers:Identifier` class, the list of subclasses to show when the `Add new item` button is pressed should include only those that contain the `dlidentifiers` prefix.
+
 ```json
 {
     ...
@@ -221,7 +225,13 @@ The `component_config` option also specifies that, for the `InstancesSelectEdito
             "yearEnd": 2077
         },
         "InstancesSelectEditor": {
-            "fetchingsRecordsText": "Fetching records (this might take a while)..."
+            "fetchingsRecordsText": "Fetching records (this might take a while)...",
+            "dlidentifiers:Identifier": {
+                "show_classes": [],
+                "show_classes_with_prefix": ["dlidentifiers"],
+                "hide_classes": [],
+                "hide_classes_with_prefix": []
+            }
         }
     },
     ...
