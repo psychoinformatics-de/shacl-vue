@@ -881,7 +881,7 @@ watch(
 );
 
 const idFilteredNodeShapeNames = computed(() => {
-    if (configVarsMain.showShapesWoID === true) {
+    if (configVarsMain.showShapesWoId === true) {
         return shapesDS.data.nodeShapeNamesArray;
     }
     var shapeNames = [];
@@ -1186,7 +1186,7 @@ function addInstanceItem() {
     updateURL(selectedIRI.value, true);
 }
 
-async function editInstanceItem(instance) {
+async function editInstanceItem(instance, addQuadsToForm = true) {
     // When user selects to edit, it will be either a namedNode or blankNode
     // and the related information would already be in the graph as triples
     // Also, related information might already be in formData if the user
@@ -1204,7 +1204,9 @@ async function editInstanceItem(instance) {
     }
     editItemIdx.value = instance.value; // this is the id
     // Now create the formData entries from quads in the graph dataset
-    formData.quadsToFormData(editShapeIRI.value, subjectTerm, rdfDS);
+    if (addQuadsToForm) {
+        formData.quadsToFormData(editShapeIRI.value, subjectTerm, rdfDS);
+    }
     // set editMode
     editMode.value = true;
     // open formEditor

@@ -151,6 +151,7 @@ const formValid = ref(null);
 const fieldMap = reactive({}); // Maps element IDs to human-readable labels
 const validationErrors = ref([]);
 const cancelButtonPressed = ref(false);
+const saveButtonPressed = ref(false);
 const configVarsMain = inject('configVarsMain');
 function registerRef(id, fieldData) {
     fieldMap[id] = fieldData;
@@ -164,6 +165,7 @@ provide('registerRef', registerRef);
 provide('unregisterRef', unregisterRef);
 provide('show_all_fields', show_all_fields);
 provide('cancelButtonPressed', cancelButtonPressed);
+provide('saveButtonPressed', saveButtonPressed);
 
 // ----------------- //
 // Lifecycle methods //
@@ -198,7 +200,7 @@ onMounted(() => {
 
 const formattedDescription = computed(() => {
     // For the class description, use a regular expression to replace text between backticks with <code> tags
-    if (shape_obj) {
+    if (shape_obj && shape_obj[SHACL.description.value]) {
         return addCodeTagsToText(shape_obj[SHACL.description.value]);
     } else {
         return '-';
@@ -242,6 +244,7 @@ async function saveForm() {
             // - for each triple in oldTriples: create a new one with same subject and predicate
             //   and with new IRI as object, then delete the old triple
             console.log('going to save form now');
+            saveButtonPressed.value = true;
             const reactiveCloneFunc = (data) => {
                 console.log('using reactiveCloneFunc with data:');
                 console.log(toRaw(data));
@@ -293,7 +296,7 @@ async function saveForm() {
                 saveFormHandler();
             }
         } else {
-            console.log('Still some validation errors, bro');
+            console.log('Still some validation errors...');
             validationResult.errors.forEach((error) => {
                 const id = error.id;
                 const fieldData = fieldMap[id];
