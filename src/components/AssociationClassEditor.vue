@@ -208,7 +208,7 @@ onBeforeMount(() => {
         }
     } else {
         modelValueExistOnStart.value = false;
-        // let's create the association classs record and link it
+        // let's create the association class record and link it
         // we will unlink and delete if cancelled (and if the record props.modelValue did not exist on start)
         associationClassRecordID.value = crypto.randomUUID();
         let newSubTerm = blankNode(associationClassRecordID.value)
@@ -244,7 +244,7 @@ onBeforeMount(() => {
     }
     // Now match child component:
     // --------------------------
-    // We do the same as what the propertyshape editor does: key asignment (only for keypropertyrole field) and matching
+    // We do the same as what the propertyshape editor does: key assignment (only for keypropertyrole field) and matching
     // Provide triple objects with keys for component rendering if they don't have it
     let current_triple_objects = formData.content[associationClass.value][associationClassRecordID.value][keyPropertyUID.value]
     if (current_triple_objects && Array.isArray(current_triple_objects)) {
@@ -290,7 +290,7 @@ function childComponentUpdated() {
         keyPropertyValueSet.value = true;
         // If this update happens after the keyPropertyRole value did not exist on mount,
         // it means the keyPropertyRole value was selected/added/edited which means we can now add that quad too,
-        // because only the association class quad (and possible defaut values) was added initially.
+        // because only the association class quad (and possible default values) was added initially.
         // And when the keyPropertyRole value did exist on mount, but the value is different from what it is now?
         // This quad should also be added, and the other removed -> "if current is different from previous" covers all logic we need
         if (current_keyPropertyValue !== keyPropertyValuePrevious.value) {
@@ -300,7 +300,7 @@ function childComponentUpdated() {
             }
             keyPropertyQuad.value = addRelatedQuad(keyPropertyUID.value, current_keyPropertyValue)
             // Question: should we add defaults here too?
-            // The defaults are initially added and then linked to the assocation class record
+            // The defaults are initially added and then linked to the association class record
             // Currently, changing the keyPropertyRole field does nothing to the defaults (or the defaults that were since edited)
             // One could argue that the defaults/related records should be removed and then re-added if the keyPropertyRole field is changed....
             // For now we do nothing.
