@@ -219,7 +219,7 @@ onBeforeMount(() => {
             node_iri: associationClassRecordID.value,
         });
         // Now we also have to create quads that are specified by config, e.g. "automatically set the default language"
-        if (componentClassConfig.defaults && Object.keys(componentClassConfig.defaults).length > 0) {
+        if (componentClassConfig?.defaults && Object.keys(componentClassConfig.defaults).length > 0) {
             for (const df of Object.keys(componentClassConfig.defaults)) {
                 let predVal = toIRI(df, allPrefixes);
                 let objVal = componentClassConfig.defaults[df];
