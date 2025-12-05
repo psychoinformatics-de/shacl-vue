@@ -178,6 +178,15 @@ onBeforeMount(() => {
         modelValueExistOnStart.value = true;
         associationClassRecordID.value = props.modelValue
         let subTerm = blankNode(associationClassRecordID.value)
+        let associationClassQuads = rdfDS.data.graph.getQuads(subTerm, namedNode(RDF.type.value), namedNode(associationClass.value), null);
+        if (associationClassQuads.length == 1) {
+            associationClassQuad.value = associationClassQuads[0];
+        } else if (associationClassQuads.length) {
+            console.error("There are multiple association classes for this specific keyPropertRole field! This should not be happening!")
+            associationClassQuad.value = associationClassQuads[0];
+        } else {
+            console.error("There are no association classes for this specific keyPropertRole field, even though props.modelValue exist onbeforemount! This should not be happening!")
+        }
         associationClassQuad.value = quad(subTerm, namedNode(RDF.type.value), namedNode(associationClass.value), null)
         // We need the existing graph data to go to the form, because we are going to be editing the keyPropertyRole field
         formData.quadsToFormData(associationClass.value, subTerm, rdfDS);
