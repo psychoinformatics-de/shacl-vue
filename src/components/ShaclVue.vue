@@ -478,6 +478,7 @@ import {
 } from '../modules/utils';
 import { toCURIE, toIRI } from 'shacl-tulip';
 import editorMatchers from '@/modules/editors';
+// Leave the viewerMatchers import here to load viewers, even if unused in this component
 import viewerMatchers from '@/modules/viewers';
 import defaultEditor from '@/components/UnknownEditor.vue';
 import { useData } from '@/composables/useData';
@@ -490,7 +491,6 @@ import { SHACL, RDF, RDFS, SKOS } from '@/modules/namespaces';
 import { debounce } from 'lodash-es';
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
 import {
-    RecycleScroller,
     DynamicScroller,
     DynamicScrollerItem,
 } from 'vue-virtual-scroller';
@@ -823,8 +823,6 @@ watch(
     { immediate: true }
 );
 
-const activatedInstancesSelectEditor = ref(null);
-provide('activatedInstancesSelectEditor', activatedInstancesSelectEditor);
 const lastSavedNode = ref(null);
 provide('lastSavedNode', lastSavedNode);
 const itemsTrigger = ref(false);
@@ -881,7 +879,7 @@ watch(
 );
 
 const idFilteredNodeShapeNames = computed(() => {
-    if (configVarsMain.showShapesWoID === true) {
+    if (configVarsMain.showShapesWoId === true) {
         return shapesDS.data.nodeShapeNamesArray;
     }
     var shapeNames = [];
@@ -1186,7 +1184,7 @@ function addInstanceItem() {
     updateURL(selectedIRI.value, true);
 }
 
-async function editInstanceItem(instance) {
+async function editInstanceItem(instance, addQuadsToForm = true) {
     // When user selects to edit, it will be either a namedNode or blankNode
     // and the related information would already be in the graph as triples
     // Also, related information might already be in formData if the user
@@ -1204,7 +1202,9 @@ async function editInstanceItem(instance) {
     }
     editItemIdx.value = instance.value; // this is the id
     // Now create the formData entries from quads in the graph dataset
-    formData.quadsToFormData(editShapeIRI.value, subjectTerm, rdfDS);
+    if (addQuadsToForm) {
+        formData.quadsToFormData(editShapeIRI.value, subjectTerm, rdfDS);
+    }
     // set editMode
     editMode.value = true;
     // open formEditor
@@ -1449,10 +1449,6 @@ const currentOpenForm = computed(() => {
     }
     return null;
 });
-
-function isPanelOpen(index) {
-    return currentOpenForm.value === 'panel' + (index + 1);
-}
 
 function addForm(shapeIRI, nodeIDX, formType) {
     for (var i = 0; i < openForms.length; i++) {

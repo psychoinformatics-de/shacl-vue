@@ -90,6 +90,7 @@
                                         :targetClass="
                                             propertyShapes[k][SHACL.class.value]
                                         "
+                                        :allowLink="props.allowLink"
                                     >
                                 </NamedNodeViewer>
                             </span>
@@ -125,6 +126,10 @@ import { RDF, SHACL} from '@/modules/namespaces';
 // Define component properties
 const props = defineProps({
     node: Object,
+    allowLink: {
+        type: Boolean,
+        default: true,
+    },
 });
 
 const allPrefixes = inject('allPrefixes');

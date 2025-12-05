@@ -1,5 +1,5 @@
 <template>
-    <span v-if="isLink">
+    <span v-if="isLink && allowLink">
         <a
             style="cursor: pointer"
             @click.prevent="selectNamedNode(currentClassIRI, currentRecordPID)"
@@ -25,6 +25,10 @@ const props = defineProps({
     displayLabel: String,
     quad: Object,
     targetClass: String,
+    allowLink: {
+        type: Boolean,
+        default: true,
+    },
 });
 const allPrefixes = inject('allPrefixes');
 const selectNamedNode = inject('selectNamedNode');

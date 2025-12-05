@@ -136,7 +136,6 @@ const shapesDS = inject('shapesDS');
 const rdfDS = inject('rdfDS');
 const formData = inject('formData');
 const config = inject('config');
-const show_all_fields = ref(false);
 const ID_IRI = inject('ID_IRI');
 const allPrefixes = inject('allPrefixes');
 const cancelFormHandler = inject('cancelFormHandler');
@@ -151,7 +150,10 @@ const formValid = ref(null);
 const fieldMap = reactive({}); // Maps element IDs to human-readable labels
 const validationErrors = ref([]);
 const cancelButtonPressed = ref(false);
+const saveButtonPressed = ref(false);
 const configVarsMain = inject('configVarsMain');
+const openForms = inject('openForms')
+const currentForm = ref(null);
 function registerRef(id, fieldData) {
     fieldMap[id] = fieldData;
 }
@@ -159,11 +161,10 @@ function unregisterRef(id) {
     delete fieldMap[id];
 }
 const submitWarning = inject('submitWarning');
-
 provide('registerRef', registerRef);
 provide('unregisterRef', unregisterRef);
-provide('show_all_fields', show_all_fields);
 provide('cancelButtonPressed', cancelButtonPressed);
+provide('saveButtonPressed', saveButtonPressed);
 
 // ----------------- //
 // Lifecycle methods //
@@ -172,14 +173,23 @@ provide('cancelButtonPressed', cancelButtonPressed);
 onBeforeMount(() => {
     console.log(`the FormEditor component is about to be mounted.`);
     formData.addSubject(localShapeIri.value, localNodeIdx.value);
-
+    currentForm.value = openForms.find((f) => {
+        f.shapeIRI == props.shape_iri && f.nodeIDX == props.node_idx
+    });
+    if (!currentForm.value) {
+        currentForm.value = openForms.at(-1);
+    }
+    let showAllFields = false;
     if (config.value.hasOwnProperty('show_all_fields')) {
         if (
             typeof config.value.show_all_fields == 'boolean' &&
             config.value.show_all_fields
         ) {
-            show_all_fields.value = true;
+            showAllFields = true;
         }
+    }
+    if (!('show_all_fields' in currentForm.value)) {
+        currentForm.value.show_all_fields = showAllFields;
     }
 });
 
@@ -196,9 +206,15 @@ onMounted(() => {
 // Computed properties //
 // ------------------- //
 
+const show_all_fields = computed({
+    get: () => currentForm.value.show_all_fields,
+    set: v => currentForm.value.show_all_fields = v
+})
+provide('show_all_fields', show_all_fields);
+
 const formattedDescription = computed(() => {
     // For the class description, use a regular expression to replace text between backticks with <code> tags
-    if (shape_obj) {
+    if (shape_obj && shape_obj[SHACL.description.value]) {
         return addCodeTagsToText(shape_obj[SHACL.description.value]);
     } else {
         return '-';
@@ -242,6 +258,7 @@ async function saveForm() {
             // - for each triple in oldTriples: create a new one with same subject and predicate
             //   and with new IRI as object, then delete the old triple
             console.log('going to save form now');
+            saveButtonPressed.value = true;
             const reactiveCloneFunc = (data) => {
                 console.log('using reactiveCloneFunc with data:');
                 console.log(toRaw(data));
@@ -293,7 +310,7 @@ async function saveForm() {
                 saveFormHandler();
             }
         } else {
-            console.log('Still some validation errors, bro');
+            console.log('Still some validation errors...');
             validationResult.errors.forEach((error) => {
                 const id = error.id;
                 const fieldData = fieldMap[id];

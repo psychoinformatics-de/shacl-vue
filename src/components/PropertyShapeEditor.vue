@@ -341,7 +341,7 @@ onBeforeUnmount(() => {});
 
 const matchedComponent = computed(() => {
     for (const key in editorMatchers) {
-        if (editorMatchers[key].match(localPropertyShape.value)) {
+        if (editorMatchers[key].match(localPropertyShape.value, shapesDS, ID_IRI.value, allPrefixes)) {
             return editorMatchers[key].component;
         }
     }

@@ -66,7 +66,8 @@ export function downloadTSV(data, filename) {
 }
 
 export function addCodeTagsToText(text) {
-    return text.replace(/`([^`]+)`/g, '<code class="code-style">$1</code>');
+    if (text) return text.replace(/`([^`]+)`/g, '<code class="code-style">$1</code>');
+    return text;
 }
 
 export function findObjectByKey(array, key, value) {
@@ -477,6 +478,29 @@ export function nodeShapeHasPID(nodeshapeIRI, shapesDS, pidIRI) {
     );
     return ps ? true : false
 }
+
+export function getNodeShapePropertyWithAnnotations(nodeshapeIRI, shapesDS, annotations = {}, prefixes) {
+    // For the given SHACL NodeShape, check if it has a property shape that is annotated
+    // with a set of provided annotations
+    if (!Object.keys(annotations).length) return undefined
+    var nodeShape = shapesDS.data.nodeShapes[nodeshapeIRI];
+    if (!nodeShape) return undefined
+    var ps = nodeShape.properties.find((prop) => {
+        return Object.entries(annotations).every(([key, value]) => {
+            let keyIRI = toIRI(key, prefixes)
+            let valIRI = toIRI(value, prefixes)
+            return prop.hasOwnProperty(keyIRI) && prop[keyIRI] === valIRI;
+        })
+    });
+    return ps ? ps : false
+}
+
+export function nodeShapeHasPropertyWithAnnotations(nodeshapeIRI, shapesDS, annotations = {}, prefixes) {
+    let ps = getNodeShapePropertyWithAnnotations(nodeshapeIRI, shapesDS, annotations, prefixes)
+    if (ps === undefined) return undefined
+    return ps ? true : false
+}
+
 
 export async function hashSubgraph(quads) {
     if (!quads || !quads.length) return '';
