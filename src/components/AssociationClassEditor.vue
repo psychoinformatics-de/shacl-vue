@@ -62,11 +62,7 @@
                 </span>
             </v-tooltip>
             <v-btn
-                v-if="
-                    keyPropertyValueSet && (
-                    configVarsMain.allowEditInstances === true ||
-                    configVarsMain.allowEditInstances.indexOf(associationClass) >= 0)
-                "
+                v-if="keyPropertyValueSet"
                 style="margin-left: 0.5em"
                 rounded="0"
                 icon="mdi-pencil"

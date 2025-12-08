@@ -2,6 +2,11 @@
     <v-sheet ref="mainSheet" class="pa-4 scaled-sheet" border rounded elevation="2">
         <div style="display: flex; position: relative">
             <h3>
+                <v-tooltip :text="toCURIE(localShapeIri, allPrefixes)" location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-icon v-bind="props">{{ getClassIcon(localShapeIri, allPrefixes) }}</v-icon>
+                    </template>
+                </v-tooltip>&nbsp;&nbsp;
                 {{ getDisplayName(localShapeIri, configVarsMain, allPrefixes, shape_obj) }}
             </h3>
 
@@ -116,6 +121,7 @@ import {
     getDisplayName,
     findObjectByKey,
 } from '../modules/utils';
+import { toCURIE } from 'shacl-tulip';
 
 // ----- //
 // Props //
@@ -144,6 +150,7 @@ const editMode = inject('editMode');
 const removeForm = inject('removeForm');
 const savedNodes = inject('savedNodes');
 const nodesToSubmit = inject('nodesToSubmit');
+const getClassIcon = inject('getClassIcon');
 const shape_obj = shapesDS.data.nodeShapes[localShapeIri.value];
 const form = ref(null);
 const formValid = ref(null);

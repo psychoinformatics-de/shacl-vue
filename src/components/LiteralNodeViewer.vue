@@ -1,15 +1,18 @@
 <template>
-    <span v-if="isLink && allowLink">
+    <span v-if="isTruncated">
+        <v-btn
+            density="compact"
+            no-gutters
+            size="small"
+            style="border-radius: 5px;"
+            :icon="btnExpanded ? 'mdi-chevron-down' : 'mdi-chevron-right'"
+            @click="expandBtnOnclick()">
+        </v-btn>&nbsp;
+    </span>
+    <span v-if="isLink && allowLink" @click="expandBtnOnclick()">
         <a :href="hrefVal" target="_blank" ref="el" :class="computedClass" :style="computedStyle">{{ contentVal }}</a>
     </span>
-    <span v-else ref="el" :class="computedClass" :style="computedStyle">{{ textVal }}</span>
-    <v-tooltip
-        v-if="isTruncated"
-        :text="contentVal || textVal"
-        :activator="el"
-        location="top start"
-        origin="start center"
-    />
+    <span v-else ref="el" :class="computedClass" :style="computedStyle" @click="expandBtnOnclick()">{{ textVal }}</span>
 </template>
 
 <script setup>
@@ -23,7 +26,7 @@ const props = defineProps({
     },
     width: {
         type: [String, Number],
-        default: '500px',
+        default: '85%',
     },
     allowLink: {
         type: Boolean,
@@ -32,10 +35,13 @@ const props = defineProps({
 });
 const allPrefixes = inject('allPrefixes');
 const isLink = ref(false);
+const btnExpanded = ref(false);
 const hrefVal = ref('');
 const contentVal = ref('');
 const el = ref(null)
 const isTruncated = ref(false)
+const localWrap = ref(props.wrap)
+
 onBeforeMount(() => {
     if (props.textVal.startsWith('http')) {
         isLink.value = true;
@@ -59,15 +65,25 @@ onMounted( () => {
 })
 const computedStyle = computed(() => {
     const style = {};
-    if (props.wrap === 'nowrap') {
-        style.cursor = isTruncated.value ? 'pointer' : '';
+    if (localWrap.value === 'nowrap') {
         style.maxWidth = typeof props.width === 'number' ? `${props.width}px` : props.width;
     }
+    style.cursor = isTruncated.value ? 'pointer' : '';
     return style;
 });
 const computedClass = computed(() => {
-    return props.wrap === 'nowrap' ? 'text-ellipsis' : '';
+    return localWrap.value === 'nowrap' ? 'text-ellipsis' : '';
 });
+
+function expandBtnOnclick() {
+    btnExpanded.value = !btnExpanded.value;
+    if (localWrap.value == 'nowrap' && btnExpanded.value) {
+        localWrap.value = 'wrap';
+    } else {
+        localWrap.value = 'nowrap'
+    }
+
+}
 </script>
 
 <style scoped>

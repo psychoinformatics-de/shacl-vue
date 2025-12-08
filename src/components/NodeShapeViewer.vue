@@ -89,7 +89,7 @@
                 <span v-for="(el, i) in v.values">
                     <span v-if="i < showCounts['Literal'][k]">
                         <span v-if="v.values.length > 1"><br/>&nbsp;-</span>
-                        &nbsp;<LiteralNodeViewer v-if="el.value" :textVal="el.value" :wrap="'wrap'"></LiteralNodeViewer>
+                        &nbsp;<LiteralNodeViewer v-if="el.value" :textVal="el.value" :wrap="textWrapping" :width="textTruncateWidth"></LiteralNodeViewer>
                     </span>
                 </span>
                 <br/>
@@ -177,7 +177,7 @@
                 ></MoreOrLessRecordsViewer>
                 <span v-for="(item, i) in v.displayLabels">
                     <span v-if="i < showCounts['BlankNodeSpecial'][k]" class="line-item">
-                        &nbsp;-&nbsp; <LiteralNodeViewer :textVal="item.displayLabel" :wrap="'nowrap'" :width="600" :allowLink="false"></LiteralNodeViewer>
+                        &nbsp;-&nbsp; <LiteralNodeViewer :textVal="item.displayLabel" :wrap="textWrapping" :width="textTruncateWidth" :allowLink="false"></LiteralNodeViewer>
                     </span>
                 </span>
             </span>
@@ -315,7 +315,16 @@ for (var p of shape_obj.properties) {
     propertyShapes[p[SHACL.path.value]] = p;
 }
 const {componentName, componentConfig} = useCompConfig(configVarsMain);
-const defaultStep = componentConfig?.recordNumberStepSize;
+const defaultStep = componentConfig?.recordNumberStepSize ? componentConfig.recordNumberStepSize : 5;
+let textTruncateWidth;
+if (componentConfig?.textTruncateWidth === false) {
+    textTruncateWidth = null
+} else if (!componentConfig?.textTruncateWidth) {
+    textTruncateWidth = '85%'
+} else {
+    textTruncateWidth = componentConfig.textTruncateWidth
+}
+const textWrapping = textTruncateWidth ? 'nowrap' : 'wrap'
 const showCounts = reactive(
     {
         'Literal': {},
