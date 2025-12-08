@@ -221,9 +221,9 @@
                                             </template>
                                         </v-tooltip>
                                         <v-btn
-                                            v-if="
-                                                configVarsMain.allowEditInstances === true ||
-                                                configVarsMain.allowEditInstances.indexOf(item.props.itemQuad.object.value) >= 0
+                                            v-if=" !nsHasPID || 
+                                                (configVarsMain.allowEditInstances === true ||
+                                                configVarsMain.allowEditInstances.indexOf(item.props.itemQuad.object.value) >= 0)
                                             "
                                             icon="mdi-pencil"
                                             variant="text"
@@ -252,9 +252,9 @@
         </v-menu>
         <v-btn
             v-if="
-                subValues?.selectedInstance && (
-                configVarsMain.allowEditInstances === true ||
-                configVarsMain.allowEditInstances.indexOf(subValues?.selectedInstance?.props.itemQuad.object.value) >= 0)
+                subValues?.selectedInstance && ( !nsHasPID || 
+                (configVarsMain.allowEditInstances === true ||
+                configVarsMain.allowEditInstances.indexOf(subValues?.selectedInstance?.props.itemQuad.object.value) >= 0))
             "
             style="margin-left: 0.5em"
             rounded="0"
