@@ -85,9 +85,13 @@
                                             v-for="item in propClassList"
                                             @click.stop="handleAddItemClick(item)"
                                         >
-                                            <v-list-item-title>{{
-                                                item.title
-                                            }}</v-list-item-title>
+                                            <v-list-item-title>
+                                                <v-tooltip :text="item.curie" location="start">
+                                                    <template v-slot:activator="{ props }">
+                                                        <v-icon v-bind="props">{{ item.icon }}</v-icon>
+                                                    </template>
+                                                </v-tooltip>&nbsp;&nbsp;&nbsp;{{ item.title }}
+                                            </v-list-item-title>
                                         </v-list-item>
                                     </v-list>
                                 </v-menu>
@@ -286,6 +290,7 @@ import {
     hashSubgraph,
     includeClass,
     snakeToCamel,
+    getDisplayName,
 } from '../modules/utils';
 import { toCURIE, toIRI } from 'shacl-tulip';
 import { useRegisterRef } from '../composables/refregister';
@@ -348,6 +353,7 @@ const isFetchingPage = ref(false);
 const hasOpenedMenu = ref(false);
 const configVarsMain = inject('configVarsMain')
 const allSubClasses = inject('allSubClasses');
+const getClassIcon = inject('getClassIcon');
 const localPropertyShape = ref(props.property_shape);
 const propClass = ref(null);
 propClass.value = localPropertyShape.value[SHACL.class.value] ?? false;
@@ -377,11 +383,14 @@ if (allclass_array.length > 1) {
     // entries. It would be better to allow a per-class config to specify which
     // subclasses should be included here, rather than falling back on the config
     // that is intended for the whole app, and not this particular component
+    
     propClassList = allclass_array.map((cl) => {
         if (includeClass(cl, showHideConfig.value, allPrefixes) && configVarsMain.noEditClasses.indexOf(cl) < 0) {
             return {
-                title: toCURIE(cl, allPrefixes, "parts").property,
+                title: getDisplayName(cl, configVarsMain, allPrefixes, shapesDS.data.nodeShapes[cl]),
                 value: cl,
+                icon: getClassIcon(cl, allPrefixes),
+                curie: toCURIE(cl, allPrefixes),
             };
         }
     }).filter((el) => {
@@ -394,8 +403,10 @@ if (allclass_array.length > 1) {
     // we should allow that as a minimum
     propClassList = allclass_array.map((cl) => {
         return {
-            title: toCURIE(cl, allPrefixes, "parts").property,
+            title: getDisplayName(cl, configVarsMain, allPrefixes, shapesDS.data.nodeShapes[cl]),
             value: cl,
+            icon: getClassIcon(cl, allPrefixes),
+            curie: toCURIE(cl, allPrefixes),
         };
     }).sort((a,b) =>{
         return a.title.localeCompare(b.title)
@@ -420,7 +431,6 @@ const addItemList = ref(null);
 
 const selectedAddItemShapeIRI = ref(null);
 const addForm = inject('addForm');
-const getClassIcon = inject('getClassIcon');
 const lastSavedNode = inject('lastSavedNode');
 const openForms = inject('openForms');
 
