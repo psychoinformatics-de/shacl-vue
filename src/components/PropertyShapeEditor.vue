@@ -421,7 +421,10 @@ function allowAddTriple(idx) {
 }
 
 function addTriple(class_uri, subject_uri, predicate_uri, current_idx) {
-    formData.addObject(class_uri, subject_uri, predicate_uri, current_idx)
+    // TODO: this was previously a call to 'formData.addObject' but was changed to the line below
+    // because 'formData.addObject' does not allow for assigning a js object as the initial value;
+    // this needs to be updated in shacl-tulip, and then fixed here.
+    formData.content[class_uri][subject_uri][predicate_uri].splice(current_idx + 1, 0, {value:null, _key:crypto.randomUUID()});
     if (current_idx+1==currentCount.value) {
         currentCount.value+=1;
     }
