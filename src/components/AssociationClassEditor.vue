@@ -361,7 +361,7 @@ function onCancel() {
 
 function onSave() {
     // If the modelValue does not exist now, i.e. keypropertyvalue is not set, we need to delete the associationClassRecord
-    // and the reference to it in formdata, otherwise that referece is saved as a quad to graphData, and that quad will point to
+    // and the reference to it in formdata, otherwise that reference is saved as a quad to graphData, and that quad will point to
     // deleted association class record quad
     if (!keyPropertyValueSet.value) {
         console.log("KeyValue not set - deleting association class record and formdata")
