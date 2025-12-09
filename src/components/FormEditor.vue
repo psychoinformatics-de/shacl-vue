@@ -172,6 +172,15 @@ provide('registerRef', registerRef);
 provide('unregisterRef', unregisterRef);
 provide('cancelButtonPressed', cancelButtonPressed);
 provide('saveButtonPressed', saveButtonPressed);
+// Storage of save/cancel handlers of all properties of the form
+const handlers = ref({
+    'save': [],
+    'cancel': []
+});
+function registerHandler(handle, fn) {
+    handlers.value[handle].push(fn);
+}
+provide('registerHandler', registerHandler);
 
 // ----------------- //
 // Lifecycle methods //
@@ -206,7 +215,7 @@ onBeforeUnmount(() => {
 });
 
 onMounted(() => {
-    console.log(`the FormEditor component is now mounted: ${props.shape_iri}`);
+    console.log(`the FormEditor component is now mounted: ${localShapeIri.value} - ${localNodeIdx.value}`);
 });
 
 // ------------------- //
@@ -239,7 +248,10 @@ async function saveForm() {
         const validationResult = await form.value.validate();
         if (validationResult.valid) {
             // If the form is valid, proceed with form submission
-
+            // run save handlers
+            for (const handler of handlers.value['save']) {
+                handler();
+            }
             // Here, we distinguish between saving a newly created and completed form,
             // and saving a form that is being edited and was previously saved. The former
             // follows a standard workflow in one direction: from formData to graphData;
@@ -343,6 +355,10 @@ function resetForm() {
 
 function cancelForm() {
     cancelButtonPressed.value = true;
+    // run cancel handlers
+    for (const handler of handlers.value['cancel']) {
+        handler();
+    }
     console.log('Cancelling form from FormEditor');
     console.log(`Removing current node: ${localShapeIri.value} - ${localNodeIdx.value}`);
     // Always remove node from formData:

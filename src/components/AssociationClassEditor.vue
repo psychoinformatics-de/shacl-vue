@@ -76,13 +76,13 @@
 </template>
 
 <script setup>
-import { inject, ref, onBeforeMount, reactive, onBeforeUnmount, provide } from 'vue';
+import { inject, ref, onBeforeMount, reactive, provide, onMounted } from 'vue';
 import { useRules } from '../composables/rules';
 import { useRegisterRef } from '../composables/refregister';
 import { useBaseInput } from '@/composables/base';
 import { toCURIE, toIRI } from 'shacl-tulip';
 import { RDF } from '@/modules/namespaces';
-import { getNodeShapePropertyWithAnnotations } from '@/modules/utils';
+import { findObjectByKey, getNodeShapePropertyWithAnnotations } from '@/modules/utils';
 import { DataFactory } from 'n3';
 import { useCompConfig } from '@/composables/useCompConfig';
 const { namedNode, blankNode, quad } = DataFactory;
@@ -147,6 +147,8 @@ const keyPropertyQuad = ref(null);
 const {componentName, componentConfig} = useCompConfig(configVarsMain)
 const componentClass = toCURIE(props.property_shape[SHACL.class.value], allPrefixes)
 const componentClassConfig = componentConfig[componentClass]
+const registerHandler = inject('registerHandler');
+const componentInstanceKey = ref(null);
 
 function valueParser(value) {
     // Parsing internalValue into ref values for separate subcomponent(s)
@@ -333,7 +335,6 @@ function addRelatedQuad(predicateVal, objectVal) {
 }
 
 function editItem() {
-    console.log("Going to edit association class record now")
     editInstanceItem(
         {
             quad: associationClassQuad.value,
@@ -343,25 +344,47 @@ function editItem() {
     )
 }
 
-onBeforeUnmount( () => {
-    if (cancelButtonPressed.value) {
-        if (!modelValueExistOnStart.value) {
-            // Association class record did not exist when component mounted, then it was created ->
-            // therefore now we remove it during form cancel
-            // TODO: modelValueExistOnStart.value will not be a true reflection of the original state of the modelValue
-            // when the form was initially opened due to the problem with the formeditor comoponent state,
-            // since it mounts again when navigating back to it after another interim form was opened.
-            // So this delete command will only work if another form was not opened in the interim.
-            rdfDS.data.graph.delete(quad(blankNode(associationClassRecordID.value), namedNode(RDF.type.value), namedNode(associationClass.value), null))
-            if (keyPropertyQuad.value) rdfDS.data.graph.delete(keyPropertyQuad.value)
-            // TODO: also remove any other possibly added quads here, the ones that relate to the associationClassRecord, e.g. roles, start/end
-        }
-        formData.removeSubject(associationClass.value, associationClassRecordID.value);
-    } else if (saveButtonPressed.value) {
-        formData.removeSubject(associationClass.value, associationClassRecordID.value);
-    } else {
-        // TODO: should we do anything here?
+function onCancel() {
+    if (!modelValueExistOnStart.value) {
+        // Association class record did not exist when component mounted, then it was created ->
+        // therefore now we remove it during form cancel
+        // TODO: modelValueExistOnStart.value will not be a true reflection of the original state of the modelValue
+        // when the form was initially opened due to the problem with the formeditor comoponent state,
+        // since it mounts again when navigating back to it after another interim form was opened.
+        // So this delete command will only work if another form was not opened in the interim.
+        rdfDS.data.graph.delete(quad(blankNode(associationClassRecordID.value), namedNode(RDF.type.value), namedNode(associationClass.value), null))
+        if (keyPropertyQuad.value) rdfDS.data.graph.delete(keyPropertyQuad.value)
+        // TODO: also remove any other possibly added quads here, the ones that relate to the associationClassRecord, e.g. roles, start/end
     }
+    formData.removeSubject(associationClass.value, associationClassRecordID.value);
+}
+
+function onSave() {
+    // If the modelValue does not exist now, i.e. keypropertyvalue is not set, we need to delete the associationClassRecord
+    // and the reference to it in formdata, otherwise that reference is saved as a quad to graphData, and that quad will point to
+    // deleted association class record quad
+    if (!keyPropertyValueSet.value) {
+        console.log("KeyValue not set - deleting association class record and formdata")
+        rdfDS.data.graph.delete(quad(blankNode(associationClassRecordID.value), namedNode(RDF.type.value), namedNode(associationClass.value), null))
+        formData.removeSubject(associationClass.value, associationClassRecordID.value);
+        // Now we have to remove the reference to the associationClassRecord from the data of the current form being edited.
+        // This was initially done with formData.removeObject, which uses splice to remove an array element.
+        // However, that approach was not useful here, because removing an array element will change the index for
+        // all elements following the current index, so if the same formData.removeObject is called form other 
+        // associationClassEditor instantiations, the index will have changed and that operation will fail.
+        // Instead, we just find the object by _key, and then set the value to null. formData.saveNode already
+        // knows how to handle null values.
+        let allTriples = formData.content[props.node_uid][props.node_idx][props.triple_uid]
+        let foundObject = findObjectByKey(allTriples, '_key', componentInstanceKey.value)
+        foundObject.value = null;
+    }
+}
+
+onMounted( () => { 
+    registerHandler('save', onSave);
+    registerHandler('cancel', onCancel);
+    // We need the instance _key for later if the form is saved and unused association class records need to be unlinked
+    componentInstanceKey.value = formData.content[props.node_uid][props.node_idx][props.triple_uid][props.triple_idx]._key;
 })
 </script>
 

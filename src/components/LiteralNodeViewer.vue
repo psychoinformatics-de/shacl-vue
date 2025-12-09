@@ -43,14 +43,14 @@ const isTruncated = ref(false)
 const localWrap = ref(props.wrap)
 
 onBeforeMount(() => {
-    if (props.textVal.startsWith('http')) {
+    if (props.textVal?.startsWith('http')) {
         isLink.value = true;
         hrefVal.value = props.textVal;
         contentVal.value = props.textVal;
         return;
     }
     var textIRI = toIRI(props.textVal, allPrefixes);
-    if (textIRI.startsWith('http')) {
+    if (textIRI?.startsWith('http')) {
         isLink.value = true;
         hrefVal.value = textIRI;
         contentVal.value = props.textVal;
