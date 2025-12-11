@@ -15,11 +15,22 @@
                     variant="outlined"
                     label="select type"
                     item-value="value"
-                    item-title="title"
                     ref="selector"
                     clearable
                     @update:modelValue="selectORelement"
-                />
+                >
+                    <template v-slot:item="{ props: itemProps, item }">
+                        <v-list-item v-bind="itemProps" :title="null">
+                            <v-list-item-title>
+                                <v-tooltip :text="item.raw.curie" location="start">
+                                    <template v-slot:activator="{ props: tooltipProps }">
+                                        <v-icon v-bind="tooltipProps">{{ item.raw.icon }}</v-icon>
+                                    </template>
+                                </v-tooltip>&nbsp;&nbsp;&nbsp;{{ item.title }}
+                            </v-list-item-title>
+                        </v-list-item>
+                    </template>
+                </v-select>
             </v-row>
             <v-row v-if="orElementSelected">
                 <InstancesSelectEditor 
@@ -46,6 +57,7 @@ import { useBaseInput } from '@/composables/base';
 import { toCURIE } from 'shacl-tulip';
 import { RDF } from '@/modules/namespaces';
 import { DataFactory } from 'n3';
+import { getDisplayName } from '@/modules/utils'
 import InstancesSelectEditor from '@/components/InstancesSelectEditor.vue'
 const { namedNode } = DataFactory;
 
@@ -81,6 +93,8 @@ const shapesDS = inject('shapesDS');
 const allPrefixes = inject('allPrefixes');
 const fetchingRecordLoader = ref(false);
 const fetchFromService = inject('fetchFromService');
+const configVarsMain = inject('configVarsMain');
+const getClassIcon = inject('getClassIcon');
 const selector = ref(null);
 const orElementSelected = ref(false);
 const computedPropertyShape = ref({...props.property_shape,});
@@ -134,9 +148,12 @@ const orList = computed(() => {
     var items = [];
     const or_array = props.property_shape[SHACL.or.value];
     for (var el of or_array) {
+        let cl = toRaw(el)[SHACL.class.value]
         items.push({
-            title: toCURIE(toRaw(el)[SHACL.class.value], shapesDS.data.prefixes, "parts").property,
-            value: toRaw(el)[SHACL.class.value],
+            title: getDisplayName(cl, configVarsMain, allPrefixes, shapesDS.data.nodeShapes[cl]),
+            value: cl,
+            icon: getClassIcon(cl, allPrefixes),
+            curie: toCURIE(cl, allPrefixes),
         });
     }
     return items;
