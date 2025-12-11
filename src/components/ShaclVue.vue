@@ -390,6 +390,7 @@
                                                 </v-expansion-panel-title>
                                                 <v-expansion-panel-text
                                                     density="compact"
+                                                    eager
                                                 >
                                                     <span
                                                         v-if="idRecordLoading"
@@ -399,21 +400,23 @@
                                                         ></v-skeleton-loader>
                                                     </span>
                                                     <span v-else>
-                                                        <FormEditor
-                                                            :key="
-                                                                f.shapeIRI +
-                                                                '-' +
-                                                                f.nodeIDX +
-                                                                '-form-' +
-                                                                f.formType
-                                                            "
-                                                            :shape_iri="
-                                                                f.shapeIRI
-                                                            "
-                                                            :node_idx="
-                                                                f.nodeIDX
-                                                            "
-                                                        ></FormEditor>
+                                                        <div v-show="currentOpenForm === ('panel' + (i + 1))">
+                                                            <FormEditor
+                                                                :key="
+                                                                    f.shapeIRI +
+                                                                    '-' +
+                                                                    f.nodeIDX +
+                                                                    '-form-' +
+                                                                    f.formType
+                                                                "
+                                                                :shape_iri="
+                                                                    f.shapeIRI
+                                                                "
+                                                                :node_idx="
+                                                                    f.nodeIDX
+                                                                "
+                                                            ></FormEditor>
+                                                        </div>
                                                     </span>
                                                 </v-expansion-panel-text>
                                             </v-expansion-panel>
@@ -1184,7 +1187,7 @@ function addInstanceItem() {
     updateURL(selectedIRI.value, true);
 }
 
-async function editInstanceItem(instance, addQuadsToForm = true) {
+async function editInstanceItem(instance, addQuadsToForm = true, removeNode = true) {
     // When user selects to edit, it will be either a namedNode or blankNode
     // and the related information would already be in the graph as triples
     // Also, related information might already be in formData if the user
@@ -1208,7 +1211,7 @@ async function editInstanceItem(instance, addQuadsToForm = true) {
     // set editMode
     editMode.value = true;
     // open formEditor
-    addForm(editShapeIRI.value, editItemIdx.value, 'edit');
+    addForm(editShapeIRI.value, editItemIdx.value, 'edit', removeNode);
     editItem.value = true;
     formOpen.value = true;
     drawer.value = false;
@@ -1450,7 +1453,11 @@ const currentOpenForm = computed(() => {
     return null;
 });
 
-function addForm(shapeIRI, nodeIDX, formType) {
+function addForm(shapeIRI, nodeIDX, formType, removeNode = true) {
+    // shapeIRI: class IRI
+    // nodeIDX: node ID
+    // formType: 'new' | 'edit'
+    // removeNode: true | 'onSave' | 'onCancel' | false
     for (var i = 0; i < openForms.length; i++) {
         openForms[i].disabled = true;
     }
@@ -1460,6 +1467,7 @@ function addForm(shapeIRI, nodeIDX, formType) {
         formType: formType,
         disabled: false,
         activatedInstancesSelectEditor: null,
+        removeNode: removeNode,
     });
     nextTick(() => {
         const el = mainContent.value?.$el || mainContent.value;

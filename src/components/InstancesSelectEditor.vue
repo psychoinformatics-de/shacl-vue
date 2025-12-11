@@ -805,6 +805,7 @@ function handleAddItemClick(item) {
     console.log('New form node IRI');
     console.log(newNodeIdx.value);
     addItemMenu.value = false;
+    menu.value = false;
     addForm(selectedAddItemShapeIRI.value, newNodeIdx.value, 'new');
 }
 

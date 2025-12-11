@@ -114,6 +114,7 @@ import {
     computed,
     toRaw,
     nextTick,
+    watch,
 } from 'vue';
 import { SHACL } from '../modules/namespaces';
 import {
@@ -175,7 +176,8 @@ provide('saveButtonPressed', saveButtonPressed);
 // Storage of save/cancel handlers of all properties of the form
 const handlers = ref({
     'save': [],
-    'cancel': []
+    'cancel': [],
+    'reopen': [],
 });
 function registerHandler(handle, fn) {
     handlers.value[handle].push(fn);
@@ -217,6 +219,23 @@ onBeforeUnmount(() => {
 onMounted(() => {
     console.log(`the FormEditor component is now mounted: ${localShapeIri.value} - ${localNodeIdx.value}`);
 });
+
+// Watch for change in openForm length, specifically if a form is closed leading to reopening
+// of a previous form; if this is true, run all registered 'reopen' handlers
+watch(
+    () => openForms.length,
+    (newLen, oldLen) => {
+        // ignore if a new form is opened
+        if (newLen >= oldLen) return;
+        let newOpenForm = openForms.at(-1);
+        // run reopen handlers from the currently open form
+        if (currentForm.value.shape_iri == newOpenForm.shape_iri && currentForm.value.node_idx == newOpenForm.node_idx) {
+            for (const handler of handlers.value['reopen']) {
+                handler();
+            }
+        }
+    }
+);
 
 // ------------------- //
 // Computed properties //
@@ -299,8 +318,10 @@ async function saveForm() {
             // Remove the node data from formData, because:
             // - submission happens from graph store
             // - formData needed for editing the node will just be generated on-demand in future
-            console.log(`Finished saving; Removing current node: ${saved_node.nodeshape_iri} - ${saved_node.node_iri}`);
-            formData.removeSubject(saved_node.nodeshape_iri, saved_node.node_iri);
+            if (currentForm.value.removeNode === true || currentForm.value.removeNode === 'onSave') {
+                console.log(`Finished saving; Removing current node: ${saved_node.nodeshape_iri} - ${saved_node.node_iri}`);
+                formData.removeSubject(saved_node.nodeshape_iri, saved_node.node_iri);
+            }
             // In order for the node to be submitted, it should have a PID
             // (because blank nodes aren't submitted as such, they are resolved
             // into named nodes), and it should not already be in nodesToSubmit.value.
@@ -361,10 +382,13 @@ function cancelForm() {
     }
     console.log('Cancelling form from FormEditor');
     console.log(`Removing current node: ${localShapeIri.value} - ${localNodeIdx.value}`);
-    // Always remove node from formData:
+    // Always remove node from formData...
     // - if cancelling from new item creation, no quads are in graph store
     // - if cancelling from item editing, true state quads are in graph store
-    formData.removeSubject(localShapeIri.value, localNodeIdx.value);
+    // ... unless explicitly told not to remove form, via openForms removeNode argument:
+    if (currentForm.value.removeNode === true || currentForm.value.removeNode === 'onCancel') {
+        formData.removeSubject(localShapeIri.value, localNodeIdx.value);
+    }
     removeForm(null);
     if (typeof cancelFormHandler === 'function') {
         cancelFormHandler();
