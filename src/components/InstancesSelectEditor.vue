@@ -875,7 +875,7 @@ function getSingleItemToList(subjectValue) {
     const myQuads = rdfDS.data.graph.getQuads(
         nsHasPID.value ? namedNode(subjectValue) : blankNode(subjectValue),
         namedNode(RDF.type.value),
-        namedNode(propClass.value),
+        null,
         null
     );
     let myQuad
