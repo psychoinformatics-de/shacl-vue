@@ -458,7 +458,6 @@ async function updateRecord(fetchData, from) {
 
 async function addRecordProperty(quad, fetchData) {
     var termType = quad.object.termType;
-
     if (
         termType === 'NamedNode' &&
         quad.predicate.value != RDF.type.value &&
@@ -469,6 +468,21 @@ async function addRecordProperty(quad, fetchData) {
             quad.object.value,
             allPrefixes
         );
+    }
+    if (termType === 'BlankNode') {
+        let bnRelatedQuads = rdfDS.getSubjectTriples(quad.object);
+        for (const bnQuad of bnRelatedQuads) {
+            if (bnQuad.object.termType === 'NamedNode') {
+                console.log("Also fetching blank node object record:")
+                console.log(bnQuad.object.value)
+                const results = await fetchFromService(
+                    'get-record',
+                    bnQuad.object.value,
+                    allPrefixes
+                );
+                console.log(results)
+            }
+        }
     }
     if (!record.triples[termType].hasOwnProperty(quad.predicate.value)) {
         record.triples[termType][quad.predicate.value] = {

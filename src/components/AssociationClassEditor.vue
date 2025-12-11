@@ -162,7 +162,7 @@ function valueCombiner(values) {
     return values.selectedInstance || null
 }
 
-onBeforeMount(() => {    
+onBeforeMount(() => {
     associationClass.value = props.property_shape[SHACL.class.value]
     keyPropertyShape.value = getNodeShapePropertyWithAnnotations(props.property_shape[SHACL.class.value], shapesDS, {"dash:propertyRole": "dash:KeyInfoRole"}, allPrefixes)
     keyPropertyClass.value = keyPropertyShape.value[SHACL.class.value]
@@ -341,6 +341,7 @@ function editItem() {
             value: associationClassRecordID.value
         },
         false, // set argument 'quadsToForm' to false to skip the quadsToFormData command, since these quads already exist
+        false, // set argument 'removeNode' to false to tell new form NOT to remove association class record from formdata on save/cancel
     )
 }
 
@@ -376,13 +377,27 @@ function onSave() {
         // knows how to handle null values.
         let allTriples = formData.content[props.node_uid][props.node_idx][props.triple_uid]
         let foundObject = findObjectByKey(allTriples, '_key', componentInstanceKey.value)
-        foundObject.value = null;
+        if (foundObject) foundObject.value = null;
+    }
+}
+
+function onReOpen() {
+    // This might have been a cancel or save, we should only update on save, but we don't have that information currently: TODO
+    // Get all the quads related to this association class record
+    associationClassRecord.relatedQuads = rdfDS.data.graph.getQuads(associationClassQuad.value.subject, null, null, null);
+    // if there are more than 2 related quads (more than just the type quad and the keyPropertyRole quad),
+    // it means there are relations worth showing
+    if (associationClassRecord.relatedQuads.length > 2) {
+        associationClassRecordHasRelations.value = true;
+    } else {
+        associationClassRecordHasRelations.value = false;
     }
 }
 
 onMounted( () => { 
     registerHandler('save', onSave);
     registerHandler('cancel', onCancel);
+    registerHandler('reopen', onReOpen);
     // We need the instance _key for later if the form is saved and unused association class records need to be unlinked
     componentInstanceKey.value = formData.content[props.node_uid][props.node_idx][props.triple_uid][props.triple_idx]._key;
 })

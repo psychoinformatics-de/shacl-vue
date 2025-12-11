@@ -805,6 +805,7 @@ function handleAddItemClick(item) {
     console.log('New form node IRI');
     console.log(newNodeIdx.value);
     addItemMenu.value = false;
+    menu.value = false;
     addForm(selectedAddItemShapeIRI.value, newNodeIdx.value, 'new');
 }
 
@@ -875,7 +876,7 @@ function getSingleItemToList(subjectValue) {
     const myQuads = rdfDS.data.graph.getQuads(
         nsHasPID.value ? namedNode(subjectValue) : blankNode(subjectValue),
         namedNode(RDF.type.value),
-        namedNode(propClass.value),
+        null,
         null
     );
     let myQuad
