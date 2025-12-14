@@ -52,8 +52,8 @@
                 >
                     <template v-slot:default="{ value }">
                         <span class="progress-text" v-if="!fetchingDataLoader">
-                            <span v-if="fetchedItemCount">
-                                {{fetchedItemCount}}<span v-if="totalItemCount && totalItemCount > fetchedItemCount">/{{ totalItemCount }}</span>
+                            <span v-if="filteredItemCount">
+                                {{filteredItemCount}}<span v-if="totalItemCount && totalItemCount > filteredItemCount">/{{ totalItemCount }}</span>
                             </span>
                         </span>
                     </template>
@@ -76,8 +76,8 @@
                                             >Add new item &nbsp;&nbsp;
                                             <v-icon icon="item.icon"
                                                 >mdi-play</v-icon
-                                            ></v-btn
-                                        >
+                                            >
+                                        </v-btn>
                                     </template>
 
                                     <v-list ref="addItemList">
@@ -91,6 +91,34 @@
                                                         <v-icon v-bind="props">{{ item.icon }}</v-icon>
                                                     </template>
                                                 </v-tooltip>&nbsp;&nbsp;&nbsp;{{ item.title }}
+                                            </v-list-item-title>
+                                        </v-list-item>
+                                    </v-list>
+                                </v-menu>
+                                <v-menu v-model="filterItemMenu" location="end">
+                                    <template v-slot:activator="{ props }">
+                                        <v-btn style="margin-top: 5px; margin-left: 10px;" variant="tonal" v-bind="props">
+                                            Filter data &nbsp;&nbsp;
+                                            <v-icon 
+                                                icon="mdi-format-list-checks"
+                                                :color="checkBoxFilterUse == 'all' ? '' : (checkBoxFilterUse == 'some' ? 'primary' : 'error')"
+                                            ></v-icon>
+                                        </v-btn>
+                                    </template>
+
+                                    <v-list ref="filterItemList" multiple>
+                                        <v-list-item @click.stop="onSelectAllFilterItems()">
+                                            <v-icon>{{ selectAllFilterItems ? 'mdi-checkbox-marked-outline' : 'mdi-checkbox-blank-outline' }}</v-icon>
+                                            &nbsp;&nbsp;&nbsp;<em>{{ selectAllFilterItems ? 'Uncheck' : 'Check' }} all</em>
+                                        </v-list-item>
+                                        <v-divider></v-divider>
+                                        <v-list-item
+                                            v-for="item in filterClassList"
+                                            @click.stop="handleFilterItemClick(item)"
+                                        >
+                                            <v-list-item-title>
+                                                <v-icon>{{ item.checked ? 'mdi-checkbox-marked-outline' : 'mdi-checkbox-blank-outline' }}</v-icon>
+                                                &nbsp;&nbsp;&nbsp;{{ item.title }}
                                             </v-list-item-title>
                                         </v-list-item>
                                     </v-list>
@@ -112,7 +140,7 @@
                 <span v-if="itemsToList.length">
                     <DynamicScroller
                         style="max-height: 200px; overflow-y: auto"
-                        :items="filteredItems"
+                        :items="checkBoxFilteredItems"
                         :min-item-size="10"
                         overflow-y
                         key-field="value"
@@ -278,6 +306,7 @@ import {
     provide,
     computed,
     nextTick,
+    reactive
 } from 'vue';
 import { useRules } from '../composables/rules';
 import { DataFactory } from 'n3';
@@ -327,6 +356,7 @@ const queryText = ref('');
 const queryLabel = ref('');
 const menu = ref(false);
 const addItemMenu = ref(false);
+const filterItemMenu = ref(false);
 const scrollerRef = ref(null);
 const itemsToList = ref([]);
 const fetchingDataLoader = ref(false);
@@ -412,6 +442,23 @@ if (allclass_array.length > 1) {
         return a.title.localeCompare(b.title)
     });
 }
+
+const classFilterUpdated = ref(0)
+const filterClassList = reactive(structuredClone(propClassList))
+for (const el of filterClassList) {
+    el.checked = true;
+}
+
+const selectAllFilterItems = ref(true)
+function onSelectAllFilterItems() {
+    selectAllFilterItems.value = !selectAllFilterItems.value;
+    for (const el of filterClassList) {
+        el.checked = selectAllFilterItems.value;
+    }
+    classFilterUpdated.value += 1;
+    console.log(checkBoxFilteredItems.value)
+}
+
 
 const canEditClass = ref(true)
 canEditClass.value = configVarsMain.noEditClasses.indexOf(propClass.value) < 0 ? true : false
@@ -617,7 +664,7 @@ watchEffect(async () => {
 const currentProgress = computed(() => {
     if (fetchingDataLoader.value) return 0
     if (!fetchedItemCount.value || !totalItemCount.value) return 0
-    return  Math.ceil(fetchedItemCount.value / totalItemCount.value * 100)
+    return  Math.ceil(filteredItemCount.value / totalItemCount.value * 100)
 })
 
 function onScrollEnd() {
@@ -809,6 +856,15 @@ function handleAddItemClick(item) {
     addForm(selectedAddItemShapeIRI.value, newNodeIdx.value, 'new');
 }
 
+
+function handleFilterItemClick(item) {
+    if (item) {
+        item.checked = !item.checked;
+        classFilterUpdated.value += 1;
+    }
+    console.log(checkBoxFilteredItems.value)
+}
+
 function prepareItem(myQuad, isTemp = false) {
     return {
         title: myQuad.subject.value,
@@ -817,6 +873,7 @@ function prepareItem(myQuad, isTemp = false) {
             isTemp: isTemp,
             itemQuad: myQuad,
             relatedQuads: [],
+            classIRI: myQuad.object.value,
             subtitle: toCURIE(myQuad.object.value, allPrefixes),
             hasPrefLabel: false,
             hasDisplayLabel: false,
@@ -1012,6 +1069,32 @@ const filteredItems = computed(() => {
             return aVal.localeCompare(bVal);
         });
 });
+
+const checkBoxFilteredItems = computed(() => {
+    classFilterUpdated.value
+    let filterBy = filterClassList.filter(item => item.checked).map(item => item.value);
+    return filteredItems.value.filter(item => {
+        return filterBy.includes(item.props.classIRI)
+    })
+})
+
+const checkBoxFilterUse = computed(() => {
+    classFilterUpdated.value
+    const total = filterClassList.length;
+    let filterBy = filterClassList.filter(item => item.checked).map(item => item.value);
+    if (filterBy.length == total) {
+        return 'all'
+    } else if (filterBy.length == 0) {
+        return 'none'
+    } else {
+        return 'some'
+    }
+})
+
+const filteredItemCount = computed(() => {
+    return checkBoxFilteredItems.value.length;
+})
+
 
 watchEffect(async () => {
     if (config.value?.use_service &&

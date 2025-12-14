@@ -183,6 +183,8 @@ function registerHandler(handle, fn) {
     handlers.value[handle].push(fn);
 }
 provide('registerHandler', registerHandler);
+const show_all_fields = ref(false);
+provide('show_all_fields', show_all_fields);
 
 // ----------------- //
 // Lifecycle methods //
@@ -197,17 +199,13 @@ onBeforeMount(() => {
     if (!currentForm.value) {
         currentForm.value = openForms.at(-1);
     }
-    let showAllFields = false;
     if (config.value.hasOwnProperty('show_all_fields')) {
         if (
             typeof config.value.show_all_fields == 'boolean' &&
             config.value.show_all_fields
         ) {
-            showAllFields = true;
+            show_all_fields = true;
         }
-    }
-    if (!('show_all_fields' in currentForm.value)) {
-        currentForm.value.show_all_fields = showAllFields;
     }
 });
 
@@ -240,13 +238,6 @@ watch(
 // ------------------- //
 // Computed properties //
 // ------------------- //
-
-const show_all_fields = computed({
-    get: () => currentForm.value.show_all_fields,
-    set: v => currentForm.value.show_all_fields = v
-})
-provide('show_all_fields', show_all_fields);
-
 const formattedDescription = computed(() => {
     // For the class description, use a regular expression to replace text between backticks with <code> tags
     if (shape_obj && shape_obj[SHACL.description.value]) {

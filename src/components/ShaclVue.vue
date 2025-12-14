@@ -5,16 +5,26 @@
             <span v-if="page_ready">
                 <v-card>
                     <v-layout>
+                        <v-btn
+                            v-if="mobile"
+                            :disabled="formOpen"
+                            :icon="drawer ? 'mdi-chevron-left' : 'mdi-chevron-right'"
+                            size="40"
+                            class="drawer-fab"
+                            @click="drawer = !drawer"
+                            theme="dark"
+                            :color="configVarsMain.appTheme.panel_color"
+                            >
+                        </v-btn>
+
                         <v-navigation-drawer
                             theme="dark"
                             :color="configVarsMain.appTheme.panel_color"
                             v-model="drawer"
                             style="overflow-y: auto"
-                            :disable-resize-watcher="true"
-                            :permanent="true"
-                            :temporary="false"
-                            :floating="false"
-                            :mobile-breakpoint="0"
+                            :permanent="!mobile"
+                            :temporary="mobile"
+                            app
                         >
                             <v-list
                                 nav
@@ -497,6 +507,8 @@ import {
     DynamicScroller,
     DynamicScrollerItem,
 } from 'vue-virtual-scroller';
+import { useDisplay } from 'vuetify'
+const { smAndDown, mobile } = useDisplay()
 const { namedNode } = DataFactory;
 
 const props = defineProps({
@@ -846,7 +858,7 @@ const addItem = ref(false);
 const newItemIdx = ref(null);
 const editItem = ref(false);
 const formOpen = ref(false);
-const drawer = ref(true);
+const drawer = mobile.value ? ref(false) : ref(true);
 const editShapeIRI = ref(null);
 const editItemIdx = ref(null);
 const editMode = ref(false);
@@ -1062,6 +1074,9 @@ async function selectType(IRI, fromUser, fromBackButton) {
         }
     } else {
         firstNavigationDone.value = true;
+    }
+    if (mobile.value) {
+        drawer.value = false;
     }
 }
 
@@ -1485,7 +1500,7 @@ function removeForm(savedNode) {
     } else {
         editItem.value = false;
         formOpen.value = false;
-        drawer.value = true;
+        drawer.value = mobile.value ? false : true;
         canSubmit.value = true;
         editMode.value = false;
         updateURL(selectedIRI.value, false);
@@ -1581,5 +1596,13 @@ a:active {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+.drawer-fab {
+  position: fixed;
+  top: var(--v-layout-top);
+  left: 0;
+  border-radius: 0 6px 6px 0;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.3);
+  z-index: 2000;
 }
 </style>
