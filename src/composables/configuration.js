@@ -139,7 +139,7 @@ export function useConfig(url) {
                 if (isObject(config.value[key])) {
                     configVarsMain[snakeToCamel(key)] = val;
                     for (const [k, v] of Object.entries(config.value[key])) {
-                        if (v) configVarsMain[snakeToCamel(key)][k] = v;
+                        configVarsMain[snakeToCamel(key)][k] = v
                     }
                 } else {
                     configVarsMain[snakeToCamel(key)] = config.value[key];
