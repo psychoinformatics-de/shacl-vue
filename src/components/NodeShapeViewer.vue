@@ -1,6 +1,6 @@
 <template>
     <v-card class="mx-4 mb-4" :variant="props.variant">
-        <v-card-title class="text-h6" style="display: flex; align-items: center; gap: 6px;">
+        <v-card-title :class="mobile ? 'text-body-1' : 'text-h6'" style="display: flex; align-items: center; gap: 6px;">
             <v-icon>{{ getClassIcon(props.classIRI) }}</v-icon
             >&nbsp;
             <span class="card-title">
@@ -17,12 +17,13 @@
                 >
             </span>
         </v-card-title>
-        <v-card-subtitle>
-            Type: <em>{{ toCURIE(record.subtitle, allPrefixes) }}</em>
+        <v-card-subtitle :class="mobile ? 'text-caption' : ''">
+            Type: <em>{{ toCURIE(record.subtitle, allPrefixes) }}</em> <span v-if="!mobile">&nbsp;</span>
+            <span v-if="mobile"><br></span>
             <span v-if="!props.formOpen">
                 <v-tooltip text="Edit record" location="bottom">
                     <template v-slot:activator="{ props }">
-                        &nbsp;
+                        <span v-if="!mobile">&nbsp;</span>
                         <v-btn
                             icon="mdi-pencil"
                             variant="tonal"
@@ -67,7 +68,7 @@
                 </span>
             </span>
         </v-card-subtitle>
-        <v-card-text v-if="!props.formOpen">
+        <v-card-text v-if="!props.formOpen" :class="mobile ? 'text-caption' : ''">
             <strong>Persistent Identifier</strong>: &nbsp;{{ record.title}}<br/>
 
             <!-- Literal nodes -->
@@ -191,6 +192,7 @@
                 :append-icon="
                     showBlankNodes ? 'mdi-chevron-down' : 'mdi-chevron-right'
                 "
+                :class="mobile ? 'text-overline': ''"
                 >More details</v-btn
             >
             <span v-if="showBlankNodes">
@@ -231,7 +233,7 @@
 
     <v-dialog
         v-model="ttlDialog"
-        max-width="60%"
+        :max-width="mobile ? '90%' : '60%'"
         @click:outside="ttlDialog = false"
     >
         <v-card>
@@ -288,6 +290,8 @@ import {
 import { RDF, SHACL } from '@/modules/namespaces';
 import MoreOrLessRecordsViewer from './MoreOrLessRecordsViewer.vue';
 import { useCompConfig } from '@/composables/useCompConfig';
+import { useDisplay } from 'vuetify'
+const { mobile } = useDisplay()
 // Define component properties
 const props = defineProps({
     classIRI: String,
@@ -546,5 +550,10 @@ async function copyTextToClipboard(text) {
     max-width: 90%;
     line-height: 1.2em;
     vertical-align: middle;
+}
+.mobile-scaled {
+    transform: scale(0.75);
+    transform-origin: top left;
+    width: 120%;
 }
 </style>

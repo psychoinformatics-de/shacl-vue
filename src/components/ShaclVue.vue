@@ -102,6 +102,7 @@
                             <v-container fluid>
                                 <v-row>
                                     <v-col
+                                        v-show="formOpen ? (mobile ? false : true) : true"
                                         :cols="formOpen ? 3 : 12"
                                         class="transition-all"
                                         :class="
@@ -189,7 +190,7 @@
                                                             instanceItemsComp.length
                                                         "
                                                     >
-                                                        <v-col cols="8">
+                                                        <v-col :cols="mobile ? 12 : 8">
                                                             <v-text-field
                                                                 v-model="
                                                                     searchText
@@ -206,6 +207,7 @@
                                                                     0
                                                                 "
                                                                 @update:modelValue="onUserTyping"
+                                                                :class="mobile ? 'mobile-scaled' : '' "
                                                             >
                                                                 <template
                                                                     v-slot:append-inner
@@ -226,24 +228,26 @@
                                                                 <template
                                                                     #append
                                                                 >
+                                                                <span v-if="mobile">
                                                                     <v-btn
                                                                         variant="outlined"
-                                                                        @click="
-                                                                            toggleOrder
-                                                                        "
-                                                                        :append-icon="
-                                                                            orderIcon
-                                                                        "
-                                                                        :disabled="
-                                                                            openForms.length >
-                                                                            0
-                                                                        "
-                                                                        >Order</v-btn
-                                                                    >
+                                                                        @click="toggleOrder"
+                                                                        :icon="orderIcon"
+                                                                        :disabled="openForms.length >0"
+                                                                    ></v-btn>
+                                                                </span>
+                                                                <span v-else>
+                                                                    <v-btn
+                                                                        variant="outlined"
+                                                                        @click="toggleOrder"
+                                                                        :append-icon="orderIcon"
+                                                                        :disabled="openForms.length >0"
+                                                                    >Order</v-btn>
+                                                                </span>
                                                                 </template>
                                                             </v-text-field>
                                                         </v-col>
-                                                        <v-col> </v-col>
+                                                        <v-col v-if="!mobile"> </v-col>
                                                     </v-row>
                                                     <v-tooltip text="Scroll to top" location="top end">
                                                         <template v-slot:activator="{ props }">
@@ -359,7 +363,7 @@
                                         </span>
 
                                     </v-col>
-                                    <v-col v-if="formOpen" cols="9">
+                                    <v-col v-if="formOpen" :cols="mobile ? 12 : 9">
                                         <v-expansion-panels
                                             variant="accordion"
                                             v-model="currentOpenForm"
@@ -1513,6 +1517,23 @@ function removeForm(savedNode) {
 provide('addForm', addForm);
 provide('openForms', openForms);
 provide('removeForm', removeForm);
+
+
+const showRecords = computed(() => {
+    if (formOpen.value) {
+        if (mobile.value) {
+            return false
+        } else {
+            return true
+        }
+    } else {
+        return true;
+    }
+
+    return formOpen ? (mobile ? false : true) : true
+})
+
+
 </script>
 
 <style>
@@ -1604,5 +1625,10 @@ a:active {
   border-radius: 0 6px 6px 0;
   box-shadow: 2px 0 6px rgba(0, 0, 0, 0.3);
   z-index: 2000;
+}
+.mobile-scaled {
+    transform: scale(0.75);
+    transform-origin: top left;
+    width: 120%;
 }
 </style>

@@ -5,7 +5,7 @@
         style="margin-bottom: 0; padding-bottom: 0; background-color: white"
         no-gutters
     >
-        <v-card-text style="padding: 0.5em; background-color: white">
+        <v-card-text style="padding: 0.5em; background-color: white" :class="mobile ? 'text-caption' : ''">
             <v-row align="center" class="d-inline-flex">
                 <v-col style="flex: 0 0 30px; max-width: 30px;">
                     <v-icon class="mr-1">
@@ -123,6 +123,8 @@ import { reactive, onBeforeMount, inject, onUpdated } from 'vue';
 import { toCURIE } from 'shacl-tulip';
 import { makeReadable, nameOrCURIE, getPrefLabel, hasConfigDisplayLabel, getConfigDisplayLabel, getSubjectQuad, getPidQuad, getRecordDisplayLabel} from '../modules/utils';
 import { RDF, SHACL} from '@/modules/namespaces';
+import { useDisplay } from 'vuetify'
+const { mobile } = useDisplay()
 // Define component properties
 const props = defineProps({
     node: Object,

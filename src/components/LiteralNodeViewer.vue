@@ -4,7 +4,7 @@
             density="compact"
             no-gutters
             size="small"
-            style="border-radius: 5px;"
+            variant="text"
             :icon="btnExpanded ? 'mdi-chevron-down' : 'mdi-chevron-right'"
             @click="expandBtnOnclick()">
         </v-btn>&nbsp;
