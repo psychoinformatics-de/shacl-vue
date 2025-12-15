@@ -1,5 +1,5 @@
 <template>
-    <v-sheet ref="mainSheet" class="pa-4 scaled-sheet" border rounded elevation="2">
+    <v-sheet ref="mainSheet" class="pa-4" :class="mobile ? 'scaled-sheet-mobile' : 'scaled-sheet'" :border="mobile?false:true" :rounded="mobile?false:true" >
         <div style="display: flex; position: relative">
             <h3>
                 <v-tooltip :text="toCURIE(localShapeIri, allPrefixes)" location="bottom">
@@ -11,24 +11,46 @@
             </h3>
 
             <div style="display: flex; margin-left: auto">
-                <v-btn
-                    text="Cancel"
-                    @click="cancelForm()"
-                    style="margin-left: auto; margin-right: 1em"
-                    prepend-icon="mdi-close-box"
-                ></v-btn>
-                <v-btn
-                    text="Reset"
-                    @click="resetForm()"
-                    style="margin-right: 1em"
-                    prepend-icon="mdi-undo"
-                ></v-btn>
-                <v-btn
-                    text="Save"
-                    type="submit"
-                    @click="saveForm()"
-                    prepend-icon="mdi-content-save"
-                ></v-btn>
+                <span v-if="mobile">
+                    <v-btn
+                        @click="cancelForm()"
+                        style="margin-left: auto; margin-right: 1em"
+                        icon="mdi-close-box"
+                        size="small"
+                    ></v-btn>
+                    <v-btn
+                        @click="resetForm()"
+                        style="margin-right: 1em"
+                        icon="mdi-undo"
+                        size="small"
+                    ></v-btn>
+                    <v-btn
+                        type="submit"
+                        @click="saveForm()"
+                        icon="mdi-content-save"
+                        size="small"
+                    ></v-btn>
+                </span>
+                <span v-else>
+                    <v-btn
+                        text="Cancel"
+                        @click="cancelForm()"
+                        style="margin-left: auto; margin-right: 1em"
+                        prepend-icon="mdi-close-box"
+                    ></v-btn>
+                    <v-btn
+                        text="Reset"
+                        @click="resetForm()"
+                        style="margin-right: 1em"
+                        prepend-icon="mdi-undo"
+                    ></v-btn>
+                    <v-btn
+                        text="Save"
+                        type="submit"
+                        @click="saveForm()"
+                        prepend-icon="mdi-content-save"
+                    ></v-btn>
+                </span>
             </div>
 
             <div
@@ -123,6 +145,8 @@ import {
     findObjectByKey,
 } from '../modules/utils';
 import { toCURIE } from 'shacl-tulip';
+import { useDisplay } from 'vuetify'
+const { mobile } = useDisplay()
 
 // ----- //
 // Props //
@@ -425,6 +449,11 @@ function goToError(e) {
 .scaled-sheet {
     transform: scale(0.9);
     transform-origin: top;
+}
+.scaled-sheet-mobile {
+    transform: scale(0.75);
+    transform-origin: top left;
+    width: 130%;
 }
 .quote-description {
     border-left: 3px solid rgb(154, 153, 153);

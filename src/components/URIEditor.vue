@@ -6,55 +6,51 @@
         :id="inputId"
         hide-details="auto"
     >
-        <v-row justify="start" no-gutters>
-            <v-col cols="9">
-                <span v-if="!enterCURIE">
-                    <v-text-field
-                        v-model="subValues.uri_text"
-                        label="add URI text"
-                        density="compact"
-                        variant="outlined"
-                        hide-details="auto"
-                    ></v-text-field>
-                </span>
-                <span v-else>
-                    <v-row justify="start" no-gutters>
-                        <v-col cols="5">
-                            <v-select
-                                label="prefix"
-                                v-model="subValues.uri_prefix"
-                                :items="prefixOptions"
-                                density="compact"
-                                variant="outlined"
-                                style="margin-bottom: 0; padding-bottom: 0"
-                                hide-details="auto"
-                            ></v-select>
-                        </v-col>
-                        <v-col cols="7">
-                            <v-text-field
-                                v-model="subValues.uri_path"
-                                density="compact"
-                                style="margin-bottom: 0; padding-bottom: 0"
-                                variant="outlined"
-                                label="add text"
-                                validate-on="lazy input"
-                                hide-details="auto"
-                            >
-                            </v-text-field>
-                        </v-col>
-                    </v-row>
-                </span>
-            </v-col>
-            <v-col>
+        <v-container fluid class="pa-0 ma-0">
+            <v-row justify="start" no-gutters class="ma-0 pa-0">
                 <v-checkbox
+                    class="ma-0 pa-0 scaled-comp"
                     v-model="enterCURIE"
                     density="compact"
                     label="CURIE"
-                    hide-details="true"
-                    class="scaled-comp"
+                    hide-details="auto"
                 ></v-checkbox>
-            </v-col>
-        </v-row>
+            </v-row>
+            <v-row v-if="!enterCURIE" justify="start" no-gutters>
+                <v-text-field
+                    v-model="subValues.uri_text"
+                    label="add URI text"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                ></v-text-field>
+            </v-row>
+            <v-row v-else justify="start" no-gutters>
+                <v-col cols="5">
+                    <v-select
+                        label="prefix"
+                        v-model="subValues.uri_prefix"
+                        :items="prefixOptions"
+                        density="compact"
+                        variant="outlined"
+                        style="margin-bottom: 0; padding-bottom: 0"
+                        hide-details="auto"
+                    ></v-select>
+                </v-col>
+                <v-col cols="7">
+                    <v-text-field
+                        v-model="subValues.uri_path"
+                        density="compact"
+                        style="margin-bottom: 0; padding-bottom: 0"
+                        variant="outlined"
+                        label="add text"
+                        validate-on="lazy input"
+                        hide-details="auto"
+                    >
+                    </v-text-field>
+                </v-col>
+            </v-row>
+        </v-container>
     </v-input>
 </template>
 
@@ -203,6 +199,6 @@ export const matchingLogic = (shape) => {
     margin-left: 0.5em;
     padding-top: 0;
     transform: scale(0.85);
-    transform-origin: center;
+    transform-origin: top left;
 }
 </style>
