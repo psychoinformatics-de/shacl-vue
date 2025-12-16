@@ -2,7 +2,7 @@ import { reactive, ref } from 'vue';
 import { RdfDataset } from 'shacl-tulip';
 import { DataFactory, Store, Parser } from 'n3';
 import { RDF } from '@/modules/namespaces';
-import { hashSubgraph } from '@/modules/utils';
+import { hashSubgraph, getNodeContextKey, collectBlankNodeHierarchy} from '@/modules/utils';
 const { blankNode} = DataFactory;
 
 export class ReactiveRdfDataset extends RdfDataset {
@@ -11,7 +11,7 @@ export class ReactiveRdfDataset extends RdfDataset {
         super(data);
         this.data.graphChanged = ref(0);
         this.data.batchMode = false;
-        // Track blank-node subgraph hashes by root named node
+        // Track blank-node subgraph hashes by root named node and context (i.e. path)
         this.data.subgraphFingerprintsByRoot = new Map();
     }
 
@@ -141,22 +141,26 @@ export class ReactiveRdfDataset extends RdfDataset {
         if (!this.data.subgraphFingerprintsByRoot.has(root_node)) {
             this.data.subgraphFingerprintsByRoot.set(root_node, new Set());
         }
-        const fingerprintSet = this.data.subgraphFingerprintsByRoot.get(root_node);
+        const fingerprintSet = this.data.subgraphFingerprintsByRoot.get(root_node);        
         // Add fingerprint for each blank node subgraph
         for (const bnodeId of blankSubjects) {
-            // Get the subgraph for this blank node
-            const subgraph = tempStore.getQuads(blankNode(bnodeId), null, null, null);
+            const bnode = blankNode(bnodeId);
+            // Get the subgraph for this blank node, recursively collecting blank nodes
+            const subgraph = collectBlankNodeHierarchy(tempStore, bnode);
             // If no quads, skip
             if (!subgraph.length) continue;
-            // Calculate hash signature
+            // Calculate hash signature and context key
             const fingerprint = await hashSubgraph(subgraph);
+            const contextKey = getNodeContextKey(tempStore, bnode);
+            // Combine them for deduplication key
+            const dedupKey = `${contextKey}::${fingerprint}`;
             // Deduplicate in the context of the current named node
-            if (!fingerprintSet.has(fingerprint)) {
-                fingerprintSet.add(fingerprint);
+            if (!fingerprintSet.has(dedupKey)) {
+                fingerprintSet.add(dedupKey);
                 // Add to main graph store
                 this.data.graph.addQuads(subgraph);
                 addedQuads = addedQuads.concat(subgraph);
-                const linkingQuads = tempStore.getQuads(null, null, blankNode(bnodeId), null);
+                const linkingQuads = tempStore.getQuads(null, null, bnode, null);
                 if (linkingQuads.length) {
                     this.data.graph.addQuads(linkingQuads);
                     addedQuads = addedQuads.concat(linkingQuads);

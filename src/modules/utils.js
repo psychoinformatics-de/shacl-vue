@@ -528,6 +528,55 @@ export async function hashSubgraph(quads) {
     return hashHex
 }
 
+export function getNodeContextKey(store, node) {
+    // This function produces a context key of a blank node with respect to its
+    // parent node(s), based on the parent node type and specific predicate that
+    // references the blank node. It is used in deduplication in order to provide
+    // the context for a blank node (to assist the subgraph structure hash) 
+    
+    // Named node = absolute root
+    if (node.termType === 'NamedNode') {
+        return `N:${node.value}`;
+    }
+    // Find immediate parents
+    const incoming = store.getQuads(null, null, node, null);
+    // No parents: anonymous root
+    if (!incoming.length) {
+        return 'B:ROOT';
+    }
+    // Use immediate parent + predicate
+    const parts = incoming.map(q => {
+        const parent = q.subject;
+        const parentKey =
+            parent.termType === 'NamedNode'
+                ? `N:${parent.value}`
+                : 'B:PARENT';
+        return `${parentKey}|${q.predicate.value}`;
+    }).sort();
+    return `B(${parts.join(',')})`;
+}
+
+export function collectBlankNodeHierarchy(store, rootBNode) {
+    // Returns an array of quads that map the hierarchy of a blank node
+    // and the quads that reference it as a subject, recursively
+    const collected = [];
+    const visited = new Set();
+    function visit(node) {
+        if (visited.has(node.value)) return;
+        visited.add(node.value);
+        const quads = store.getQuads(node, null, null, null);
+        for (const q of quads) {
+            collected.push(q);
+            if (q.object.termType === 'BlankNode') {
+                visit(q.object);
+            }
+        }
+    }
+    visit(rootBNode);
+    return collected;
+}
+
+
 export function getRecordQuads(pid, graph, recursive=false) {
     // Return an array of quads related to a specific named node
     // Default will return only the first level of quads, i.e. all quads
