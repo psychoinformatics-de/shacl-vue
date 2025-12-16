@@ -448,6 +448,10 @@ export function getRecordDisplayLabel(subjectTerm, rdfDS, allPrefixes, configVar
         // clogging the console
         return displayLabel
     }
+    // If the record has a preflabel, return that
+    let prefLabel = getPrefLabel(subjectTerm, rdfDS, allPrefixes)
+    if (prefLabel) return prefLabel
+    // Otherwise determine from config
     let classIRI = subjQ.object.value;
     let relatedQuads = rdfDS.getSubjectTriples(subjectTerm);
     // Convert to triples as an object with predicate-object key-values
