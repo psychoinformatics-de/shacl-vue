@@ -41,6 +41,7 @@
                                 localNodeUid
                             ][localNodeIdx][my_uid]"
                             :key="localNodeUid + '-' + my_uid + '-' + tripleObj._key"
+                            :class="isExtraIndex(triple_idx) ? 'index-row' : ''"
                         >
                             <v-col v-if="triple_idx < currentCount" cols="9" class="d-flex align-center" @click.stop="showTooltip = false" @mouseenter="showTooltip = false">      
                                 &nbsp;              
@@ -451,6 +452,13 @@ function removeTriple(class_uri, subject_uri, predicate_uri, current_idx) {
         currentCount.value = l;
     }
 }
+
+function isExtraIndex(idx) {
+    if (formData.content[localNodeUid.value][localNodeIdx.value][my_uid.value].length > 1 && idx > 0) {
+        return true
+    }
+    return false
+}
 </script>
 
 <style scoped>
@@ -489,6 +497,9 @@ function removeTriple(class_uri, subject_uri, predicate_uri, current_idx) {
 .disabled-row:hover {
     background-color: inherit; /* prevent hover highlight */
     cursor: not-allowed;
+}
+.index-row {
+    margin-top: 6px !important;
 }
 </style>
 
