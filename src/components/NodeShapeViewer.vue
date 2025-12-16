@@ -147,7 +147,7 @@
                             </span>
                         </span>
                         <span v-else>
-                            <strong>{{ k }}bla</strong
+                            <strong>{{ k }}</strong
                             >:
                             <span v-for="(el, i) in v.values">
                                 <span v-if="i < showCounts['NamedNode'][k]">
@@ -178,7 +178,7 @@
                 ></MoreOrLessRecordsViewer>
                 <span v-for="(item, i) in v.displayLabels">
                     <span v-if="i < showCounts['BlankNodeSpecial'][k]" class="line-item">
-                        &nbsp;-&nbsp; <LiteralNodeViewer :textVal="item.displayLabel" :wrap="textWrapping" :width="textTruncateWidth" :allowLink="false"></LiteralNodeViewer>
+                        &nbsp;-&nbsp; <LiteralNodeViewer :textVal="item.displayLabel" :wrap="'wrap'" :allowLink="false"></LiteralNodeViewer>
                     </span>
                 </span>
             </span>

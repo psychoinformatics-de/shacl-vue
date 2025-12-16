@@ -1,18 +1,20 @@
 <template>
-    <span v-if="isTruncated">
-        <v-btn
-            density="compact"
-            no-gutters
-            size="small"
-            variant="text"
-            :icon="btnExpanded ? 'mdi-chevron-down' : 'mdi-chevron-right'"
-            @click="expandBtnOnclick()">
-        </v-btn>&nbsp;
-    </span>
-    <span v-if="isLink && allowLink" @click="expandBtnOnclick()">
-        <a :href="hrefVal" target="_blank" ref="el" :class="computedClass" :style="computedStyle">{{ contentVal }}</a>
-    </span>
-    <span v-else ref="el" :class="computedClass" :style="computedStyle" @click="expandBtnOnclick()">{{ textVal }}</span>
+    <div style="margin: 0; padding: 0; display: inline;">
+        <span v-if="isTruncated && props.wrap != 'wrap'">
+            <v-btn
+                density="compact"
+                no-gutters
+                size="small"
+                variant="text"
+                :icon="btnExpanded ? 'mdi-chevron-down' : 'mdi-chevron-right'"
+                @click="expandBtnOnclick()">
+            </v-btn>&nbsp;
+        </span>
+        <span v-if="isLink && allowLink" @click="expandBtnOnclick()">
+            <a :href="hrefVal" target="_blank" ref="el" :class="computedClass" :style="computedStyle">{{ contentVal }}</a>
+        </span>
+        <span v-else ref="el" :class="computedClass" :style="computedStyle" @click="expandBtnOnclick()">{{ textVal }}</span>
+    </div>
 </template>
 
 <script setup>
@@ -68,7 +70,7 @@ const computedStyle = computed(() => {
     if (localWrap.value === 'nowrap') {
         style.maxWidth = typeof props.width === 'number' ? `${props.width}px` : props.width;
     }
-    style.cursor = isTruncated.value ? 'pointer' : '';
+    style.cursor = isTruncated.value && props.wrap !== 'nowrap' ? 'pointer' : '';
     return style;
 });
 const computedClass = computed(() => {
@@ -76,6 +78,7 @@ const computedClass = computed(() => {
 });
 
 function expandBtnOnclick() {
+    if (props.wrap === 'wrap') return;
     btnExpanded.value = !btnExpanded.value;
     if (localWrap.value == 'nowrap' && btnExpanded.value) {
         localWrap.value = 'wrap';
