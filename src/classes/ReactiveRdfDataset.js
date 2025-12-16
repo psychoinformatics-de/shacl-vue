@@ -149,7 +149,7 @@ export class ReactiveRdfDataset extends RdfDataset {
             const subgraph = collectBlankNodeHierarchy(tempStore, bnode);
             // If no quads, skip
             if (!subgraph.length) continue;
-            // Calculate hash signature and contect key
+            // Calculate hash signature and context key
             const fingerprint = await hashSubgraph(subgraph);
             const contextKey = getNodeContextKey(tempStore, bnode);
             // Combine them for deduplication key
