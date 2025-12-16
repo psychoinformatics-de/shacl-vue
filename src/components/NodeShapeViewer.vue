@@ -147,7 +147,7 @@
                             </span>
                         </span>
                         <span v-else>
-                            <strong>{{ k }}bla</strong
+                            <strong>{{ k }}</strong
                             >:
                             <span v-for="(el, i) in v.values">
                                 <span v-if="i < showCounts['NamedNode'][k]">
@@ -172,13 +172,23 @@
                         )
                     }}
                 </strong>:&nbsp;&nbsp;<MoreOrLessRecordsViewer
-                    :records="v.values"
+                    :records="v.items.map(i => i.value)"
                     v-model:count="showCounts['BlankNodeSpecial'][k]"
                     :stepSize="defaultStep"
                 ></MoreOrLessRecordsViewer>
-                <span v-for="(item, i) in v.displayLabels">
+                <span v-for="(item, i) in v.items">
                     <span v-if="i < showCounts['BlankNodeSpecial'][k]" class="line-item">
-                        &nbsp;-&nbsp; <LiteralNodeViewer :textVal="item.displayLabel" :wrap="textWrapping" :width="textTruncateWidth" :allowLink="false"></LiteralNodeViewer>
+                        <span v-if="item.keyPropertyRole?.classIRI && item.keyPropertyRole?.recordPID">
+                            &nbsp;-&nbsp;
+                            <a
+                                style="cursor: pointer"
+                                @click.prevent="selectNamedNode(item.keyPropertyRole.classIRI, item.keyPropertyRole.recordPID)"
+                                >{{ item.displayLabel }}</a
+                            >
+                        </span>
+                        <span v-else>
+                            &nbsp;-&nbsp;<LiteralNodeViewer :textVal="item.displayLabel" :wrap="'wrap'" :allowLink="false"></LiteralNodeViewer>
+                        </span>
                     </span>
                 </span>
             </span>
@@ -212,8 +222,8 @@
                         :stepSize="defaultStep"
                     ></MoreOrLessRecordsViewer>
                     <br />
-                    <span v-if="specialBlankNodes[k]?.displayLabels">
-                        <span v-for="(item, i) in specialBlankNodes[k]?.displayLabels">
+                    <span v-if="specialBlankNodes[k]?.items">
+                        <span v-for="(item, i) in specialBlankNodes[k].items">
                             <div v-if="i < showCounts['BlankNode'][k]">
                                 <BlankNodeViewer :node="item.value" />
                             </div>
@@ -286,6 +296,8 @@ import {
     getRecordQuads,
     getRecordDisplayLabel,
     hasConfigDisplayLabel,
+    getNodeShapePropertyWithAnnotations,
+    getSubjectQuad,
 } from '../modules/utils';
 import { RDF, SHACL } from '@/modules/namespaces';
 import MoreOrLessRecordsViewer from './MoreOrLessRecordsViewer.vue';
@@ -378,6 +390,7 @@ const specialBlankNodes = computed( () => {
         const merged = v.values.map((value, i) => ({
             value,
             displayLabel: v.displayLabels?.[i] ?? '',
+            keyPropertyRole: v.keyPropertyRoles?.[i] ?? null,
         }))
         const sorted = merged.sort((a, b) => {
             // display labels starting with 'http' are deprioritized
@@ -390,7 +403,7 @@ const specialBlankNodes = computed( () => {
         })
         result[key] = {
             ...v,
-            displayLabels: sorted,
+            items: sorted,
         }
     }
     return result
@@ -473,7 +486,19 @@ async function addRecordProperty(quad, fetchData) {
             allPrefixes
         );
     }
+    if (!record.triples[termType].hasOwnProperty(quad.predicate.value)) {
+        record.triples[termType][quad.predicate.value] = {
+            values: [],
+            displayLabels: [],
+            prefLabels: [],
+            keyPropertyRoles: [],
+        };
+    }
+    let kpr = null
     if (termType === 'BlankNode') {
+        let ps = propertyShapes[quad.predicate.value]
+        let keyPropertyShape = getNodeShapePropertyWithAnnotations(ps[SHACL.class.value], shapesDS, {"dash:propertyRole": "dash:KeyInfoRole"}, allPrefixes)
+        let keyPropertyRole = keyPropertyShape ? keyPropertyShape[SHACL.path.value] : null
         let bnRelatedQuads = rdfDS.getSubjectTriples(quad.object);
         for (const bnQuad of bnRelatedQuads) {
             if (bnQuad.object.termType === 'NamedNode') {
@@ -486,15 +511,27 @@ async function addRecordProperty(quad, fetchData) {
                 );
                 console.log(results)
             }
+            if (keyPropertyRole && bnQuad.predicate.value === keyPropertyRole) {
+                let iri = null
+                let subjQ = getSubjectQuad(bnQuad.object, rdfDS.data.graph)
+                if (subjQ) {
+                    iri = subjQ?.object?.value
+                } else {
+                    iri = keyPropertyShape[SHACL.class.value];
+                }
+                kpr = {
+                    classIRI: iri,
+                    recordPID: bnQuad.object.value
+                }
+            }
         }
     }
-    if (!record.triples[termType].hasOwnProperty(quad.predicate.value)) {
-        record.triples[termType][quad.predicate.value] = {
-            values: [],
-            displayLabels: [],
-            prefLabels: [],
-        };
+    if (kpr) {
+        record.triples[termType][quad.predicate.value].keyPropertyRoles.push(kpr);
+    } else {
+        record.triples[termType][quad.predicate.value].keyPropertyRoles.push(null);
     }
+    // selectNamedNode(currentClassIRI, currentRecordPID)
     record.triples[termType][quad.predicate.value].values.push(quad.object);
 }
 
