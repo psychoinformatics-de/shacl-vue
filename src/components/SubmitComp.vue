@@ -38,6 +38,7 @@
                     <span v-else>
                         Please add a valid token before submitting your changes.
                         <v-form ref="submitForm">
+                            <v-text-field name="username" autocomplete="username" style="display: none;"></v-text-field>
                             <v-text-field
                                 v-model="tokenval"
                                 :rules="rules"
@@ -45,6 +46,8 @@
                                     visible ? 'mdi-eye-off' : 'mdi-eye'
                                 "
                                 :type="visible ? 'text' : 'password'"
+                                name="password"
+                                autocomplete="current-password"
                                 density="compact"
                                 placeholder="token"
                                 prepend-inner-icon="mdi-lock-outline"

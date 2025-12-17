@@ -132,8 +132,9 @@
                 <v-form
                     ref="tokenForm"
                     validate-on="submit lazy"
-                    @submit.prevent
+                    @submit.prevent="save"
                 >
+                    <v-text-field name="username" autocomplete="username" style="display: none;"></v-text-field>
                     <v-text-field
                         v-model="tokenval"
                         :rules="rules"
@@ -141,22 +142,20 @@
                         :type="visible ? 'text' : 'password'"
                         density="compact"
                         placeholder="token"
+                        name="password"
+                        autocomplete="current-password"
                         prepend-inner-icon="mdi-lock-outline"
                         variant="outlined"
                         :error-messages="customError"
                         @click:append-inner="visible = !visible"
                     ></v-text-field>
+                    <div style="display: flex;">
+                        <v-btn @click="cancel()" style="margin-left: auto; margin-right: 0.5em;"><v-icon>mdi-close</v-icon> Cancel</v-btn>
+                        <v-btn @click="reset()" style="margin-right: 0.5em;"><v-icon>mdi-undo</v-icon> Reset</v-btn>
+                        <v-btn type="submit"><v-icon>mdi-check-circle-outline</v-icon> Save</v-btn>
+                    </div>
                 </v-form>
             </v-card-text>
-            <v-card-actions>
-                <v-btn @click="cancel()"
-                    ><v-icon>mdi-close</v-icon> Cancel</v-btn
-                >
-                <v-btn @click="reset()"><v-icon>mdi-undo</v-icon> Reset</v-btn>
-                <v-btn type="submit" @click="save()"
-                    ><v-icon>mdi-check-circle-outline</v-icon> Save</v-btn
-                >
-            </v-card-actions>
         </v-card>
     </v-dialog>
 </template>
