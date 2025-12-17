@@ -33,7 +33,7 @@ An example configuration could be:
 ```
 
 - setting `use_gitannex_p2phttp` to true tells the app to allow file uploads
-- the `base_url` should point to the `git-annex` `p2phttp` server location
+- the `base_url` should point to the `git-annex` `p2phttp` server location. On any `forgejo-aneksajo` deployment, this location is always at ``<hub-URL>/git-annex-p2phttp/git-annex``.
 - `annex_uuid` should be the UUID of the `git-annex` repository to which files will be uploaded
 - the `client_uuid` is arbitrarily set to `"shacl-vue"`
 
