@@ -6,79 +6,85 @@
         :id="inputId"
         hide-details="auto"
     >
-        <v-row>
-            <v-col cols="4">
-                <span v-if="subValues.selectedFormat == 'YYYY-MM-DD'">
-                    <v-dialog max-width="500">
-                        <template v-slot:activator="{ props: activatorProps }">
-                                <v-btn
-                                    v-bind="activatorProps"
-                                    :text="internalValue ? internalValue : 'Select a date'"
-                                ></v-btn>
-                        </template>
-                        <template v-slot:default="{ isActive }">
-                            <v-card title="Date">
-                                <v-date-picker
-                                    show-adjacent-months
-                                    v-model="subValues.picked_date"
-                                    validate-on="lazy input"
-                                ></v-date-picker>
-                                <v-card-actions>
-                                    <v-spacer></v-spacer>
-                                    <v-btn text="OK" @click="isActive.value = false"></v-btn>
-                                </v-card-actions>
-                            </v-card>
-                        </template>
-                    </v-dialog>
-                </span>
-                <span v-if="subValues.selectedFormat == 'YYYY-MM' || subValues.selectedFormat == 'YYYY'">
-                    <v-autocomplete
-                        label="Year"
-                        v-model="subValues.selectedYear"
-                        density="compact"
-                        variant="outlined"
-                        style="margin-left: auto;"
-                        :items="yearItems"
-                        class="text-caption"
-                    >
-                    </v-autocomplete>
-                </span>
+        <v-row no-gutters>
+            <v-col cols="1" class="mr-1">
+                <v-dialog max-width="500">
+                    <template v-slot:activator="{ props: activatorProps }">
+                            <v-btn
+                                v-bind="activatorProps"
+                                icon="mdi-calendar-month-outline"
+                                hide-details="auto"
+                                density="comfortable"
+                                style="border-radius: 5px;"
+                            ></v-btn>
+                    </template>
+                    <template v-slot:default="{ isActive }">
+                        <v-card title="Date">
+                            <v-confirm-edit v-model="subValues.picked_date" @save="isActive.value = false" @cancel="isActive.value = false">
+                                <template v-slot:default="{ model: proxyModel, actions }">
+                                    <v-date-picker
+                                        show-adjacent-months
+                                        v-model="proxyModel.value"
+                                        validate-on="lazy input"
+                                        hide-details="auto"
+                                    >
+                                        <template v-slot:actions>
+                                            <component :is="actions"></component>
+                                        </template>
+                                    </v-date-picker>
+                                </template>
+                            </v-confirm-edit>
+                        </v-card>
+                    </template>
+                </v-dialog>
             </v-col>
-            <v-col cols="4">
-                <span v-if="subValues.selectedFormat == 'YYYY-MM'">
-                    <v-autocomplete
-                        label="Month"
-                        v-model="subValues.selectedMonth"
-                        density="compact"
-                        variant="outlined"
-                        style="margin-left: auto;"
-                        :items="monthItems"
-                        class="text-caption"
-                    >
-                    </v-autocomplete>
-
-                </span>
+            <v-col cols="1" class="mr-1">
+                <v-dialog max-width="500">
+                    <template v-slot:activator="{ props: activatorProps }">
+                            <v-btn
+                                v-bind="activatorProps"
+                                icon="mdi-clock-time-eight-outline"
+                                hide-details="auto"
+                                density="comfortable"
+                                style="border-radius: 5px;"
+                            ></v-btn>
+                    </template>
+                    <template v-slot:default="{ isActive }">
+                        <v-card title="Time">
+                            <v-confirm-edit v-model="subValues.picked_time" @save="isActive.value = false" @cancel="isActive.value = false">
+                                <template v-slot:default="{ model: proxyModel, actions }">
+                                    <v-time-picker
+                                        use-seconds
+                                        format="24hr"
+                                        v-model="proxyModel.value"
+                                        validate-on="lazy input"
+                                        hide-details="auto"
+                                    >
+                                        <template v-slot:actions>
+                                            <component :is="actions"></component>
+                                        </template>
+                                    </v-time-picker>
+                                </template>
+                            </v-confirm-edit>
+                        </v-card>
+                    </template>
+                </v-dialog>
             </v-col>
-            <v-col cols="4">
-                <v-select
-                    label="Date format"
-                    v-model="subValues.selectedFormat"
+            <v-col>
+                <v-text-field
+                    class="w-100"
+                    v-model="subValues.datetime_string"
                     density="compact"
                     variant="outlined"
-                    style="margin-left: auto;"
-                    :items="formats"
-                    class="text-caption"
-                >
-                </v-select>
+                    hide-details="auto"
+                ></v-text-field>
             </v-col>
         </v-row>
-        
-        
     </v-input>
 </template>
 
 <script setup>
-import { inject, ref } from 'vue';
+import { inject, computed, watch } from 'vue';
 import { useRules } from '../composables/rules';
 import { useRegisterRef } from '../composables/refregister';
 import { useBaseInput } from '@/composables/base';
@@ -93,43 +99,18 @@ const props = defineProps({
     triple_idx: Number,
 });
 const { rules } = useRules(props.property_shape);
+const dateTimeRegex = /^([-+]\d+|\d{4}|\d{4}-[01]\d|\d{4}-[01]\d-[0-3]\d|\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d|\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d|\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+)(Z|[+-][0-2]\d:[0-5]\d)?$/;
+rules.value.push((value) => {
+    if (!value) return true;
+    if (dateTimeRegex.test(value)) return true;
+    return 'This is not a valid NOTE date-time string';
+});
 const inputId = `input-${Date.now()}`;
 const { fieldRef } = useRegisterRef(inputId, props);
 const emit = defineEmits(['update:modelValue']);
 const configVarsMain = inject('configVarsMain');
 const {componentName, componentConfig} = useCompConfig(configVarsMain)
 
-// const subValues.selectedFormat = ref("YYYY-MM-DD")
-const formats = [
-    "YYYY-MM-DD",                       //(eg 1997-07-16)    
-    "YYYY-MM",                          //(eg 1997-07)
-    "YYYY",                             //(eg 1997)
-    // "YYYY-MM-DDThh:mmTZD",           //(eg 1997-07-16T19:20+01:00)
-    // "YYYY-MM-DDThh:mm:ssTZD",        //(eg 1997-07-16T19:20:30+01:00)
-    // "YYYY-MM-DDThh:mm:ss.sTZD",      //(eg 1997-07-16T19:20:30.45+01:00)
-]
-const yearItems = []
-for (
-    var i=componentConfig?.yearEnd;
-    i>=componentConfig?.yearStart;
-    i--
-) {
-    yearItems.push(i)
-}
-const monthItems = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-]
 
 const { subValues, internalValue } = useBaseInput(
     props,
@@ -141,85 +122,156 @@ const { subValues, internalValue } = useBaseInput(
 function valueParser(value) {
     // Parsing internalValue into ref values for separate subcomponent(s)
     if(value) {
-        const { year, month, day } = parseDateString(value)
-        let sF
-        if (day) {
-            sF = 'YYYY-MM-DD';
-        } else if (month) {
-            sF = 'YYYY-MM';
-        } else {
-            sF = 'YYYY';
-        }
+        const parsedDateTime = parseW3CNoteString(value)
+        const dateStr = getDateString(parsedDateTime)
+        const timeStr = getTimeString(parsedDateTime)
         return {
-            selectedFormat: sF,
-            picked_date: value,
-            selectedYear: year,
-            selectedMonth: monthItems[month-1],
+            picked_date: dateStr,
+            picked_time: timeStr,
+            datetime_string: value
         };
     } else {
         return {
-            selectedFormat: 'YYYY-MM-DD',
             picked_date: null,
-            selectedYear: null,
-            selectedMonth:  null,
+            picked_time: null,
+            datetime_string: ''
         };
     }
 }
 
 function valueCombiner(values) {
-    if (values.selectedFormat == 'YYYY-MM-DD') {
-        if (values.picked_date) {
-            try {
-                var y = values.picked_date.getFullYear();
-                var m = ('0' + (parseInt(values.picked_date.getMonth()) + 1)).slice(
-                    -2
-                );
-                var d = ('0' + values.picked_date.getDate()).slice(-2);
-                return `${y}-${m}-${d}`;
-            } catch (error) {
-                const {year, month, day} = parseDateString(values.picked_date)
-                if (day) {
-                    var m = ('0' + month).slice(-2);
-                    var d = ('0' + day).slice(-2);
-                    return `${year}-${m}-${d}`;
-                } else {
-                    return null
-                }
-            }
-        }
-        return null;
-    }
-    if (values.selectedFormat == 'YYYY-MM') {
-        if (values.selectedYear && values.selectedMonth) {
-            var m = ('0' + (parseInt(monthItems.indexOf(values.selectedMonth)) + 1)).slice(-2);
-            return `${values.selectedYear}-${m}`;
-        } else {
-            return null
-        }
-    }
-    if (values.selectedFormat == 'YYYY') {
-        if (values.selectedYear) {
-            return `${values.selectedYear}`;
-        } else {
-            return null
-        }
-    }
+    return values.datetime_string;
 }
 
-function parseDateString(input) {
-    const parts = input.split('-');
-    const year = parseInt(parts[0]);
-    let month = null;
-    let day = null;
-    if (parts.length >= 2) {
-        const monthIndex = parseInt(parts[1], 10);
-        month = monthIndex || null;
+watch(
+    () => [subValues.value.picked_date, subValues.value.picked_time],
+    ([date, time]) => {
+        if (!date && !time) return;
+        let dt = date ? dateToString(date) : date
+        const combined = getDateTimeString(dt, time);
+        if (combined !== subValues.value.datetime_string) {
+            subValues.value.datetime_string = combined;
+        }
     }
-    if (parts.length === 3) {
-        day = parseInt(parts[2], 10);
+);
+
+watch(
+    () => subValues.value.datetime_string,
+    (newVal) => {
+        if (!dateTimeRegex.test(newVal)) return;
+        const parsed = parseW3CNoteString(newVal);
+        const date = getDateString(parsed);
+        let time = getTimeString(parsed);
+        if (time && time.split(':').length === 2) {
+            time = `${time}:00`;
+        }
+        subValues.value.picked_date = date;
+        subValues.value.picked_time = time;
     }
-    return { year, month, day };
+);
+
+
+function getDateTimeString(dateStr, timeStr) {
+    let result = '';
+    if (dateStr) {
+        result += dateStr;
+    }
+    if (timeStr) {
+        result = result + 'T' + timeStr;
+    }
+    return result
 }
+
+function getDateString(dateTime) {
+    let result = null;
+    if (dateTime.year) {
+        const y = String(dateTime.year).padStart(4, '0');
+        result = y;
+        if (dateTime.month) {
+            const m = String(dateTime.month).padStart(2, '0')
+            result = `${y}-${m}`
+            if (dateTime.day) {
+                const d = String(dateTime.day).padStart(2, '0')
+                result = `${y}-${m}-${d}`
+            }
+        }
+    }
+    return result;
+}
+
+function getTimeString(dateTime) {
+    let result = null;
+    if (dateTime.hour) {
+        const h = String(dateTime.hour).padStart(2, '0');
+        result = h;
+        if (dateTime.minute) {
+            const m = String(dateTime.minute).padStart(2, '0')
+            result = `${h}:${m}`
+            if (dateTime.second) {
+                const s = String(dateTime.second).padStart(2, '0')
+                result = `${h}:${m}:${s}`
+            }
+        }
+    }
+    return result;
+}
+
+function dateToString(inputDate) {
+    if (typeof inputDate.getFullYear !== 'function') return inputDate
+    var y = inputDate.getFullYear();
+    var m = ('0' + (parseInt(inputDate.getMonth()) + 1)).slice(-2);
+    var d = ('0' + inputDate.getDate()).slice(-2);
+    return `${y}-${m}-${d}`;
+}
+
+function parseW3CNoteString(input) {
+    const result = {
+        year: null,
+        month: null,
+        day: null,
+        hour: null,
+        minute: null,
+        second: null,
+        fraction: null,
+        timezone: null
+    };
+    if (!dateTimeRegex.test(input)) {
+        return result;
+    }
+
+    // Extract timezone if present
+    const tzMatch = input.match(/(Z|[+-][0-2]\d:[0-5]\d)$/);
+    if (tzMatch) {
+        result.timezone = tzMatch[1];
+        input = input.slice(0, -tzMatch[1].length);
+    }
+
+    // Split date and time
+    const [datePart, timePart] = input.split("T");
+
+    // ---- DATE ----
+    const dateParts = datePart.split("-");
+    result.year = parseInt(dateParts[0], 10);
+    if (dateParts.length > 1) {
+        result.month = parseInt(dateParts[1], 10);
+    }
+    if (dateParts.length > 2) {
+        result.day = parseInt(dateParts[2], 10);
+    }
+    // ---- TIME ----
+    if (timePart) {
+        const timeMatch = timePart.match(/^([0-2]\d)(?::([0-5]\d))?(?::([0-5]\d))?(?:\.(\d+))?$/);
+
+        if (timeMatch) {
+            result.hour = parseInt(timeMatch[1], 10);
+            if (timeMatch[2]) result.minute = parseInt(timeMatch[2], 10);
+            if (timeMatch[3]) result.second = parseInt(timeMatch[3], 10);
+            if (timeMatch[4]) result.fraction = timeMatch[4];
+        }
+    }
+    return result;
+}
+
 </script>
 
 <script>
