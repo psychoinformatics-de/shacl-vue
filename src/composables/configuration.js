@@ -10,6 +10,9 @@ const basePath = import.meta.env.BASE_URL || '/';
 const mainVarsToLoad = {
     app_name: 'shacl-vue',
     page_title: 'shacl-vue',
+    shapes_url: '',
+    data_url: '',
+    class_url: '',
     show_shapes_wo_id: true,
     show_classes: [],
     show_classes_with_prefix: [],
@@ -59,6 +62,7 @@ const mainVarsToLoad = {
         hover_color: '#1565C0',
         active_color: '#D32F2F',
         panel_color: '#41b883',
+        settings_color: '#1565C0',
         visited_color: '#41b882',
         logo: 'shacl_vue_logo.svg',
     },
@@ -68,6 +72,7 @@ const mainVarsToLoad = {
     token_info: '',
     token_info_url: '',
     use_service: false,
+    service_base_url: [],
     service_constrained_search: {
         min_characters: 4,
         typing_debounce: 800,
