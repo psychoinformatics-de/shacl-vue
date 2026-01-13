@@ -46,6 +46,9 @@ const mainVarsToLoad = {
             recordNumberStepSize: 5,
             textTruncateWidth: "85%",
         },
+        URIEditor: {
+            default: "curie",
+        },
     },
     content: {},
     display_name_autogenerate: {},
@@ -139,13 +142,9 @@ export function useConfig(url) {
                 if (externalConfigLoaded !== null) {
                     externalConfig = externalConfigLoaded;
                 }
-                console.log(`EXTERNAL CONFIG FOUND AND LOADED`)
-                console.log(externalConfig)
             }
             config.value = mergeWith(structuredClone(externalConfig), mainConfig, mergeCustomizer)
             configFetched.value = true;
-            console.log("merged config:")
-            console.log(config.value)
         } catch (error) {
             console.error('Fetch error:', error);
             configError.value = true;
@@ -168,7 +167,6 @@ export function useConfig(url) {
             } else {
                 return await response.json();
             }
-
         } catch (error) {
             console.error('Error fetching content:', error);
             return null
