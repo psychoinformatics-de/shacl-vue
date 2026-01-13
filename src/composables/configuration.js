@@ -5,6 +5,7 @@
 
 import { isObject, snakeToCamel } from '@/modules/utils';
 import { ref, onMounted, reactive } from 'vue';
+import { mergeWith } from 'lodash-es'
 const basePath = import.meta.env.BASE_URL || '/';
 
 const mainVarsToLoad = {
@@ -83,6 +84,25 @@ const mainVarsToLoad = {
     gitannex_p2phttp_config: {},
 };
 
+function mergeCustomizer(objValue, srcValue) {
+    if (!Array.isArray(objValue) || !Array.isArray(srcValue)) {
+        return undefined // let mergeWith handle it without a customizer
+    }
+    // Both are arrays, now inspect contents
+    const objHasObjects = objValue.some((el) => {
+        return isObject(el)
+    })
+    const srcHasObjects = srcValue.some((el) => {
+        return isObject(el)
+    })
+    // If arrays contain objects, override completely
+    if (objHasObjects || srcHasObjects) {
+        return srcValue
+    }
+    // Else, return merged array of primitives (strings, numbers, etc)
+    return [...new Set([...objValue, ...srcValue])]
+}
+
 export function useConfig(url) {
     const defaultURL = `${basePath}config.json`;
     var configURL;
@@ -112,8 +132,20 @@ export function useConfig(url) {
                     `Error fetching config file: ${response.statusText}`
                 );
             }
-            config.value = await response.json();
+            let mainConfig = await response.json();
+            let externalConfig = {};
+            if (mainConfig.external_config_url) {
+                let externalConfigLoaded = await loadContent(mainConfig.external_config_url, 'json')
+                if (externalConfigLoaded !== null) {
+                    externalConfig = externalConfigLoaded;
+                }
+                console.log(`EXTERNAL CONFIG FOUND AND LOADED`)
+                console.log(externalConfig)
+            }
+            config.value = mergeWith(structuredClone(externalConfig), mainConfig, mergeCustomizer)
             configFetched.value = true;
+            console.log("merged config:")
+            console.log(config.value)
         } catch (error) {
             console.error('Fetch error:', error);
             configError.value = true;
@@ -121,7 +153,7 @@ export function useConfig(url) {
         }
     });
 
-    async function loadTextContent(url) {
+    async function loadContent(url, format = 'json') {
         if (!url) {
             return null
         }
@@ -131,7 +163,12 @@ export function useConfig(url) {
                 console.error(`Error fetching content: ${response.statusText}`)
                 return null
             }
-            return await response.text();
+            if (format == 'text') {
+                return await response.text();
+            } else {
+                return await response.json();
+            }
+
         } catch (error) {
             console.error('Error fetching content:', error);
             return null
@@ -157,7 +194,7 @@ export function useConfig(url) {
     async function loadAllContent() {
         if (configVarsMain.content && Object.keys(configVarsMain.content).length > 0) {
             for (const src of Object.keys(configVarsMain.content)) {
-                configVarsMain.content[src].value = await loadTextContent(configVarsMain.content[src].url)
+                configVarsMain.content[src].value = await loadContent(configVarsMain.content[src].ur, 'text')
             }
         }
     }
@@ -168,7 +205,6 @@ export function useConfig(url) {
         configError,
         configVarsMain,
         loadConfigVars,
-        loadTextContent,
         loadAllContent,
     };
 }

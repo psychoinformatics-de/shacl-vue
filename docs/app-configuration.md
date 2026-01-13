@@ -14,6 +14,7 @@ Current configuration options include:
 
 ```json
 {
+    "external_config_url": "",
     "app_name": "",
     "page_title": "",
     "documentation_url": "",
@@ -26,7 +27,7 @@ Current configuration options include:
     ]
 }
 ```
-
+- `external_config_url` is a source URL of an external configuration file that will be loaded by default, and into which the application's main configuration file content will be merged, with the latter taking precedence in case of any option clashes. This option is handy for defining default configuration options that are shared across multiple different `shacl-vue` deployments. The options in the external configuration are subject to the same constraints as described on this page.
 - `app_name` is the name of the application displayed in the browser tab and UI
 - `page_title` is the title for the HTML page
 - `documentation_url` is the URL of the user documentation for the specific `shacl-vue` instance
