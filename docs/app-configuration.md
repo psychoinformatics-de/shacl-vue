@@ -68,6 +68,7 @@ The loaded text of a specific content key can be pointed to from any other optio
         "active_color": "",
         "vistied_color": "",
         "panel_color": "",
+        "settings_color": "",
         "logo": "",
     },
     "front_page_content": ""
@@ -80,6 +81,7 @@ Colors schemes and application logo can be set via the `app_theme` option:
 - `active_color` is the link active state color
 - `visited_color` (Optional) is the visited link color
 - `panel_color` is the background color of the main left-hand-side UI panel displaying all data types
+- `settings_color` is the background color of the settings panel activated by the gear icon in the application header
 - `logo` is the path to the logo used in the HTML page header.  The logo path should either be a unique and absolute online URI, or a path relative to `shacl-vue/public` in the case of a file local to the repository.
 
 All colors should be defined using hexadecimal color codes (#RRGGBB).
