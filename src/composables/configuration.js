@@ -53,6 +53,7 @@ const mainVarsToLoad = {
     },
     id_iri: "",
     id_autogenerate: {},
+    id_autogenerate_override: false,
     prefixes: {},
     class_icons: {},
     documentation_url: 'https://psychoinformatics-de.github.io/shacl-vue/docs/',

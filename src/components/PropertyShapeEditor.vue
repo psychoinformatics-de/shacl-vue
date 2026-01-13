@@ -29,7 +29,22 @@
                                     true
                                 )
                             }}</span>
-                            <span v-if="isRequired" style="color: red"> *</span>:
+                            <span v-if="isRequired" style="color: red"> *</span>
+                            <span v-if="showIDoverride">
+                                <v-tooltip text="Edit PID manually" location="bottom">
+                                    <template v-slot:activator="{ props }">
+                                        <v-btn
+                                            variant="text"
+                                            v-bind:="props"
+                                            no-gutters
+                                            @click="editPID()"
+                                            density="compact"
+                                            :icon="idOverrideSwitch ? 'mdi-pencil-off' : 'mdi-pencil'"
+                                            size="small"
+                                        ></v-btn>
+                                    </template>
+                                </v-tooltip>
+                            </span>:
                     </span>
                 </v-col>
                 <v-col cols="8">
@@ -234,6 +249,8 @@ const configMatchedComponent = ref(null);
 const {componentName, componentConfig} = useCompConfig(configVarsMain);
 const defaultStep = componentConfig?.recordNumberStepSize;
 const currentCount = ref(defaultStep)
+const showIDoverride = ref(false)
+const idOverrideSwitch = ref(false)
 
 // ----------------- //
 // Lifecycle methods //
@@ -291,6 +308,14 @@ onMounted(() => {
             current_triple_objects[0].value
         ) {
             compDisabled.value = true;
+            // Also check if PID field disable override is configured for this class
+            if (
+                configVarsMain.idAutogenerateOverride === true ||
+                (Array.isArray(configVarsMain.idAutogenerateOverride) &&
+                configVarsMain.idAutogenerateOverride.includes(localNodeUid.value))
+            ) {
+                showIDoverride.value = true;
+            }
             return;
         } else {
             var new_id_val = '';
@@ -315,6 +340,14 @@ onMounted(() => {
                 [{value:new_id_val, _key: crypto.randomUUID()}]
             );
             compDisabled.value = true;
+        }
+        // Now we check if PID field disable override is configured for this class
+        if (
+            configVarsMain.idAutogenerateOverride === true ||
+            (Array.isArray(configVarsMain.idAutogenerateOverride) &&
+            configVarsMain.idAutogenerateOverride.includes(localNodeUid.value))
+        ) {
+            showIDoverride.value = true;
         }
     } else {
         if (
@@ -378,6 +411,11 @@ const show_field = computed(() => {
 // --------- //
 // Functions //
 // --------- //
+
+function editPID() {
+    idOverrideSwitch.value = !idOverrideSwitch.value;
+    compDisabled.value = !idOverrideSwitch.value
+}
 
 function allowAddTriple(idx) {
     // if there is no maxCount, allowMultiple = true
