@@ -667,3 +667,19 @@ export function includeClass(class_iri, showHide_config, allPrefixes) {
         return false
     }
 }
+
+export function transformSearchFieldName(fieldName, format = 'curie', allPrefixes) {
+    if (fieldName === "skos:prefLabel") {
+        return "_prefLabel";
+    } else if (fieldName === "shaclvue:displayLabel") {
+        return "_displayLabel";
+    } else if (fieldName === "dlthings:pid") {
+        return "itemValue";
+    } else {
+        if (format === 'curie') {
+            return fieldName;
+        } else {
+            return toIRI(fieldName, allPrefixes);
+        }
+    }
+}

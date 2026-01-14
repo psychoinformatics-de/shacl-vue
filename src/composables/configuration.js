@@ -23,6 +23,11 @@ const mainVarsToLoad = {
     allow_edit_instances: [],
     allow_copy_record_urls: true,
     editor_selection: {},
+    filter_records_by: [
+        "skos:prefLabel",
+        "shaclvue:displayLabel",
+        "dlthings:pid"
+    ],
     component_config: {
         W3CISO8601YearEditor: {
             yearStart: 1925,
