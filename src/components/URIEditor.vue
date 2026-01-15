@@ -61,6 +61,7 @@ import { isObject } from '../modules/utils';
 import { toCURIE } from 'shacl-tulip';
 import { useRegisterRef } from '../composables/refregister';
 import { useBaseInput } from '@/composables/base';
+import { useCompConfig } from '@/composables/useCompConfig';
 
 const props = defineProps({
     modelValue: String,
@@ -81,6 +82,7 @@ const inputId = `input-${Date.now()}`;
 const { fieldRef } = useRegisterRef(inputId, props);
 
 const allPrefixes = inject('allPrefixes');
+const configVarsMain = inject('configVarsMain');
 const enterCURIE = ref(true);
 
 const emit = defineEmits(['update:modelValue']);
@@ -90,6 +92,14 @@ const { subValues, internalValue } = useBaseInput(
     valueParser,
     valueCombiner
 );
+const {componentName, componentConfig} = useCompConfig(configVarsMain)
+if (componentConfig && isObject(componentConfig) && Object.keys(componentConfig).includes(props.triple_uid)) {
+    enterCURIE.value = componentConfig[props.triple_uid];
+} else if (componentConfig && componentConfig.default ) {
+    enterCURIE.value = componentConfig.default == 'curie';
+} else {
+    enterCURIE.value = true;
+}
 
 // ----------------- //
 // Lifecycle methods //

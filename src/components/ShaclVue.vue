@@ -492,6 +492,7 @@ import {
     getSubClasses,
     getContent,
     includeClass,
+    transformSearchFieldName,
 } from '../modules/utils';
 import { toCURIE, toIRI } from 'shacl-tulip';
 import editorMatchers from '@/modules/editors';
@@ -625,6 +626,7 @@ const { token, setToken, clearToken } = useToken();
 const ID_IRI = ref('');
 const canEditClass = ref(true)
 const frontPageHTML = ref(null)
+const searchableFields = [];
 watch(
     configFetched,
     async (newValue) => {
@@ -800,6 +802,12 @@ watch(
             }
             for (const classUri of allClasses) {
                 allSubClasses[classUri] = getSubClasses(classUri, classDS.data.graph);
+            }
+
+            // Now that we have all prefixes and configVarsMain, let's transform/derive the searchable fields,
+            // i.e fields for "filter records by"
+            for (const field of configVarsMain.filterRecordsBy) {
+                searchableFields.push(transformSearchFieldName(field, 'uri', allPrefixes))
             }
         }
     },
@@ -1318,8 +1326,6 @@ function getInstanceItems() {
     fetchedItemCount.value = instanceItemsComp.value.length;
 }
 
-
-const searchableFields = ["_prefLabel", "_displayLabel", "itemValue"];
 function getSortValue(item) {
     for (const field of searchableFields) {
         const value = item.props[field];
@@ -1348,8 +1354,15 @@ const filteredInstanceItemsComp = computed(() => {
         [...instanceItemsComp.value].filter((item) => {
             if (txt.length == 0) return true;
             return searchableFields.some((field) => {
+                if (!(field in item.props)) return false;
                 const value = item.props[field]?.toString().toLowerCase().trim();
-                return value.includes(txt);
+                if (Array.isArray(value)) {
+                    return value.some((val) => {
+                        return val.includes(txt);
+                    })
+                } else {
+                    return value.includes(txt);
+                }
             });
         })
     )
@@ -1360,6 +1373,7 @@ const matchedInstanceItemsComp = computed(() => {
         [...instanceItemsComp.value].filter((item) => {
             if (txt.length == 0) return true;
             return searchableFields.some((field) => {
+                if (!(field in item.props)) return false;
                 const value = item.props[field]?.toString().toLowerCase().trim();
                 return value === txt;
             });

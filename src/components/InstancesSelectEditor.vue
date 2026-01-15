@@ -320,6 +320,7 @@ import {
     includeClass,
     snakeToCamel,
     getDisplayName,
+    transformSearchFieldName,
 } from '../modules/utils';
 import { toCURIE, toIRI } from 'shacl-tulip';
 import { useRegisterRef } from '../composables/refregister';
@@ -491,7 +492,10 @@ const saveDialogForm = () => {
 provide('saveFormHandler', saveDialogForm);
 let debounceTypingTimer = null;
 
-
+const searchableFields = [];
+for (const field of configVarsMain.filterRecordsBy) {
+    searchableFields.push(transformSearchFieldName(field))
+}
 
 const showClearIcon = computed(() => {
     if ((!menu.value) && subValues.value.selectedInstance) {
@@ -1035,11 +1039,11 @@ async function getItemsToList() {
 const filteredItems = computed(() => {
     if (!itemsToList.value.length) return [];
     const searchText = queryText.value.toLowerCase();
-    const searchableFields = ["_prefLabel", "_displayLabel", "itemValue"];
     return [...itemsToList.value]
         .filter((item) => {
             if (searchText.length == 0) return true;
             return searchableFields.some((field) => {
+                if (!(field in item.props)) return false;
                 const value = item.props[field];
                 return value?.toString().toLowerCase().includes(searchText);
             });

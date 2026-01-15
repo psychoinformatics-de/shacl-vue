@@ -1,0 +1,70 @@
+{
+    "use_default_shapes": false,
+    "use_default_data": false,
+    "use_default_classes": false,
+    "id_iri": "https://concepts.datalad.org/s/things/v1/pid",
+    "id_resolves_externally": [
+        "bibo",
+        "doi",
+        "geodata",
+        "gepris",
+        "IAO",
+        "ISSN",
+        "marcrel",
+        "obo",
+        "orcid",
+        "ror",
+        "rrid",
+        "spdxlic"
+    ],
+    "id_autogenerate_override": true,
+    "editor_selection": {
+        "sh:datatype": {
+            "xyzrse:flexdate": "W3CISO8601DateTimeEditor",
+            "w3ctr:NOTE-datetime": "W3CISO8601DateTimeEditor"
+        },
+        "shaclvue:gitAnnexUpload": {
+            "true": "InstancesUploadEditor"
+        }
+    },
+    "filter_records_by": [
+        "skos:prefLabel",
+        "shaclvue:displayLabel",
+        "dlthings:pid"
+    ],
+    "component_config": {
+        "W3CISO8601DateTimeEditor": {
+            "yearStart": 1990,
+            "yearEnd": 2028
+        }
+    },
+    "class_name_display": "name",
+    "service_constrained_search": {
+        "min_characters": 3
+    },
+    "service_endpoints": {
+        "post-record": "record/{name}?format=ttl",
+        "get-record": "record?pid={curie}&format=ttl",
+        "get-records": "records/{name}?format=ttl",
+        "get-paginated-records": "records/p/{name}?format=ttl&size=100&page={page_number}",
+        "get-paginated-records-constrained": "records/p/{name}?format=ttl&matching=%25{match_string}%25&size=100&page={page_number}"
+    },
+    "prefixes": {
+        "shaclvue": "https://concepts.datalad.org/ns/shaclvue/"
+    },
+    "class_icons": {
+        "https://concepts.datalad.org/s/identifiers/unreleased/Checksum": "mdi-file-check-outline",
+        "https://concepts.datalad.org/s/identifiers/unreleased/ComputedIdentifier": "mdi-pound-box-outline",
+        "https://concepts.datalad.org/s/identifiers/unreleased/DOI": "mdi-identifier",
+        "https://concepts.datalad.org/s/identifiers/unreleased/Identifier": "mdi-identifier",
+        "https://concepts.datalad.org/s/identifiers/unreleased/IssuedIdentifier": "mdi-identifier",
+        "https://concepts.datalad.org/s/prov-mixin/unreleased/Association": "mdi-account-switch",
+        "https://concepts.datalad.org/s/prov-mixin/unreleased/Communication": "mdi-message-text-outline",
+        "https://concepts.datalad.org/s/prov-mixin/unreleased/End": "mdi-clock-end",
+        "https://concepts.datalad.org/s/prov-mixin/unreleased/Start": "mdi-clock-start",
+        "https://concepts.datalad.org/s/prov-mixin/unreleased/Usage": "mdi-format-list-checks",
+        "https://concepts.datalad.org/s/things/v1/Annotation": "mdi-tag-outline",
+        "https://concepts.datalad.org/s/things/v1/AttributeSpecification": "mdi-playlist-check",
+        "https://concepts.datalad.org/s/things/v1/Statement": "mdi-comment-text-outline"
+    }
+}
