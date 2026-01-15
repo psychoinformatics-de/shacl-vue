@@ -1,6 +1,6 @@
 # shacl-vue
 
-**_THIS REPOSITORY IS UNDER CONTINUOUS DEVELOPMENT_**
+**_CONTINUOUS DEVELOPMENT OF THIS PROJECT HAS MOVED TO https://hub.psychoinformatics.de/datalink/shacl-vue.git_**
 
 ## Overview
 
