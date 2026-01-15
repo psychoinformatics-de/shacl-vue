@@ -36,9 +36,28 @@
         "W3CISO8601DateTimeEditor": {
             "yearStart": 1990,
             "yearEnd": 2028
+        },
+        "URIEditor": {
+            "default": "curie"
         }
     },
     "class_name_display": "name",
+    "display_name_autogenerate": {
+        "dlidentifiers:ComputedIdentifier": "{dlidentifiers:notation} ({dlidentifiers:creator})",
+        "dlidentifiers:IssuedIdentifier": "{dlidentifiers:notation} ({dlidentifiers:creator})",
+        "dlidentifiers:Identifier": "{dlidentifiers:notation} ({dlidentifiers:schema_agency} {dlidentifiers:creator})",
+        "dlidentifiers:Checksum": "{dlidentifiers:creator}:{dlidentifiers:notation}",
+        "dlidentifiers:DOI": "DOI: {dlidentifiers:notation}",
+        "dlprovmx:End": "{dltemporalmx:at_time}",
+        "dlprovmx:Start": "{dltemporalmx:at_time}",
+        "dlprovmx:Usage": "{rdf:object} ({dlrelationsmx:roles})",
+        "dlprovmx:Association": "{rdf:object} ({dlrelationsmx:roles})"
+    },
+    "display_name_autogenerate_placeholder": {
+        "default": "?",
+        "dlidentifiers:creator": "",
+        "dlidentifiers:schema_agency": ""
+    },
     "service_constrained_search": {
         "min_characters": 3
     },
