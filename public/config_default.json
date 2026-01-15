@@ -15,6 +15,7 @@
         "orcid",
         "ror",
         "rrid",
+        "sio",
         "spdxlic"
     ],
     "id_autogenerate_override": true,
