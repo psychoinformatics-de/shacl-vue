@@ -44,11 +44,13 @@
     },
     "class_name_display": "name",
     "display_name_autogenerate": {
-        "dlidentifiers:ComputedIdentifier": "{dlidentifiers:notation} ({dlidentifiers:creator})",
-        "dlidentifiers:IssuedIdentifier": "{dlidentifiers:notation} ({dlidentifiers:creator})",
+        "dlthings:Statement": "{rdf:predicate}: {rdf:object}",
         "dlidentifiers:Identifier": "{dlidentifiers:notation} ({dlidentifiers:schema_agency} {dlidentifiers:creator})",
+        "dlidentifiers:IssuedIdentifier": "{dlidentifiers:notation} ({dlidentifiers:schema_agency} {dlidentifiers:creator})",
+        "dlidentifiers:ComputedIdentifier": "{dlidentifiers:notation} ({dlidentifiers:schema_agency} {dlidentifiers:creator})",
         "dlidentifiers:Checksum": "{dlidentifiers:creator}:{dlidentifiers:notation}",
         "dlidentifiers:DOI": "DOI: {dlidentifiers:notation}",
+        "dlflat:FlatAttributeSpecification": "{rdf:predicate}: {rdf:value}",
         "dlprovmx:End": "{dltemporalmx:at_time}",
         "dlprovmx:Start": "{dltemporalmx:at_time}",
         "dlprovmx:Usage": "{rdf:object} ({dlrelationsmx:roles})",
@@ -73,6 +75,10 @@
         "shaclvue": "https://concepts.datalad.org/ns/shaclvue/"
     },
     "class_icons": {
+        "https://concepts.datalad.org/s/flat/unreleased/AnnotationTag": "mdi-tag-outline",    
+        "https://concepts.datalad.org/s/flat/unreleased/FlatAttributeSpecification": "mdi-playlist-check",
+        "https://concepts.datalad.org/s/flat/unreleased/FlatProperty": "mdi-contain-start",
+        "https://concepts.datalad.org/s/flat/unreleased/FlatStatement": "mdi-comment-text-outline",
         "https://concepts.datalad.org/s/identifiers/unreleased/Checksum": "mdi-file-check-outline",
         "https://concepts.datalad.org/s/identifiers/unreleased/ComputedIdentifier": "mdi-pound-box-outline",
         "https://concepts.datalad.org/s/identifiers/unreleased/DOI": "mdi-identifier",
@@ -85,6 +91,7 @@
         "https://concepts.datalad.org/s/prov-mixin/unreleased/Usage": "mdi-format-list-checks",
         "https://concepts.datalad.org/s/things/v1/Annotation": "mdi-tag-outline",
         "https://concepts.datalad.org/s/things/v1/AttributeSpecification": "mdi-playlist-check",
+        "https://concepts.datalad.org/s/things/v1/Property": "mdi-contain-start",
         "https://concepts.datalad.org/s/things/v1/Statement": "mdi-comment-text-outline"
     }
 }
